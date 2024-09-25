@@ -9,6 +9,7 @@ on:
       - dev-*
       - release*
       - master
+      - main
 jobs:
   build_test_ubuntu:
     runs-on: ubuntu-latest
