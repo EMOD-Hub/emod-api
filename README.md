@@ -58,14 +58,14 @@ Output
 
 ## Dev Tips
 
-- To build package: `python package_setup.py build`
+- To build package: `python setup.py build`
 
-- To build wheel (.whl): `python package_setup.py bdist_wheel`
+- To build wheel (.whl): `python setup.py bdist_wheel`
 
 - To import package, you can either:
   - Set symlink to built module in build subdirectory
-  - do python package_setup.py install
-  - do python package_setup.py develop
+  - do python setup.py install
+  - do python setup.py develop
 
 - To install package (fill in actual version number in filename):  
 `    pip install dist/emod_api...whl`

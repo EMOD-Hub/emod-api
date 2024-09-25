@@ -37,7 +37,7 @@ jobs:
       - name: Build and install package
         uses: ./.github/actions/build-install-package
         with:
-          package_file: 'package_setup.py'
+          package_file: 'setup.py'
       - name: run unit tests
         run: |
           pip install lz4

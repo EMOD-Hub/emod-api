@@ -49,13 +49,13 @@ podTemplate(
 			sh 'pwd'
 			sh 'ls -a'
 			//sh 'python3.6 -m build'
-			sh 'python3.6 package_setup.py bdist_wheel'
+			sh 'python3.6 setup.py bdist_wheel'
 		}
 		stage('Install') {
 			def curDate = sh(returnStdout: true, script: "date").trim()
             echo "The current date is ${curDate}"
             def wheelFile = sh(returnStdout: true, script: "find ./dist -name '*.whl'").toString().trim()
-			//def wheelFile = sh(returnStdout: true, script: "python3.6 ./.github/scripts/get_wheel_filename.py --package-file package_setup.py").toString().trim()
+			//def wheelFile = sh(returnStdout: true, script: "python3.6 ./.github/scripts/get_wheel_filename.py --package-file setup.py").toString().trim()
 			echo "This is the package file: ${wheelFile}"
 			sh "pip3.6 install $wheelFile"
 			sh "pip3.6 freeze"

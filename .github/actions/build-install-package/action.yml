@@ -4,7 +4,7 @@ inputs:
   package_file:
     description: 'Path to package setup python script.'
     required: false
-    default: 'package_setup.py'
+    default: 'setup.py'
 outputs:
   wheel-file:
     description: "Wheel filename"
