@@ -78,7 +78,6 @@
          "IndividualAttributes": {
             "AgeDistribution": {
                "DistributionValues": [
-                  [
                      0.0,
                      0.09283128862223852,
                      0.1772211025454774,
@@ -129,11 +128,9 @@
                      1.0000000000000013,
                      1.0000000000000013,
                      1.0000000000000013
-                  ]
                ],
                "ResultScaleFactor": 1,
                "ResultValues": [
-                  [
                      0.0,
                      894.0,
                      1788.0,
@@ -184,7 +181,6 @@
                      42012.0,
                      42906.0,
                      43800.0
-                  ]
                ]
             },
             "FertilityDistribution": {},

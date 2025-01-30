@@ -140,7 +140,6 @@
          "SusceptibilityDist_Description": "Rough initialization to reduce burn-in and prevent huge outbreaks at sim start.  Exponential distribution, Average age at infection ~3.5 years, minimum susceptibility is 2.5% at old ages",
          "SusceptibilityDistribution": {
             "DistributionValues": [
-               [
                   0,
                   365,
                   730,
@@ -241,11 +240,9 @@
                   35405,
                   35770,
                   36135
-               ]
             ],
             "ResultScaleFactor": 1,
             "ResultValues": [
-               [
                   1.0,
                   1.0,
                   0.7639118261738191,
@@ -346,7 +343,6 @@
                   0.025000000002688146,
                   0.025000000002037236,
                   0.025000000001543937
-               ]
             ]
          }
       },

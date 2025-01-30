@@ -705,9 +705,9 @@ class EquilibriumAgeDistributionConcern(DemographicsGeneratorConcern):
         keys = {k.lower(): k for k in node_attributes.keys()}
 
         age_dist_config = {
-            "DistributionValues": [distval.tolist()],
+            "DistributionValues": distval.tolist(),
             "ResultScaleFactor": 1,
-            "ResultValues": [resval.tolist()],
+            "ResultValues": resval.tolist(),
         }
         if "country" in keys and node_attributes[keys["country"]]:
             node_individual_attributes.update(

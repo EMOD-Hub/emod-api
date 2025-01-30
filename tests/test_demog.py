@@ -222,7 +222,10 @@ class DemogTest(unittest.TestCase):
         demog = Demographics.from_template_node()
         c_birth_rate = 20
         c_mort_rate = 30
-        default_susc = {"DistributionValues": [[i * 365 for i in range(100)]], "ResultScaleFactor": 1, "ResultValues": [[1.0, 1.0] + [0.025 + 0.975 * math.exp(-(i - 1) / (2.5 / math.log(2))) for i in range(2, 100, 1)]]}
+        default_susc = {"DistributionValues": [i * 365 for i in range(100)],
+                        "ResultScaleFactor": 1,
+                        "ResultValues": [1.0, 1.0] + [0.025 + 0.975 * math.exp(-(i - 1) / (2.5 / math.log(2)))
+                                                      for i in range(2, 100, 1)]}
 
         demog.SetDefaultPropertiesFertMort(crude_birth_rate=c_birth_rate, crude_mort_rate=c_mort_rate)
         from emod_api.demographics.DemographicsTemplates import CrudeRate
@@ -274,13 +277,9 @@ class DemogTest(unittest.TestCase):
         template = DT.EveryoneInitiallySusceptible
         demog = self.demog_template_test(template=template)
         expect_susceptibility_distribution = {
-            "DistributionValues": [
-                [0, 36500]
-            ],
+            "DistributionValues": [0, 36500],
             "ResultScaleFactor": 1,
-            "ResultValues": [
-                [1.0, 1.0]
-            ]
+            "ResultValues": [1.0, 1.0]
         }
         self.assertEqual(expect_susceptibility_distribution, demog.raw['Defaults']['IndividualAttributes'][
             'SusceptibilityDistribution'])
@@ -1912,17 +1911,13 @@ class DemographicsOverlayTest(unittest.TestCase):
                 "IndividualAttributes": {
                     "AgeDistribution": {
                         "DistributionValues": [
-                            [
                                 0.0,
                                 1.0
-                            ]
                         ],
                         "ResultScaleFactor": 1,
                         "ResultValues": [
-                            [
                                 0,
                                 43769
-                            ]
                         ]
                     },
                     "MortalityDistribution": {
@@ -1981,9 +1976,9 @@ class DemographicsOverlayTest(unittest.TestCase):
         }
 
         individual_attributes = IndividualAttributes()
-        individual_attributes.age_distribution = IndividualAttributes.AgeDistribution(distribution_values=[[0.0, 1.0]],
+        individual_attributes.age_distribution = IndividualAttributes.AgeDistribution(distribution_values=[0.0, 1.0],
                                                                                                 result_scale_factor=1,
-                                                                                                result_values=[[0, 43769]])
+                                                                                                result_values=[0, 43769])
 
         individual_attributes.mortality_distribution = IndividualAttributes.MortalityDistribution(axis_names=["gender", "age"],
                                                                                                             axis_scale_factors=[1, 1],

@@ -289,13 +289,9 @@ def EveryoneInitiallySusceptible( demog, setting=1.0 ):
     suscDist = {
         "SusceptibilityDist_Description": f"Everyone is initially susceptible with probability {setting}",
         "SusceptibilityDistribution": {
-            "DistributionValues": [
-                [0, 36500]
-            ],
+            "DistributionValues": [0, 36500],
             "ResultScaleFactor": 1,
-            "ResultValues": [
-                [setting, setting]
-            ]
+            "ResultValues": [setting, setting]
         }
     }
     demog.SetDefaultFromTemplate( suscDist, _set_suscept_complex )
@@ -305,13 +301,9 @@ def StepFunctionSusceptibility( demog, protected_setting=0.0, threshold_age=365*
     suscDist = {
         "SusceptibilityDist_Description": "Youngers are somewhat protected",
         "SusceptibilityDistribution": {
-            "DistributionValues": [
-                [0, threshold_age, threshold_age, 36500]
-            ],
+            "DistributionValues": [0, threshold_age, threshold_age, 36500],
             "ResultScaleFactor": 1,
-            "ResultValues": [
-                [protected_setting, protected_setting, 1.0, 1.0]
-            ]
+            "ResultValues": [protected_setting, protected_setting, 1.0, 1.0]
         }
     }
     demog.SetDefaultFromTemplate( suscDist, _set_suscept_complex )
@@ -335,15 +327,14 @@ def SimpleSusceptibilityDistribution( demog, meanAgeAtInfection=2.5):
     # Calling code in emodpy will call this and pass the demographics instance then we
     # call SetDefaultFromTemplate on the demog object so we can also pass the setter function
     suscDist = {
-        "SusceptibilityDist_Description": f"Rough initialization to reduce burn-in and prevent huge outbreaks at sim start.  Exponential distribution, Average age at infection ~{meanAgeAtInfection} years, minimum susceptibility is 2.5% at old ages",
+        "SusceptibilityDist_Description": f"Rough initialization to reduce burn-in and prevent huge outbreaks at "
+                                          f"sim start.  Exponential distribution, Average age at infection "
+                                          f"~{meanAgeAtInfection} years, minimum susceptibility is 2.5% at old ages",
         "SusceptibilityDistribution": {
-            "DistributionValues": [
-                [i * 365 for i in range(100)]
-            ],
+            "DistributionValues":  [i * 365 for i in range(100)],
             "ResultScaleFactor": 1,
-            "ResultValues": [
-                [1.0, 1.0] + [0.025 + 0.975 * math.exp(-(i - 1) / (meanAgeAtInfection / math.log(2))) for i in range(2, 100, 1)]
-            ]
+            "ResultValues":  [1.0, 1.0] + [0.025 + 0.975 * math.exp(-(i - 1) / (meanAgeAtInfection / math.log(2)))
+                                           for i in range(2, 100, 1)]
         }
     }
     demog.SetDefaultFromTemplate( suscDist, _set_suscept_complex )
@@ -351,15 +342,14 @@ def SimpleSusceptibilityDistribution( demog, meanAgeAtInfection=2.5):
 def DefaultSusceptibilityDistribution( demog ): 
     # set config.Susceptibility_Initialization_Distribution_Type=COMPLEX
     suscDist = {
-        "SusceptibilityDist_Description": "Rough initialization to reduce burn-in and prevent huge outbreaks at sim start.  Exponential distribution, Average age at infection ~3.5 years, minimum susceptibility is 2.5% at old ages",
+        "SusceptibilityDist_Description": "Rough initialization to reduce burn-in and prevent huge outbreaks at sim "
+                                          "start.  Exponential distribution, Average age at infection ~3.5 years,"
+                                          "minimum susceptibility is 2.5% at old ages",
         "SusceptibilityDistribution": {
-            "DistributionValues": [
-                [i * 365 for i in range(100)]
-            ],
+            "DistributionValues": [i * 365 for i in range(100)],
             "ResultScaleFactor": 1,
-            "ResultValues": [
-                [1.0, 1.0] + [0.025 + 0.975 * math.exp(-(i - 1) / (2.5 / math.log(2))) for i in range(2, 100, 1)]
-            ]
+            "ResultValues":  [1.0, 1.0] + [0.025 + 0.975 * math.exp(-(i - 1) / (2.5 / math.log(2)))
+                                           for i in range(2, 100, 1)]
         }
     }
     demog.SetDefaultFromTemplate( suscDist, _set_suscept_complex )
@@ -780,9 +770,9 @@ def demographicsBuilder(pop_dat_file: Path, base_year: int, start_year: int=1950
     age_x = [0] + age_init_cdf.tolist()
 
     ad = IndividualAttributes.AgeDistribution()
-    ad.distribution_values = [age_x]
+    ad.distribution_values = age_x
     ad.result_scale_factor = 1
-    ad.result_values = [age_y]
+    ad.result_values = age_y
 
     mort_vec_x = mortality_rate_x_values
     mort_year = np.zeros(2*year_vec.shape[0]-3)
