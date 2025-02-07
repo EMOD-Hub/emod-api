@@ -11,3 +11,5 @@ prodict # utility for dictionaries
 graphviz
 parse
 matplotlib
+lz4
+python-snappy
