@@ -83,7 +83,6 @@ class SerializedPopulation:
         sim["infectionSuidGenerator"]["next_suid"] = self.get_next_infection_suid()
         self.dtk.simulation = sim
 
-        self.dtk.compression = dft.LZ4
         print(f"Saving file {output_file}.")
         dft.write(self.dtk, output_file)
 

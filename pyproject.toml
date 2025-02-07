@@ -25,7 +25,7 @@ dependencies = [
     "pyproj",
     "geographiclib",
     "scikit-learn",
-    "lz4", # should pick up pre-built Gohlke wheel from Artifactory
+    "lz4",
     "prodict", # utility for dictionaries
     "graphviz",
     "parse",
