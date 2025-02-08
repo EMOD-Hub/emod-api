@@ -43,7 +43,7 @@ class Snappy(object):
     @classmethod
     def uncompress(cls, data):
         if SNAPPY_SUPPORT:
-            return snappy.decompress(data)
+            return snappy.uncompress(data)
         raise UserWarning("Snappy [de]compression not available.")
 
 
