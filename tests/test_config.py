@@ -534,7 +534,9 @@ class ConfigTest(unittest.TestCase):
             "idmType:IncidenceCounter", 
             "idmType:IncidenceCounterSurveillance", 
             "idmType:Insecticide", 
-            "idmType:InsecticideWaningEffect", 
+            "idmType:InsecticideWaningEffect_RK",
+            "idmType:InsecticideWaningEffect_RBK",
+            "idmType:InsecticideWaningEffect_K",
             "idmType:InterpolatedValueMap", 
             # "idmType:LarvalHabitatMultiplier", # removed by DtkTrunk #4413
             "idmType:LarvalHabitatMultiplierSpec",
