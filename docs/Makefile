@@ -46,8 +46,14 @@ help:
 
 .PHONY: clean
 clean:
+ifeq ($(OS),Windows_NT)
+	del /Q /S $(BUILDDIR)\*
+	del /Q /S emod_api*.rst
+	del /Q /S modules.rst
+else
 	rm -rf $(BUILDDIR)/*
 	rm -rf modules.rst emod_api*.rst
+endif
 
 .PHONY: generate-api
 

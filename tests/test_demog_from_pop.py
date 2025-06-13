@@ -9,18 +9,26 @@ import numpy as np
 from datetime import date
 import getpass
 
+import manifest
+
+data_directory = os.path.join(manifest.current_directory, 'data')
+demo_folder = os.path.join(data_directory, 'demographics')
+
 class DemogFromPop(unittest.TestCase):
     def setUp(self):
-        if os.path.exists("burkina_demog.json"):
-           os.remove("burkina_demog.json") 
+        self.burkina_demographic_filename = os.path.join(demo_folder, "burkina_demog.json")
+        if os.path.exists(self.burkina_demographic_filename):
+           os.remove(self.burkina_demographic_filename)
+        self.no_site_grid_csv_filename = os.path.join(data_directory, "spatial_gridded_pop_dir/No_Site_grid.csv")
+        self.no_site_grid_2_json_filename = os.path.join(data_directory, "spatial_gridded_pop_dir/No_Site_grid_id_2_cell_id.json")
         super().setUp()
         pass
 
     def tearDown(self):
-        if os.path.exists("spatial_gridded_pop_dir/No_Site_grid.csv"):
-            os.remove("spatial_gridded_pop_dir/No_Site_grid.csv")
-        if os.path.exists("spatial_gridded_pop_dir/No_Site_grid_id_2_cell_id.json"):
-            os.remove("spatial_gridded_pop_dir/No_Site_grid_id_2_cell_id.json")      
+        if os.path.exists(self.no_site_grid_csv_filename):
+            os.remove(self.no_site_grid_csv_filename)
+        if os.path.exists(self.no_site_grid_2_json_filename):
+            os.remove(self.no_site_grid_2_json_filename)
         super().tearDown()
         pass
 
@@ -28,9 +36,9 @@ class DemogFromPop(unittest.TestCase):
     # Basic consistency test for demographic creation 
     # Checks creation of demographics object from
     def test_demo_from_pop_basic(self):
-        if os.path.exists("burkina_demog.json"):
-            os.remove("burkina_demog.json")
-        input_path = "data/tiny_facebook_pop_clipped.csv"
+        if os.path.exists(self.burkina_demographic_filename):
+            os.remove(self.burkina_demographic_filename)
+        input_path = os.path.join(data_directory, "tiny_facebook_pop_clipped.csv")
         point_records = pd.read_csv(input_path, encoding="iso-8859-1")
         point_records.rename(columns={'longitude': 'lon', 'latitude': 'lat'}, inplace=True)
 
@@ -55,20 +63,20 @@ class DemogFromPop(unittest.TestCase):
         # Leaving a berth of 10 for rounding, may need to check later
         self.assertTrue(abs(grid_pop['pop'].sum() - inputdata['pop'].sum()) < 10)
 
-        demog = Dem.from_pop_raster_csv(input_path)
-        self.assertTrue(os.path.isfile("spatial_gridded_pop_dir/No_Site_grid.csv"), msg=f"No_Site_grid.csv is not generated.")
+        demog = Dem.from_pop_raster_csv(input_path, pop_filename_out=os.path.join(data_directory, "spatial_gridded_pop_dir"))
+        self.assertTrue(os.path.isfile(self.no_site_grid_csv_filename), msg=f"No_Site_grid.csv is not generated.")
 
 
-        gridfile = pd.read_csv("spatial_gridded_pop_dir/No_Site_grid.csv")
+        gridfile = pd.read_csv(self.no_site_grid_csv_filename)
 
         demog.SetDefaultProperties()
 
-        demog.generate_file("burkina_demog.json")
-        self.assertTrue(os.path.isfile("burkina_demog.json"), msg=f"burkina_demog.json is not generated.")
+        demog.generate_file(self.burkina_demographic_filename)
+        self.assertTrue(os.path.isfile(self.burkina_demographic_filename), msg=f"burkina_demog.json is not generated.")
 
         # Checking consistency between burkina and grid files
 
-        with open("burkina_demog.json") as json_file: 
+        with open(self.burkina_demographic_filename) as json_file:
             burkina = json.load(json_file) 
         burkina_nodes = burkina['Nodes']
 
@@ -86,3 +94,6 @@ class DemogFromPop(unittest.TestCase):
         self.assertEqual(metadata['NodeCount'], len(burkina_nodes))
         self.assertEqual(metadata['Author'], getpass.getuser())
 
+
+if __name__ == '__main__':
+    unittest.main()

@@ -31,5 +31,5 @@
         "Run_Number": 1,
         "Simulation_Duration": 100
     },
-    "Default_Config_Path": "data/config/input_default_config.json"
+    "Default_Config_Path": "input_default_config.json"
 }

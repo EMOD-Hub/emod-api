@@ -2,6 +2,10 @@ import json
 import math
 from emod_api.demographics.Updateable import Updateable
 from emod_api.demographics.PropertiesAndAttributes import IndividualAttributes, IndividualProperty, IndividualProperties, NodeAttributes
+from emod_api.demographics.age_distribution_old import AgeDistributionOld as AgeDistribution
+from emod_api.demographics.fertility_distribution_old import FertilityDistributionOld as FertilityDistribution
+from emod_api.demographics.mortality_distribution_old import MortalityDistributionOld as MortalityDistribution
+from emod_api.demographics.susceptibility_distribution_old import SusceptibilityDistributionOld as SusceptibilityDistribution
 
 
 class Node(Updateable):
@@ -29,26 +33,34 @@ class Node(Updateable):
             lat (float): Latitude in degrees
             lon (float): Longitude in degrees
             pop (float): Population
-            name (str, optional): Facility name
+            name (str, optional): name of the node
             area (float, optional): Area
             forced_id (int, optional): A custom id instead of the default ID based on lat/lon
             individual_attributes (:py:class:`emod_api.demographics.PropertiesAndAttributes.IndividualAttributes`, optional):
             individual_properties (:py:class:`emod_api.demographics.PropertiesAndAttributes.IndividualProperty`, optional):
             node_attributes (:py:class:`emod_api.demographics.PropertiesAndAttributes.NodeAttributes`, optional):
+            meta: (dict) (optional) A metadata dictionary for a Node. Entries in here are effectively comments as EMOD
+                binaries do not recognize node-level metadata.
         """
         super().__init__()
         self.forced_id = forced_id
         self.meta = meta if meta else {}
         self.individual_attributes = individual_attributes if individual_attributes else IndividualAttributes()
         self.individual_properties = individual_properties if individual_properties else IndividualProperties()
-        self.node_attributes = NodeAttributes(latitude=lat, longitude=lon, initial_population=pop, name=name, area=area)
+
+        self.node_attributes = NodeAttributes(latitude=lat, longitude=lon, initial_population=pop, area=area)
         if node_attributes is not None:
             self.node_attributes.update(node_attributes)
-        # TODO/NOTE: the name attribute here does not exist in EMOD and will not appear in any reports. At best it is
-        #  for user convenience during the emodpy/api phase of building inputs.
-        #  https://github.com/InstituteforDiseaseModeling/emod-api/issues/693
-        if name is not None:
-            self.name = name
+
+        if name is None:
+            # if no node name was explicitly provided, we need to figure out how to name the node
+            if node_attributes is None or node_attributes.name is None:
+                # if no node_attributes object was provided with a name, use a standard default name
+                name = f"node{str(self.id)}"
+            else:
+                # if a name was specified for use via the node_attributes parameter, use it
+                name = node_attributes.name
+        self.name = name
 
     @property
     def name(self):
@@ -70,8 +82,6 @@ class Node(Updateable):
         ip_by_name = {ip.property: ip for ip in self.individual_properties}
         return ip_by_name[property_key]
 
-    # TODO: refactor this to report self.meta (metadata) as code using this is forced to workaround the oversight
-    #  https://github.com/InstituteforDiseaseModeling/emod-api/issues/702
     def to_dict(self) -> dict:
         """
         Translate node structure to a dictionary for EMOD
@@ -87,6 +97,8 @@ class Node(Updateable):
             for ip in self.individual_properties:
                 ip_dict["IndividualProperties"].append(ip.to_dict())
             d.update(ip_dict)
+
+        d.update(self.meta)
         return d
 
     def to_tuple(self):
@@ -152,11 +164,10 @@ class Node(Updateable):
         if node_attributes_dict:
             node_attributes = NodeAttributes().from_dict(node_attributes_dict)
 
-        # Create the node
-        cls.node = Node(node_attributes.latitude, node_attributes.longitude, node_attributes.initial_population,
-                        name=name, forced_id=nodeid, individual_attributes=individual_attributes,
-                        individual_properties=individual_properties, node_attributes=node_attributes)
-        return cls.node
+        # Create the node and return
+        return cls(node_attributes.latitude, node_attributes.longitude, node_attributes.initial_population,
+                   name=name, forced_id=nodeid, individual_attributes=individual_attributes,
+                   individual_properties=individual_properties, node_attributes=node_attributes)
 
     @property
     def pop(self):
@@ -206,23 +217,211 @@ class Node(Updateable):
     def _set_node_attributes(self, node_attributes: NodeAttributes):
         self.node_attributes = node_attributes
 
-    def _set_mortality_distribution(self, distribution: IndividualAttributes.MortalityDistribution = None):
-        self.individual_attributes.mortality_distribution = distribution
+    #
+    # Any of the following _set_*() functions that appear to be missing are not valid (e.g. prevalence complex dist)
+    #
 
-    def _set_mortality_distribution_female(self, distribution: IndividualAttributes.MortalityDistribution = None):
-        self.individual_attributes.mortality_distribution_female = distribution
+    def _set_age_complex_distribution(self, distribution: AgeDistribution):
+        """
+        Properly sets a complex age distribution and unsets a simple one for consistency (just in case one was set).
+        For details on complex distributions, see:
+        https://docs.idmod.org/projects/emod-generic/en/latest/parameter-demographics.html#complex-distributions
 
-    def _set_mortality_distribution_male(self, distribution: IndividualAttributes.MortalityDistribution = None):
-        self.individual_attributes.mortality_distribution_male = distribution
+        Args:
+            distribution: The complex age distribution to set
 
-    def _set_fertility_distribution(self, distribution: IndividualAttributes.FertilityDistribution = None):
-        self.individual_attributes.fertility_distribution = distribution
-
-    def _set_age_distribution(self, distribution: IndividualAttributes.AgeDistribution = None):
+        Returns:
+            Nothing
+        """
         self.individual_attributes.age_distribution_flag = None
         self.individual_attributes.age_distribution1 = None
-        self.individual_attributes.age_distribution2 = None   
+        self.individual_attributes.age_distribution2 = None
         self.individual_attributes.age_distribution = distribution
+
+    def _set_age_simple_distribution(self, flag: int, value1: float, value2: float):
+        """
+        Properly sets a simple age distribution and unsets a complex one for consistency (just in case one was set).
+        For details on the simple distribution flag and value meanings, see:
+        https://docs.idmod.org/projects/emod-generic/en/latest/parameter-demographics.html#simple-distributions
+
+        Args:
+            flag: simple distribution flag determines the type of simple distribution to use
+            value1: simple distribution type-dependent parameter number 1
+            value2: simple distribution type-dependent parameter number 2
+
+        Returns:
+            Nothing
+        """
+        self.individual_attributes.age_distribution_flag = flag
+        self.individual_attributes.age_distribution1 = value1
+        self.individual_attributes.age_distribution2 = value2
+        self.individual_attributes.age_distribution = None
+
+    def _set_susceptibility_complex_distribution(self, distribution: SusceptibilityDistribution):
+        """
+        Properly sets a complex susceptibility distribution and unsets a simple one for consistency (just in case one
+        was set). For details on complex distributions, see:
+        https://docs.idmod.org/projects/emod-generic/en/latest/parameter-demographics.html#complex-distributions
+
+        Args:
+            distribution: The complex susceptibility distribution to set
+
+        Returns:
+            Nothing
+        """
+        self.individual_attributes.susceptibility_distribution_flag = None
+        self.individual_attributes.susceptibility_distribution1 = None
+        self.individual_attributes.susceptibility_distribution2 = None
+        self.individual_attributes.susceptibility_distribution = distribution
+
+    def _set_susceptibility_simple_distribution(self, flag: int, value1: float, value2: float):
+        """
+        Properly sets a simple susceptibility distribution and unsets a complex one for consistency (just in case one
+        was set). For details on the simple distribution flag and value meanings, see:
+        https://docs.idmod.org/projects/emod-generic/en/latest/parameter-demographics.html#simple-distributions
+
+        Args:
+            flag: simple distribution flag determines the type of simple distribution to use
+            value1: simple distribution type-dependent parameter number 1
+            value2: simple distribution type-dependent parameter number 2
+
+        Returns:
+            Nothing
+        """
+        self.individual_attributes.susceptibility_distribution_flag = flag
+        self.individual_attributes.susceptibility_distribution1 = value1
+        self.individual_attributes.susceptibility_distribution2 = value2
+        self.individual_attributes.susceptibility_distribution = None
+
+    def _set_prevalence_simple_distribution(self, flag: int, value1: float, value2: float):
+        """
+        Properly sets a simple prevalence distribution. For details on the simple distribution flag and value meanings,
+        see:
+        https://docs.idmod.org/projects/emod-generic/en/latest/parameter-demographics.html#simple-distributions
+
+        Args:
+            flag: simple distribution flag determines the type of simple distribution to use
+            value1: simple distribution type-dependent parameter number 1
+            value2: simple distribution type-dependent parameter number 2
+
+        Returns:
+            Nothing
+        """
+        self.individual_attributes.prevalence_distribution_flag = flag
+        self.individual_attributes.prevalence_distribution1 = value1
+        self.individual_attributes.prevalence_distribution2 = value2
+
+    def _set_migration_heterogeneity_simple_distribution(self, flag: int, value1: float, value2: float):
+        """
+        Properly sets a simple migration heterogeneity distribution. For details on the simple distribution flag and
+        value meanings, see:
+        https://docs.idmod.org/projects/emod-generic/en/latest/parameter-demographics.html#simple-distributions
+
+        Args:
+            flag: simple distribution flag determines the type of simple distribution to use
+            value1: simple distribution type-dependent parameter number 1
+            value2: simple distribution type-dependent parameter number 2
+
+        Returns:
+            Nothing
+        """
+        self.individual_attributes.migration_heterogeneity_distribution_flag = flag
+        self.individual_attributes.migration_heterogeneity_distribution1 = value1
+        self.individual_attributes.migration_heterogeneity_distribution2 = value2
+
+    def _set_mortality_complex_distribution(self, distribution: MortalityDistribution):
+        """
+        Properly sets a complex mortality distribution. For details on complex distributions, see:
+        https://docs.idmod.org/projects/emod-generic/en/latest/parameter-demographics.html#complex-distributions
+
+        Args:
+            distribution: The complex mortality distribution to set
+
+        Returns:
+            Nothing
+        """
+        self.individual_attributes.mortality_distribution = distribution
+
+    def _set_mortality_female_complex_distribution(self, distribution: MortalityDistribution):
+        """
+        Properly sets a complex female mortality distribution. For details on complex distributions, see:
+        https://docs.idmod.org/projects/emod-generic/en/latest/parameter-demographics.html#complex-distributions
+
+        Args:
+            distribution: The complex female mortality distribution to set
+
+        Returns:
+            Nothing
+        """
+        self.individual_attributes.mortality_distribution_female = distribution
+
+    def _set_mortality_male_complex_distribution(self, distribution: MortalityDistribution):
+        """
+        Properly sets a complex male mortality distribution. For details on complex distributions, see:
+        https://docs.idmod.org/projects/emod-generic/en/latest/parameter-demographics.html#complex-distributions
+
+        Args:
+            distribution: The complex male mortality distribution to set
+
+        Returns:
+            Nothing
+        """
+        self.individual_attributes.mortality_distribution_male = distribution
+
+    # malaria only
+    # TODO: Move to emodpy-malaria?
+    #  https://github.com/InstituteforDiseaseModeling/emodpy-malaria-old/issues/707
+    def _set_innate_immune_simple_distribution(self, flag: int, value1: float, value2: float):
+        """
+        Properly sets a simple innate immune distribution. For details on the simple distribution flag and value
+        meanings, see:
+        https://docs.idmod.org/projects/emod-generic/en/latest/parameter-demographics.html#simple-distributions
+
+        Args:
+            flag: simple distribution flag determines the type of simple distribution to use
+            value1: simple distribution type-dependent parameter number 1
+            value2: simple distribution type-dependent parameter number 2
+
+        Returns:
+            Nothing
+        """
+        self.individual_attributes.innate_immune_distribution_flag = flag
+        self.individual_attributes.innate_immune_distribution1 = value1
+        self.individual_attributes.innate_immune_distribution2 = value2
+
+    # malaria only
+    # TODO: Move to emodpy-malaria?
+    #  https://github.com/InstituteforDiseaseModeling/emodpy-malaria-old/issues/707
+    def _set_risk_simple_distribution(self, flag: int, value1: float, value2: float):
+        """
+        Properly sets a simple risk distribution. For details on the simple distribution flag and value meanings, see:
+        https://docs.idmod.org/projects/emod-generic/en/latest/parameter-demographics.html#simple-distributions
+
+        Args:
+            flag: simple distribution flag determines the type of simple distribution to use
+            value1: simple distribution type-dependent parameter number 1
+            value2: simple distribution type-dependent parameter number 2
+
+        Returns:
+            Nothing
+        """
+        self.individual_attributes.risk_distribution_flag = flag
+        self.individual_attributes.risk_distribution1 = value1
+        self.individual_attributes.risk_distribution2 = value2
+
+    # HIV only
+    def _set_fertility_complex_distribution(self, distribution: FertilityDistribution):
+        """
+        Properly sets a complex fertility distribution. For details on complex distributions, see:
+        https://docs.idmod.org/projects/emod-generic/en/latest/parameter-demographics.html#complex-distributions
+
+        Args:
+            distribution: The complex fertility distribution to set
+
+        Returns:
+            Nothing
+        """
+        self.individual_attributes.fertility_distribution = distribution
 
 
 class OverlayNode(Node):

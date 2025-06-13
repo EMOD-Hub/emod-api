@@ -7,12 +7,6 @@ The files in this folder are named for the **emod_api** modules that they cover.
  - `/spatial_gridded_pop` is empty but is used by some of the tests to hold large population data.
  - `/synthetic_migration` is also empty and used to store migration data that the tests output.
 
-## Getting Started
-
-To run the tests in this folder, you will need the `unittest` package installed in your development environment. If you don't have `unittest` installed, you can install it using pip:
-
-`$ pip install unittest` 
-
 ## Running the Tests
 
 You can run the tests by executing the following command in the terminal from the root directory of your project:

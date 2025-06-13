@@ -11,11 +11,6 @@
         "years",
         "simulation_year"
     ],
-    "NumDistributionAxes": 2,
-    "NumPopulationGroups": [
-        2,
-        170
-    ],
     "PopulationGroups": [
         [
             0,

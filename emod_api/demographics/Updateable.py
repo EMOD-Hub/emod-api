@@ -1,5 +1,7 @@
+from typing import Dict
 
-class Updateable():
+
+class Updateable:
     """
     (Base) class that provides update() method for each class that inherits from this class.
     """
@@ -9,25 +11,36 @@ class Updateable():
     def to_dict(self) -> dict:
         raise NotImplementedError
 
-    def update(self, overlay_object):
+    def update(self, overlay_object: ["Updateable", Dict], allow_nones: bool = False) -> None:
         """
         Updates an object with the values from overlay_object.
-        :param overlay_object: Object that is used to update self
-        :return: None
+
+        Args:
+            overlay_object: object with overriding attributes/values to apply to THIS object
+            allow_nones: whether or not to apply/use attributes in overlay_object with value = None
+
+        Returns:
+            Nothing
         """
-        # loop over all member variables and try to call update() method, if object does not have update() method just assign new value.
-        for v_node, v_overlay_node in zip(vars(self).items(), vars(overlay_object).items()):
-            if v_overlay_node[1] is not None:     # only update if object contains something (e.g. non empty list or dict) and is not None
+        try:
+            # overlaying a provided Updateable object
+            overlay_dict = vars(overlay_object)
+        except TypeError:
+            # overlaying a provided dict
+            overlay_dict = overlay_object
+
+        for attribute_name, new_attribute_value in overlay_dict.items():
+            if not hasattr(self, attribute_name):
+                raise AttributeError(f"Object of type: {type(self)} does not have an attribute named {attribute_name} "
+                                     f"to override)")
+            # only overlay non-None value UNLESS explicitly allowing it
+            if new_attribute_value is not None or allow_nones is True:
                 try:
-                    # Try to call update() method
-                    vars(self)[v_node[0]].update(v_overlay_node[1])
+                    # Calling update method in case we have an Updateable being overridden
+                    getattr(self, attribute_name).update(new_attribute_value)
                 except AttributeError:
-                    # print("Object does not have update() method.")
-                    vars(self)[v_node[0]] = v_overlay_node[1]
-                except Exception as e:
-                    print("Neither update() method could be called, nor simple value assignment was possible.")
-                    print(e)
-                    exit(-1)
+                    # not an Updateable being overridden, do direct assignment
+                    setattr(self, attribute_name, new_attribute_value)
 
     def add_parameter(self, key, value):
         """

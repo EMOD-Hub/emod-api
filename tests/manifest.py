@@ -23,3 +23,36 @@ mortality_reference_output = os.path.join( demo_folder, "india_mortality_referen
 mortality_reference_output = os.path.join( demo_folder, "india_mortality_reference_output.json" )
 fertility_reference_output = os.path.join( demo_folder, "fertility_reference_output.json" )
 ltm_csv_path = os.path.join( demo_folder, "ltm.csv" )
+
+package_folder = os.path.join(current_directory, 'package')
+if not os.path.isdir(package_folder):
+    os.mkdir(package_folder)
+
+common_package_folder = os.path.join(package_folder, 'common')
+common_eradication_path = os.path.join(common_package_folder, 'Eradication')
+common_schema_path = os.path.join(common_package_folder, 'schema.json')
+if not os.path.isfile(common_schema_path):
+    print(f'Schema does not exist, writing it to {common_package_folder}.')
+    import emod_common.bootstrap as dtk
+    dtk.setup(common_package_folder)
+
+generic_package_folder = os.path.join(package_folder, 'generic')
+generic_eradication_path = os.path.join(generic_package_folder, 'Eradication')
+generic_schema_path = os.path.join(generic_package_folder, 'schema.json')
+if not os.path.isfile(generic_schema_path):
+    print(f'Schema does not exist, writing it to {generic_package_folder}.')
+    import emod_generic.bootstrap as dtk
+    dtk.setup(generic_package_folder)
+
+malaria_package_folder = os.path.join(package_folder, 'malaria')
+malaria_eradication_path = os.path.join(malaria_package_folder, 'Eradication')
+malaria_schema_path = os.path.join(malaria_package_folder, 'schema.json')
+if not os.path.isfile(malaria_schema_path):
+    print(f'Schema does not exist, writing it to {malaria_package_folder}.')
+    import emod_malaria.bootstrap as dtk
+    dtk.setup(malaria_package_folder)
+
+campaign_folder = os.path.join(current_directory, 'data', 'campaign')
+if not os.path.isdir(campaign_folder):
+    os.mkdir(campaign_folder)
+
