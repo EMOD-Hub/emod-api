@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - release*
-      - master
+      - main
 jobs:
   build_test_publish:
     runs-on: ubuntu-latest
