@@ -44,5 +44,5 @@ jobs:
         run: git push
       - name: twine upload
         if: success()
-        run: twine upload --verbose --repository-url https://packages.idmod.org/api/pypi/idm-pypi-staging/ --username ${{ secrets.ARTIFACTORY_USER }} --password ${{ secrets.ARTIFACTORY_TOKEN }} dist/*
+        run: twine upload --verbose --repository-url https://packages.idmod.org/api/pypi/idm-pypi-staging/ --username ${{ secrets.STAGING_ARTIFACTORY_USERNAME }} --password ${{ secrets.STAGING_ARTIFACTORY_PASSWORD }} dist/*
         working-directory: ./
