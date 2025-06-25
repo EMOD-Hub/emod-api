@@ -19,7 +19,7 @@ jobs:
         run: |
           echo "STAGING_REGISTRY=https://packages.idmod.org/api/pypi/idm-pypi-staging/" >> $GITHUB_ENV
           echo "PROD_REGISTRY=https://packages.idmod.org/api/pypi/idm-pypi-production/" >> $GITHUB_ENV
-          echo "PACKAGE_NAME=emod-api" >> $GITHUB_ENV
+          echo "PACKAGE_NAME=emod_api" >> $GITHUB_ENV
 
       - name: Download package from staging
         env:
@@ -27,6 +27,17 @@ jobs:
         run: |
           pip install --upgrade pip
           pip download --index-url $PIP_EXTRA_INDEX_URL --no-deps ${{ env.PACKAGE_NAME }}==${{ github.event.inputs.package_version }} -d ./dist
+
+      - name: install staging package
+        run: |
+          pip install ./dist/${{ env.PACKAGE_NAME }}-${{ github.event.inputs.package_version }}-py3-none-any.whl
+      
+      - name: run unit tests
+        run: |
+          pip install -r requirements.txt
+          python -m unittest discover .
+        working-directory: ./tests
+
       - name: Install twine
         run: pip install twine
 
