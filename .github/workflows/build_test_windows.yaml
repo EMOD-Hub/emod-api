@@ -1,13 +1,12 @@
 name: Package and test on windows
 on:
+  workflow_dispatch:
   push:
-    branches:
-      - dev-*
+    branches-ignore:
+      - 'main'
   pull_request:
     branches:
-      - dev-*
-      - release*
-      - main
+      - 'main'
 jobs:
   build_test_windows:
     runs-on: windows-latest

@@ -2,12 +2,11 @@ name: Package and test on Ubuntu
 on:
   workflow_dispatch:
   push:
-    branches:
-      - dev-*
+    branches-ignore:
+      - 'main'
   pull_request:
     branches:
-      - release*
-      - main
+      - 'main'
 jobs:
   build_test_ubuntu:
     runs-on: ubuntu-latest
