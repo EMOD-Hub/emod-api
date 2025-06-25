@@ -3,8 +3,10 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - release*
-      - main
+      - 'main'
+    paths:
+      - 'emod_api/**'
+      - 'pyproject.toml'
 jobs:
   build_test_publish:
     runs-on: ubuntu-latest
