@@ -7,6 +7,8 @@ on:
     paths:
       - 'emod_api/**'
       - 'pyproject.toml'
+  permissions:
+    contents: write # Allow writing to the repository (e.g., commits, pushes)
 jobs:
   build_test_publish:
     runs-on: ubuntu-latest
