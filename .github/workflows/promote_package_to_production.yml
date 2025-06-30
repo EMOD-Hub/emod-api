@@ -14,12 +14,26 @@ jobs:
   promote-package-to-production:
     runs-on: ubuntu-latest
     environment: Release_Production
+    strategy:
+      max-parallel: 1
+      matrix:
+        python-version: [ '3.9' ]
     steps:
       - name: Set package variables
         run: |
           echo "STAGING_REGISTRY=https://packages.idmod.org/api/pypi/idm-pypi-staging/" >> $GITHUB_ENV
           echo "PROD_REGISTRY=https://packages.idmod.org/api/pypi/idm-pypi-production/" >> $GITHUB_ENV
           echo "PACKAGE_NAME=emod_api" >> $GITHUB_ENV
+
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@master
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
 
       - name: Download package from staging
         env:
