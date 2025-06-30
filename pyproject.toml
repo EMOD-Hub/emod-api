@@ -49,7 +49,7 @@ test = [
 ]
 packaging = [
     "build",
-    "flake8",
+    "flake8",  # for lint check
     "coverage",
     "py-make",
     "bump2version",
