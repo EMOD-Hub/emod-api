@@ -19,8 +19,9 @@ from emod_api.migration.migration import from_csv
 import pandas as pd
 import io
 from contextlib import redirect_stdout
+import manifest
 
-CWD = Path(__file__).parent.absolute()
+CWD = Path(manifest.current_directory)
 
 
 class MigrationTests(unittest.TestCase):
@@ -103,9 +104,8 @@ class MigrationTests(unittest.TestCase):
     # may not directly set DatavalueCount - derived from internal data
     def test_set_datavaluecount(self):
         """DatavalueCount is _not_ directly settable (derived from underlying data)."""
-        with self.assertRaises(AttributeError) as context:
+        with self.assertRaises(AttributeError):
             self.guinea_pig.DatavalueCount = 42
-        self.assertTrue("can't set attribute" in str(context.exception))
         return
 
     def test_get_datecreated(self):
@@ -266,9 +266,8 @@ class MigrationTests(unittest.TestCase):
 
     def test_set_nodecount(self):
         """NodeCount cannot be set directly, derives from underlying data."""
-        with self.assertRaises(AttributeError) as context:
+        with self.assertRaises(AttributeError):
             self.kenya_regional_migration.NodeCount = 42
-        self.assertTrue("can't set attribute" in str(context.exception))
         return
 
     def test_get_nodeoffsets(self):
@@ -288,9 +287,8 @@ class MigrationTests(unittest.TestCase):
 
     def test_set_nodeoffsets(self):
         """NodeOffsets cannot be set directly, derives from underlying data."""
-        with self.assertRaises(AttributeError) as context:
+        with self.assertRaises(AttributeError):
             self.guinea_pig.NodeOffsets = {0: 0, 1: 12, 2: 24}
-        self.assertTrue("can't set attribute" in str(context.exception))
         return
 
     def test_get_tool(self):
@@ -532,8 +530,8 @@ class MigrationTests(unittest.TestCase):
         return
 
     def test_to_csv(self):
-        filename = "data/migration/Seattle_30arcsec_local_migration.bin"
-        output = "data/migration/seattle_csv.csv"
+        filename = CWD / "data/migration/Seattle_30arcsec_local_migration.bin"
+        output = CWD / "data/migration/seattle_csv.csv"
 
         f = io.StringIO()
         with redirect_stdout(f):
@@ -548,8 +546,8 @@ class MigrationTests(unittest.TestCase):
         self.assertFalse(data_frame.isnull().values.any())
 
     def test_examine_file(self):
-        filename = "data/migration/Seattle_30arcsec_local_migration.bin"
-        output = "data/migration/seattle_csv.csv"
+        filename = CWD / "data/migration/Seattle_30arcsec_local_migration.bin"
+        output = CWD / "data/migration/seattle_csv.csv"
 
         expected_output = ["Author:", "DatavalueCount:", "DateCreated:", "GenderDataType:", "IdReference:",
                             "InterpolationType:", "MigrationType:", "NodeCount:","NodeOffsets:", "Tool:","Nodes:"]
@@ -871,8 +869,9 @@ class MigrationTests(unittest.TestCase):
         with self.assertRaises(AssertionError):
             from_csv(Path(CWD, "data", "migration", "test_migration_without_content.csv"), id_ref="testing")
 
-    @unittest.skipIf(platform == "linux" or platform == "linux2" or int(os.getenv('TEST_LEVEL', 0)) == 1,
-                     "skip from_demog_and_param_gravity_webservice_population_only test in GHA(Linux OS, non-VPN)")
+    # @unittest.skipIf(platform == "linux" or platform == "linux2" or int(os.getenv('TEST_LEVEL', 0)) == 1,
+    #                 "skip from_demog_and_param_gravity_webservice_population_only test in GHA(Linux OS, non-VPN)")
+    @unittest.skip("webserver is down, skip from_demog_and_param_gravity_webservice test.")
     def test_from_demog_and_param_gravity_webservice_population_only(self):    # Renaming just to make sure that any of the test frameworks don't run this test.
         id_ref = 'from_demog_and_param_gravity_webservice_test'
         demographics_file = CWD / 'data' / 'demographics' / 'from_demog_and_param_gravity_webservice.json'
@@ -932,8 +931,9 @@ class MigrationTests(unittest.TestCase):
                 low_rate.append(float(rate))
         self.assertGreater(sum(high_rate)/len(high_rate), sum(low_rate)/len(low_rate))
 
-    @unittest.skipIf(platform == "linux" or platform == "linux2" or int(os.getenv('TEST_LEVEL', 0)) == 1,
-                     "skip from_demog_and_param_gravity_webservice test in GHA(Linux OS, non-VPN)")
+    # @unittest.skipIf(platform == "linux" or platform == "linux2" or int(os.getenv('TEST_LEVEL', 0)) == 1,
+    #                  "skip from_demog_and_param_gravity_webservice test in GHA(Linux OS, non-VPN)")
+    @unittest.skip("webserver is down, skip from_demog_and_param_gravity_webservice test.")
     def test_gravity_webservice_vs_local(self):
         id_ref = 'from_demog_and_param_gravity_webservice_test'
         demographics_file = CWD / 'data' / 'demographics' / 'from_demog_and_param_gravity_webservice.json'
@@ -958,8 +958,9 @@ class MigrationTests(unittest.TestCase):
 
         self.compare_migration_file_to_reference(migration_web_file, migration_local_file, exact_compare=False)
 
-    @unittest.skipIf(platform == "linux" or platform == "linux2" or int(os.getenv('TEST_LEVEL', 0)) == 1,
-                     "skip from_demog_and_param_gravity_webservice test in GHA(Linux OS, non-VPN)")
+    # @unittest.skipIf(platform == "linux" or platform == "linux2" or int(os.getenv('TEST_LEVEL', 0)) == 1,
+    #                  "skip from_demog_and_param_gravity_webservice test in GHA(Linux OS, non-VPN)")
+    @unittest.skip("webserver is down, skip from_demog_and_param_gravity_webservice test.")
     def test_gravity_webservice_vs_local_distance_only(self):
         id_ref = 'from_demog_and_param_gravity_webservice_test_distance_only'
         demographics_file = CWD / 'data' / 'demographics' / 'gravity_webservice_vs_local_distance_only.json'

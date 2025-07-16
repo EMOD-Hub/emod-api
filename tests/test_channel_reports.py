@@ -478,17 +478,17 @@ class TestChannels(unittest.TestCase):
     
 class TestInsetJson(unittest.TestCase):
     @classmethod
-    def setUpClass(self):
-        self.inset_path = Path('data') / 'insetcharts'
+    def setUpClass(cls):
+        cls.inset_path = os.path.join(WORKING_DIRECTORY, "data", 'insetcharts')
     
     def test_icj_to_csv(self):
         inset_chart_json_to_csv_dataframe_pd(self.inset_path)
-        csv_path = self.inset_path.joinpath("InsetChart.csv")
-        self.assertTrue(csv_path.exists())
+        csv_path = os.path.join(self.inset_path, "InsetChart.csv")
+        self.assertTrue(os.path.isfile(csv_path), f"No InsetChart.csv file at {csv_path}")
 
         csv_df = pd.read_csv(csv_path)
-        json_path = self.inset_path.joinpath("InsetChart.json")
-        self.assertTrue(json_path.exists(), f"No InsetChart.json file at {json_path}")
+        json_path = os.path.join(self.inset_path, "InsetChart.json")
+        self.assertTrue(os.path.isfile(json_path), f"No InsetChart.json file at {json_path}")
 
         with open(json_path) as jc:
             json_dict = json.load(jc)

@@ -1,6 +1,6 @@
-=======================
-|emod_api| installation 
-=======================
+=======
+Install
+=======
 
 Follow the steps below to install |emod_api|.
 

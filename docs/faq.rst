@@ -1,6 +1,6 @@
-==========================
-Frequently asked questions
-==========================
+====
+FAQ
+====
 
 As you get started with |emod_api|, you may have questions. The most common
 questions are answered below. If you are using |EMODPY_s| packages, see

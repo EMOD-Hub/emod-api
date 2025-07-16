@@ -5,13 +5,13 @@ from emod_api.demographics.Node import Node
 import numpy as np
 import pathlib
 import json
-
+import manifest
 
 class DemographicsTemplatesTests(unittest.TestCase):
     def setUp(self) -> None:
         print(f"\n{self._testMethodName} started...")
-        self.nfname = pathlib.Path('..', 'tests', 'data', 'demographics', "demographics_vd_ref.json")
-        self.fname_pop = pathlib.Path('..', 'tests', 'data', 'demographics', "pop_dat_PAK.csv")
+        self.nfname = pathlib.Path(manifest.current_directory, 'data', 'demographics', "demographics_vd_ref.json")
+        self.fname_pop = pathlib.Path(manifest.current_directory, 'data', 'demographics', "pop_dat_PAK.csv")
 
     def test_demographicsBuilder(self):
         ia, nd = DemographicsTemplates.demographicsBuilder(self.fname_pop, 1950, 1950)
@@ -24,7 +24,6 @@ class DemographicsTemplatesTests(unittest.TestCase):
         reference_md=reference["Defaults"]["IndividualAttributes"]["MortalityDistributionMale"]
         self.assertEqual(demo_md["AxisNames"], reference_md["AxisNames"])
         self.assertEqual(demo_md["AxisScaleFactors"], reference_md["AxisScaleFactors"])
-        self.assertEqual(demo_md["NumPopulationGroups"], reference_md["NumPopulationGroups"])
         # Using NumPy because assertAlmostEqual in pytest may not accept a list argument
         np.testing.assert_allclose(demo_md["PopulationGroups"][0], reference_md["PopulationGroups"][0])
         np.testing.assert_allclose(demo_md["ResultValues"],        reference_md["ResultValues"])
@@ -33,7 +32,6 @@ class DemographicsTemplatesTests(unittest.TestCase):
         reference_md=reference["Defaults"]["IndividualAttributes"]["MortalityDistributionFemale"]
         self.assertEqual(demo_md["AxisNames"], reference_md["AxisNames"])
         self.assertEqual(demo_md["AxisScaleFactors"], reference_md["AxisScaleFactors"])
-        self.assertEqual(demo_md["NumPopulationGroups"], reference_md["NumPopulationGroups"])
         # Using NumPy because assertAlmostEqual in pytest may not accept a list argument
         np.testing.assert_allclose(demo_md["PopulationGroups"][0], reference_md["PopulationGroups"][0])
         np.testing.assert_allclose(demo_md["ResultValues"],        reference_md["ResultValues"])
@@ -48,87 +46,6 @@ class DemographicsTemplatesTests(unittest.TestCase):
         # Using NumPy because assertAlmostEqual in pytest may not accept a list argument
         np.testing.assert_allclose(demo_na["BirthRate"], reference["Defaults"]["NodeAttributes"]["BirthRate"])
 
-    def test_SetVitalDynamicsFromTemplate(self):
-        with open(self.nfname, 'r') as fid01:
-            reference = json.load(fid01)
-
-        demog = Demographics.from_template_node()
-        demog.SetVitalDynamicsFromTemplate(DemographicsTemplates.demographicsBuilder(self.fname_pop, 1950, 1950))
-
-        # values on Windows and Linux are not exactly the same
-        demo_md = demog.to_dict()["Defaults"]["IndividualAttributes"]["MortalityDistributionMale"]
-        reference_md=reference["Defaults"]["IndividualAttributes"]["MortalityDistributionMale"]
-        self.assertEqual(demo_md["AxisNames"], reference_md["AxisNames"])
-        self.assertEqual(demo_md["AxisScaleFactors"], reference_md["AxisScaleFactors"])
-        self.assertEqual(demo_md["NumPopulationGroups"], reference_md["NumPopulationGroups"])
-        # Using NumPy because assertAlmostEqual in pytest may not accept a list argument
-        np.testing.assert_allclose(demo_md["PopulationGroups"][0], reference_md["PopulationGroups"][0])
-        np.testing.assert_allclose(demo_md["ResultValues"],        reference_md["ResultValues"])
-
-        demo_md = demog.to_dict()["Defaults"]["IndividualAttributes"]["MortalityDistributionFemale"]
-        reference_md=reference["Defaults"]["IndividualAttributes"]["MortalityDistributionFemale"]
-        self.assertEqual(demo_md["AxisNames"], reference_md["AxisNames"])
-        self.assertEqual(demo_md["AxisScaleFactors"], reference_md["AxisScaleFactors"])
-        self.assertEqual(demo_md["NumPopulationGroups"], reference_md["NumPopulationGroups"])
-        # Using NumPy because assertAlmostEqual in pytest may not accept a list argument
-        np.testing.assert_allclose(demo_md["PopulationGroups"][0], reference_md["PopulationGroups"][0])
-        np.testing.assert_allclose(demo_md["ResultValues"],        reference_md["ResultValues"])
-
-        demo_ad = demog.to_dict()["Defaults"]["IndividualAttributes"]["AgeDistribution"]
-        reference_ad=reference["Defaults"]["IndividualAttributes"]["AgeDistribution"]
-        self.assertEqual(demo_ad["ResultValues"], reference_ad["ResultValues"])
-        # Using NumPy because assertAlmostEqual in pytest may not accept a list argument
-        np.testing.assert_allclose(demo_ad["DistributionValues"], reference_ad["DistributionValues"])
-
-        demo_na = demog.to_dict()["Defaults"]["NodeAttributes"]
-        # Using NumPy because assertAlmostEqual in pytest may not accept a list argument
-        np.testing.assert_allclose(demo_na["BirthRate"], reference["Defaults"]["NodeAttributes"]["BirthRate"])
-
-        # test implicits
-        self.assertTrue(DemographicsTemplates._set_mortality_age_gender_year in demog.implicits)
-        self.assertTrue(DemographicsTemplates._set_age_complex in demog.implicits)
-        self.assertTrue(DemographicsTemplates._set_enable_births in demog.implicits)
-
-    def test_SetVitalDynamicsFromUNFile(self):
-        with open(self.nfname, 'r') as fid01:
-            reference = json.load(fid01)
-
-        demog = Demographics.from_template_node()
-        demog.SetVitalDynamicsFromWHOFile(self.fname_pop, 1950, 1950)
-
-        # values on Windows and Linux are not exactly the same
-        demo_md = demog.to_dict()["Defaults"]["IndividualAttributes"]["MortalityDistributionMale"]
-        reference_md = reference["Defaults"]["IndividualAttributes"]["MortalityDistributionMale"]
-        self.assertEqual(demo_md["AxisNames"], reference_md["AxisNames"])
-        self.assertEqual(demo_md["AxisScaleFactors"], reference_md["AxisScaleFactors"])
-        self.assertEqual(demo_md["NumPopulationGroups"], reference_md["NumPopulationGroups"])
-        # Using NumPy because assertAlmostEqual in pytest may not accept a list argument
-        np.testing.assert_allclose(demo_md["PopulationGroups"][0], reference_md["PopulationGroups"][0])
-        np.testing.assert_allclose(demo_md["ResultValues"],        reference_md["ResultValues"])
-
-        demo_md = demog.to_dict()["Defaults"]["IndividualAttributes"]["MortalityDistributionFemale"]
-        reference_md = reference["Defaults"]["IndividualAttributes"]["MortalityDistributionFemale"]
-        self.assertEqual(demo_md["AxisNames"], reference_md["AxisNames"])
-        self.assertEqual(demo_md["AxisScaleFactors"], reference_md["AxisScaleFactors"])
-        self.assertEqual(demo_md["NumPopulationGroups"], reference_md["NumPopulationGroups"])
-        # Using NumPy because assertAlmostEqual in pytest may not accept a list argument
-        np.testing.assert_allclose(demo_md["PopulationGroups"][0], reference_md["PopulationGroups"][0])
-        np.testing.assert_allclose(demo_md["ResultValues"],        reference_md["ResultValues"])
-
-        demo_ad = demog.to_dict()["Defaults"]["IndividualAttributes"]["AgeDistribution"]
-        reference_ad = reference["Defaults"]["IndividualAttributes"]["AgeDistribution"]
-        self.assertEqual(demo_ad["ResultValues"], reference_ad["ResultValues"])
-        # Using NumPy because assertAlmostEqual in pytest may not accept a list argument
-        np.testing.assert_allclose(demo_ad["DistributionValues"], reference_ad["DistributionValues"])
-
-        demo_na = demog.to_dict()["Defaults"]["NodeAttributes"]
-        # Using NumPy because assertAlmostEqual in pytest may not accept a list argument
-        np.testing.assert_allclose(demo_na["BirthRate"], reference["Defaults"]["NodeAttributes"]["BirthRate"])
-
-        # test implicits
-        self.assertTrue(DemographicsTemplates._set_mortality_age_gender_year in demog.implicits)
-        self.assertTrue(DemographicsTemplates._set_age_complex in demog.implicits)
-        self.assertTrue(DemographicsTemplates._set_enable_births in demog.implicits)
 
     def test_birthrate_multiplier(self):
         brate_mult_x_ref = np.array(

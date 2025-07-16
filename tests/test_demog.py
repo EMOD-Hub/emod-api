@@ -4,6 +4,11 @@ import unittest
 import emod_api.demographics.Demographics as Demographics
 import emod_api.demographics.Node as Node
 import emod_api.demographics.DemographicsTemplates as DT
+from emod_api.demographics.demographics_overlay import DemographicsOverlay
+from emod_api.demographics.age_distribution_old import AgeDistributionOld as AgeDistribution
+from emod_api.demographics.mortality_distribution_old import MortalityDistributionOld as MortalityDistribution
+from emod_api.demographics.susceptibility_distribution_old import SusceptibilityDistributionOld as SusceptibilityDistribution
+
 try:
     import manifest  # works for jenkins
 except ImportError:
@@ -15,6 +20,7 @@ import pandas as pd
 import numpy as np
 import pathlib
 from emod_api.demographics.PropertiesAndAttributes import IndividualAttributes, IndividualProperty, IndividualProperties, NodeAttributes
+from emod_api.demographics.demographic_exceptions import *
 import emod_api.demographics.PreDefinedDistributions as Distributions
 import pprint
 
@@ -23,6 +29,111 @@ class DemogTest(unittest.TestCase):
     def setUp(self) -> None:
         print(f"\n{self._testMethodName} started...")
         self.out_folder = manifest.demo_folder
+
+    def test_verify_default_node_obj_must_have_id_0(self):
+        mars = Node.Node(lat=0, lon=0, pop=100, name='Mars', forced_id=1)
+        venus = Node.Node(lat=0, lon=0, pop=100, name='Venus', forced_id=2)
+        planet = Node.Node(lat=0, lon=0, pop=100, forced_id=99)  # not 0
+        nodes = [mars, venus]
+        self.assertRaises(InvalidNodeIdException, Demographics.Demographics, nodes=nodes, default_node=planet)
+
+    def test_verify_non_default_node_objs_must_have_ids_gt_0(self):
+        mars = Node.Node(lat=0, lon=0, pop=100, name='Mars', forced_id=1)
+        venus = Node.Node(lat=0, lon=0, pop=100, name='Venus', forced_id=0)  # not integer > 0
+        planet = Node.Node(lat=0, lon=0, pop=100, forced_id=0)
+        nodes = [mars, venus]
+        self.assertRaises(InvalidNodeIdException, Demographics.Demographics, nodes=nodes, default_node=planet)
+
+    def test_get_node_by_name(self):
+        from emod_api.demographics.demographics_base import DemographicsBase
+
+        mars = Node.Node(lat=0, lon=0, pop=100, name='Mars', forced_id=1)
+        venus = Node.Node(lat=0, lon=0, pop=100, name='Venus', forced_id=2)
+        planet = Node.Node(lat=0, lon=0, pop=100, forced_id=0)
+        nodes = [mars, venus]
+        demographics = Demographics.Demographics(nodes=nodes, default_node=planet)
+
+        # a non default node
+        node = demographics.get_node_by_name(node_name=mars.name)
+        self.assertEqual(node, nodes[0])
+
+        # the default node, checked explicitly then implicitly
+        node = demographics.get_node_by_name(node_name=planet.name)
+        self.assertEqual(node, planet)
+
+        node = demographics.get_node_by_name(node_name=None)
+        self.assertEqual(node, planet)
+
+        # a node name that does not exist (yet, at least!)
+        self.assertRaises(DemographicsBase.UnknownNodeException, demographics.get_node_by_name, node_name='Planet X')
+
+    def test_get_nodes_by_name(self):
+        from emod_api.demographics.demographics_base import DemographicsBase
+
+        mars = Node.Node(lat=0, lon=0, pop=100, name='Mars', forced_id=1)
+        venus = Node.Node(lat=0, lon=0, pop=100, name='Venus', forced_id=2)
+        planet = Node.Node(lat=0, lon=0, pop=100, forced_id=0)
+        nodes = [mars, venus]
+        demographics = Demographics.Demographics(nodes=nodes, default_node=planet)
+
+        # just getting some nodes, also checking explicit default node request, too.
+        nodes = demographics.get_nodes_by_name(node_names=['Mars', 'default_node'])
+        expected = {planet.name: planet, mars.name: mars}
+        self.assertEqual(nodes, expected)
+
+        # verify that a node name of None will yield the default node
+        nodes = demographics.get_nodes_by_name(node_names=['Mars', None])
+        expected = {planet.name: planet, mars.name: mars}
+        self.assertEqual(nodes, expected)
+
+        nodes = demographics.get_nodes_by_name(node_names=None)
+        expected = {planet.name: planet}
+        self.assertEqual(nodes, expected)
+
+        # a node name that does not exist (yet, at least!)
+        self.assertRaises(DemographicsBase.UnknownNodeException, demographics.get_nodes_by_name,
+                          node_names=['Planet X', planet.name])
+
+    def test_duplicate_node_id_detection(self):
+        from emod_api.demographics.demographics_base import DemographicsBase
+
+        mars = Node.Node(lat=0, lon=0, pop=100, name='Mars', forced_id=1)
+        venus = Node.Node(lat=0, lon=0, pop=100, name='Venus', forced_id=1)
+        planet = Node.Node(lat=0, lon=0, pop=100, forced_id=0)
+        nodes = [mars, venus]
+        self.assertRaises(DemographicsBase.DuplicateNodeIdException,
+                          Demographics.Demographics, nodes=nodes, default_node=planet)
+
+        # ensure json-dumping of demographics catches duplicates, too
+        venus.forced_id = 2  # make it valid
+        demographics = Demographics.Demographics(nodes=[mars, venus], default_node=planet)
+        demographics.nodes[0].forced_id = demographics.nodes[1].forced_id  # make it invalid
+        self.assertRaises(DemographicsBase.DuplicateNodeIdException, demographics.to_dict)  # check
+
+    def test_duplicate_node_name_detection(self):
+        from emod_api.demographics.demographics_base import DemographicsBase
+
+        mars = Node.Node(lat=0, lon=0, pop=100, name='Mars', forced_id=1)
+        venus = Node.Node(lat=0, lon=0, pop=100, name='Mars', forced_id=2)
+        planet = Node.Node(lat=0, lon=0, pop=100, forced_id=0)
+        nodes = [mars, venus]
+        self.assertRaises(DemographicsBase.DuplicateNodeNameException,
+                          Demographics.Demographics, nodes=nodes, default_node=planet)
+
+        # mixing it up a bit to ensure that the default node is included in the error reporting. As well as
+        # ensuring that one gets duplicate errors even when requesting a non-duplicated node.
+        mars = Node.Node(lat=0, lon=0, pop=100, name='Mars', forced_id=1)
+        venus = Node.Node(lat=0, lon=0, pop=100, name='default_node', forced_id=2)
+        planet = Node.Node(lat=0, lon=0, pop=100, forced_id=0)  # gets an implicit name 'default_node'
+        nodes = [mars, venus]
+        self.assertRaises(DemographicsBase.DuplicateNodeNameException,
+                          Demographics.Demographics, nodes=nodes, default_node=planet)
+
+        # ensure json-dumping of demographics catches duplicates, too
+        venus.name = 'Venus'  # make it valid
+        demographics = Demographics.Demographics(nodes=[mars, venus], default_node=planet)
+        demographics.nodes[0].name = demographics.nodes[1].name  # make it invalid
+        self.assertRaises(DemographicsBase.DuplicateNodeNameException, demographics.to_dict)  # check
 
     def test_demo_basic_node(self):
         out_filename = os.path.join(self.out_folder, "demographics_basic_node.json")
@@ -98,136 +209,6 @@ class DemogTest(unittest.TestCase):
         self.assertIn('IndividualProperties', demog.raw['Defaults'])
         self.assertEqual(len(demog.implicits), 5)
 
-    def test_add_age_dependent_transmission(self):
-        demog = Demographics.from_template_node()
-        demog.SetDefaultProperties()
-        age_bin_edges_in_years = [0, 1, 2, -1]
-        transmission_matrix = [[0.2, 0.4, 1.0], [0.2, 0.4, 1.0], [0.2, 0.4, 1.0]]
-        demog.AddAgeDependentTransmission(Age_Bin_Edges_In_Years=age_bin_edges_in_years,
-                                          TransmissionMatrix=transmission_matrix)
-
-        self.assertEqual('Age_Bin', demog.raw['Defaults']['IndividualProperties'][0]['Property'])
-        self.assertEqual(age_bin_edges_in_years, demog.raw['Defaults']['IndividualProperties'][0][
-            'Age_Bin_Edges_In_Years'])
-        self.assertEqual(transmission_matrix, demog.raw['Defaults']['IndividualProperties'][0]['TransmissionMatrix'][
-            'Matrix'])
-        self.assertEqual(len(demog.implicits), 7)
-
-    def test_add_ip_and_hint(self):
-        implicit_config_fns = []
-        demog = Demographics.from_template_node()
-        demog.SetDefaultProperties()
-        property = 'Risk'
-        values = ['high', 'low']
-        initial_distribution = [0.1, 0.9]
-        demog.AddIndividualPropertyAndHINT(Property=property, Values=values, InitialDistribution=initial_distribution)
-
-        self.assertEqual(property, demog.raw['Defaults']['IndividualProperties'][0]['Property'])
-        self.assertEqual(values, demog.raw['Defaults']['IndividualProperties'][0][
-            'Values'])
-        self.assertEqual(initial_distribution,
-                         demog.raw['Defaults']['IndividualProperties'][0]['Initial_Distribution'])
-        self.assertEqual(len(demog.implicits), 5)
-
-        # Error handling
-
-        demog.raw['Defaults'].pop('IndividualProperties', None)
-        demog.AddIndividualPropertyAndHINT(Property=property, Values=values, InitialDistribution=initial_distribution)
-        self.assertEqual(len(demog.raw['Defaults']['IndividualProperties']), 1)
-
-        with self.assertRaises(ValueError) as context:
-            demog.AddIndividualPropertyAndHINT(Property=property, Values=values, InitialDistribution=initial_distribution)        
-
-    def test_add_ip_and_hint_disable_whitelist(self):
-        """
-        test property not in whitelist for auto-set Disable_IP_Whitelist in config, #94
-
-        """
-        demog = Demographics.from_template_node()
-        demog.SetDefaultProperties()
-        property = 'my_propertry'
-        values = ['1', '2']
-        initial_distribution = [0.2, 0.8]
-        demog.AddIndividualPropertyAndHINT(Property=property, Values=values, InitialDistribution=initial_distribution)
-
-        self.assertEqual(property, demog.raw['Defaults']['IndividualProperties'][0]['Property'])
-        self.assertEqual(values, demog.raw['Defaults']['IndividualProperties'][0][
-            'Values'])
-        self.assertEqual(initial_distribution,
-                         demog.raw['Defaults']['IndividualProperties'][0]['Initial_Distribution'])
-        self.assertEqual(len(demog.implicits), 6)
-
-    def test_add_ip_and_hint_agebin(self):
-        demog = Demographics.from_template_node()
-        demog.SetDefaultProperties()
-        property = 'Age_Bin'
-        values = ['50+', '50-']
-        initial_distribution = [0.5, 0.5]
-        transmission_matrix = [[0, 1], [1, 0]]
-        demog.AddIndividualPropertyAndHINT(Property=property, Values=values, InitialDistribution=initial_distribution,
-                                           TransmissionMatrix=transmission_matrix)
-
-        self.assertEqual(property, demog.raw['Defaults']['IndividualProperties'][0]['Property'])
-        self.assertEqual(values, demog.raw['Defaults']['IndividualProperties'][0][
-            'Age_Bin_Edges_In_Years'])
-        self.assertEqual(transmission_matrix,
-                         demog.raw['Defaults']['IndividualProperties'][0]['TransmissionMatrix']['Matrix'])
-        self.assertEqual(len(demog.implicits), 6)
-
-    def test_add_ip_and_hint_transmission_matrix(self):
-        demog = Demographics.from_template_node()
-        demog.SetDefaultProperties()
-        property = 'QualityOfCare'
-        values = ['High', 'Low']
-        initial_distribution = [0.3, 0.7]
-        transmission_matrix = [[1, 0], [0, 1]]
-        demog.AddIndividualPropertyAndHINT(Property=property, Values=values, InitialDistribution=initial_distribution,
-                                           TransmissionMatrix=transmission_matrix)
-
-        self.assertEqual(property, demog.raw['Defaults']['IndividualProperties'][0]['Property'])
-        self.assertEqual(values, demog.raw['Defaults']['IndividualProperties'][0][
-            'Values'])
-        self.assertEqual(initial_distribution,
-                         demog.raw['Defaults']['IndividualProperties'][0]['Initial_Distribution'])
-        self.assertEqual(transmission_matrix,
-                         demog.raw['Defaults']['IndividualProperties'][0]['TransmissionMatrix']['Matrix'])
-        self.assertEqual(len(demog.implicits), 6)
-
-    def test_add_ip_and_hint_defaults(self):
-        demog = Demographics.from_template_node()
-        demog.SetDefaultProperties()
-        property = 'QualityOfCare'
-        values = ['High', 'Low']
-        demog.AddIndividualPropertyAndHINT(property, values)
-
-        self.assertEqual(property, demog.raw['Defaults']['IndividualProperties'][0]['Property'])
-        self.assertEqual(values, demog.raw['Defaults']['IndividualProperties'][0]['Values'])
-        self.assertIsNone(demog.raw['Defaults']['IndividualProperties'][0].get('Initial_Distribution'))
-        self.assertIsNone(demog.raw['Defaults']['IndividualProperties'][0].get('TransmissionMatrix'))
-
-
-    def test_set_individual_attributtes_with_fert_mort(self):
-        # THIS GOT REALLY SLOW. SKIP AND FIX
-        demog = Demographics.from_template_node()
-        birth_rate = 50 # crude rate
-        mort_rate = 25
-        demog.SetIndividualAttributesWithFertMort(crude_birth_rate=birth_rate, crude_mort_rate=mort_rate)
-        self.assertIn('AgeDistribution', demog.raw['Defaults']['IndividualAttributes']) # Template should add an age distribution
-        self.assertIn('MortalityDistribution', demog.raw['Defaults']['IndividualAttributes'])
-        from emod_api.demographics.DemographicsTemplates import CrudeRate
-        true_mort_rate = -1 * (math.log(1 - CrudeRate(mort_rate).get_dtk_rate()))
-        self.assertEqual(demog.raw['Defaults']['IndividualAttributes']['MortalityDistribution']['ResultValues'], [[true_mort_rate], [true_mort_rate]])
-
-    def test_set_default_properties_fert_mort(self):
-        demog = Demographics.from_template_node()
-        c_birth_rate = 20
-        c_mort_rate = 30
-        default_susc = {"DistributionValues": [[i * 365 for i in range(100)]], "ResultScaleFactor": 1, "ResultValues": [[1.0, 1.0] + [0.025 + 0.975 * math.exp(-(i - 1) / (2.5 / math.log(2))) for i in range(2, 100, 1)]]}
-
-        demog.SetDefaultPropertiesFertMort(crude_birth_rate=c_birth_rate, crude_mort_rate=c_mort_rate)
-        from emod_api.demographics.DemographicsTemplates import CrudeRate
-        self.assertEqual(demog.raw['Defaults']['NodeAttributes']['BirthRate'], CrudeRate(c_birth_rate).get_dtk_rate() ) # Currently this is some default in the code
-        self.assertEqual(demog.raw['Defaults']['IndividualAttributes']['SusceptibilityDistribution'], default_susc) 
 
     def test_set_overdispersion(self):
         demog = Demographics.from_template_node()
@@ -274,13 +255,9 @@ class DemogTest(unittest.TestCase):
         template = DT.EveryoneInitiallySusceptible
         demog = self.demog_template_test(template=template)
         expect_susceptibility_distribution = {
-            "DistributionValues": [
-                [0, 36500]
-            ],
+            "DistributionValues": [0, 36500],
             "ResultScaleFactor": 1,
-            "ResultValues": [
-                [1.0, 1.0]
-            ]
+            "ResultValues": [1.0, 1.0]
         }
         self.assertEqual(expect_susceptibility_distribution, demog.raw['Defaults']['IndividualAttributes'][
             'SusceptibilityDistribution'])
@@ -327,53 +304,6 @@ class DemogTest(unittest.TestCase):
                             "RiskDistribution2": 0}
         for key, value in template_setting.items():
             self.assertEqual(value, demog.raw['Defaults']['IndividualAttributes'][key])
-        self.assertEqual(len(demog.implicits), 2)
-
-    def test_set_default_from_template_init_risk_uniform(self):
-        min_risk = 0.1
-        max_risk = 0.9
-        demog = Demographics.from_template_node()
-        demog.SetHeteroRiskUniformDist( min_risk, max_risk )
-        template_setting = {"RiskDistributionFlag": 1,
-                            "RiskDistribution1": min_risk,
-                            "RiskDistribution2": max_risk}
-        for key, value in template_setting.items():
-            self.assertEqual(value, demog.raw['Defaults']['IndividualAttributes'][key])
-
-        self.assertEqual(1, demog.raw['Defaults']['IndividualAttributes']['RiskDistributionFlag'])
-        self.assertEqual(min_risk, demog.raw['Defaults']['IndividualAttributes']['RiskDistribution1'])
-        self.assertEqual(max_risk, demog.raw['Defaults']['IndividualAttributes']['RiskDistribution2'])
-        self.assertEqual(len(demog.implicits), 2)
-
-    def test_set_default_from_template_init_risk_lognormal(self):
-        mean = 0.1
-        sigma = 0.9
-        demog = Demographics.from_template_node()
-        demog.SetHeteroRiskLognormalDist( mean, sigma )
-        template_setting = {"RiskDistributionFlag": 5,
-                            "RiskDistribution1": mean,
-                            "RiskDistribution2": sigma}
-        for key, value in template_setting.items():
-            self.assertEqual(value, demog.raw['Defaults']['IndividualAttributes'][key])
-
-        self.assertEqual(5, demog.raw['Defaults']['IndividualAttributes']['RiskDistributionFlag'])
-        self.assertEqual(mean, demog.raw['Defaults']['IndividualAttributes']['RiskDistribution1'])
-        self.assertEqual(sigma, demog.raw['Defaults']['IndividualAttributes']['RiskDistribution2'])
-        self.assertEqual(len(demog.implicits), 2)
-
-    def test_set_default_from_template_init_risk_expon(self):
-        mean = 0.1
-        demog = Demographics.from_template_node()
-        demog.SetHeteroRiskExponDist( mean )
-        template_setting = {"RiskDistributionFlag": 3,
-                            "RiskDistribution1": mean,
-                            "RiskDistribution2": 0}
-        for key, value in template_setting.items():
-            self.assertEqual(value, demog.raw['Defaults']['IndividualAttributes'][key])
-
-        self.assertEqual(3, demog.raw['Defaults']['IndividualAttributes']['RiskDistributionFlag'])
-        self.assertEqual(mean, demog.raw['Defaults']['IndividualAttributes']['RiskDistribution1'])
-        self.assertEqual(0, demog.raw['Defaults']['IndividualAttributes']['RiskDistribution2'])
         self.assertEqual(len(demog.implicits), 2)
 
     def test_set_default_from_template_mortality_rate_by_age(self):
@@ -463,7 +393,7 @@ class DemogTest(unittest.TestCase):
         id_ref = "from_csv_test"
 
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'demog_in.csv')
-        demog = Demographics.from_csv(input_file, res=25/ 3600, id_ref=id_ref)
+        demog = Demographics.from_csv(input_file, res=2/3600, id_ref=id_ref)
         self.assertEqual(demog.idref, id_ref)
         demog.SetDefaultProperties()
         demog.generate_file(out_filename)
@@ -480,6 +410,7 @@ class DemogTest(unittest.TestCase):
         inspect_node = demog.get_node_by_id(node_id=demog.nodes[15].id)
         self.assertEqual(inspect_node.id, demog.nodes[15].id, msg=f"This node should have an id of {demog.nodes[15].id} but instead it is {inspect_node.id}")
 
+        # checking for a node/node_id that should not exist
         with self.assertRaises(ValueError) as context:
             bad_node = demog.get_node_by_id(node_id=161839)
 
@@ -487,7 +418,6 @@ class DemogTest(unittest.TestCase):
 
         self.assertDictEqual(demog_json, demog.raw)
 
-        import pandas as pd
         csv_df = pd.read_csv(input_file, encoding='iso-8859-1')
 
         pop_threshold = 25000  # hardcoded value
@@ -496,20 +426,29 @@ class DemogTest(unittest.TestCase):
 
         self.assertTrue(self.check_for_unique_node_id(demog.raw['Nodes']))
 
-        # Produces error due to not assigning name to each node issue #221
-        if False:
-            location = pd.Series(["Seattle"]*4357)
-        
-            csv_df['loc'] = location
+        # Ensuring file-specified node names are honored
+        # location = pd.Series(["Seattle"]*4357)
+        locations = [f"Seattle{index}" for index in range(len(csv_df))]
+        csv_df['loc'] = locations
+        # self.assertFalse(any([name != "Seattle" for name in csv_df['loc']]))
+        csv_df.to_csv("demographics_places_from_csv.csv")
+        demog = Demographics.from_csv("demographics_places_from_csv.csv", res=2/3600)
+        nodes = demog.nodes
+        for index, node in enumerate(nodes):
+            self.assertEqual(node.name, locations[index], msg=f"Bad node found: {node} on line {index+2}")
 
-            self.assertFalse(any([name != "Seattle" for name in csv_df['loc']]))
-            csv_df.to_csv("demographics_places_from_csv.csv")
+    def test_from_csv_detects_duplicate_auto_node_ids(self):
+        from emod_api.demographics.demographics_base import DemographicsBase
 
-            demog = Demographics.from_csv("demographics_places_from_csv.csv", res=25/ 3600)
-            nodes = demog.nodes
+        out_filename = os.path.join(self.out_folder, "demographics_from_csv.json")
+        manifest.delete_existing_file(out_filename)
+        id_ref = "test_from_csv_detects_duplicate_auto_node_ids"
 
-            for index, node in enumerate(nodes):
-                self.assertEqual(node.name, "Seattle", msg=f"Bad node found: {node} on line {index+2}")
+        input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'demog_in.csv')
+        # We set the resolution too coarse for the data, so we should have a duplicate node_id (generated by
+        # lat/lon/resolution values)
+        self.assertRaises(DemographicsBase.DuplicateNodeIdException,
+                          Demographics.from_csv, input_file, res=25 / 3600, id_ref=id_ref)
 
     def test_from_csv_2(self):
         out_filename = os.path.join(self.out_folder, "demographics_from_csv_2.json")
@@ -538,7 +477,6 @@ class DemogTest(unittest.TestCase):
 
         self.assertDictEqual(demog_json, demog.raw)
 
-        import pandas as pd
         csv_df = pd.read_csv(input_file, encoding='iso-8859-1')
 
         # checking if we have the same number of nodes and the number of rows in csv file
@@ -591,9 +529,6 @@ class DemogTest(unittest.TestCase):
 
         self.assertDictEqual(demog_json, demog.raw)
 
-        import pandas as pd
-        csv_df = pd.read_csv(input_file, encoding='iso-8859-1')
-
         # the following assertion fails, logged as https://github.com/InstituteforDiseaseModeling/emod-api/issues/367
         # self.assertEqual(len(csv_df), len(demog_json['Nodes']))
 
@@ -610,7 +545,23 @@ class DemogTest(unittest.TestCase):
 
         bad_input = os.path.join(manifest.current_directory, 'data', 'demographics', 'bad_nodes_with_birthrate.csv')
         with self.assertRaises(ValueError):
-            demog = Demographics.from_csv(bad_input)
+            Demographics.from_csv(bad_input)
+
+    # now verify that if there is a duplicate node_id in the csv file we catch it.
+    def test_from_csv_birthrate_duplicate_node_id(self):
+        from emod_api.demographics.demographics_base import DemographicsBase
+
+        input_file = os.path.join(manifest.current_directory,
+                                  'data', 'demographics', 'nodes_with_birthrate_duplicate_node_id.csv')
+        self.assertRaises(DemographicsBase.DuplicateNodeIdException, Demographics.from_csv, input_file=input_file)
+
+    # now verify that if there is a duplicate node_name in the csv file we catch it.
+    def test_from_csv_birthrate_duplicate_node_name(self):
+        from emod_api.demographics.demographics_base import DemographicsBase
+
+        input_file = os.path.join(manifest.current_directory,
+                                  'data', 'demographics', 'nodes_with_birthrate_duplicate_node_name.csv')
+        self.assertRaises(DemographicsBase.DuplicateNodeNameException, Demographics.from_csv, input_file=input_file)
 
     def test_from_params(self):
         out_filename = os.path.join(self.out_folder, "demographics_from_params.json")
@@ -786,7 +737,7 @@ class DemogTest(unittest.TestCase):
         overlay_nodes = []  # list of all overlay nodes
         overlay_nodes_id_1 = [1, 2]  # Change susceptibility of nodes with ids 1 and 2
         for node_id in overlay_nodes_id_1:
-            new_susceptibility_distribution_1 = IndividualAttributes.SusceptibilityDistribution(distribution_values=[0.1, 0.2],
+            new_susceptibility_distribution_1 = SusceptibilityDistribution(distribution_values=[0.1, 0.2],
                                                                                                           result_scale_factor=1,
                                                                                                           result_values=[0.1, 0.2])
 
@@ -795,7 +746,7 @@ class DemogTest(unittest.TestCase):
 
         overlay_nodes_id_2 = [5, 10]    # Change susceptibility of nodes with ids 5 and 10
         for node_id in overlay_nodes_id_2:
-            new_susceptibility_distribution_2 = IndividualAttributes.SusceptibilityDistribution(distribution_values=[0.8, 0.9],
+            new_susceptibility_distribution_2 = SusceptibilityDistribution(distribution_values=[0.8, 0.9],
                                                                                                           result_scale_factor=1,
                                                                                                           result_values=[0.8, 0.9])
 
@@ -825,10 +776,8 @@ class DemogTest(unittest.TestCase):
         initial_distribution = [0.1, 0.3, 0.6]
         property = "Property"
         values = ["1", "2", "3"]
-        transitions = [3, 4, 5]
-        transmission_matrix = [[0.0, 0.0, 0.2],
-                               [0.0, 0.0, 1.2],
-                               [0.0, 0.0, 0.0]]
+        transitions = [{}, {}, {}]
+        transmission_matrix = [[0.0, 0.0, 0.2],[0.0, 0.0, 1.2],[0.0, 0.0, 0.0]]
         node = demo.nodes[0]
         node.individual_properties.add(IndividualProperty(initial_distribution=initial_distribution,
                                                           property=property,
@@ -837,7 +786,7 @@ class DemogTest(unittest.TestCase):
                                                           transmission_matrix=transmission_matrix
                                                           ))
         node = demo.nodes[2]
-        node.individual_properties.add(IndividualProperty(property='I like chocolate'))
+        node.individual_properties.add(IndividualProperty(property='I like chocolate', values=values))
         node.individual_properties[0].initial_distribution = initial_distribution
         node.individual_properties[0].property = property
         node.individual_properties[0].values = values
@@ -849,14 +798,14 @@ class DemogTest(unittest.TestCase):
             "Property": property,
             "Values": values,
             "Transitions": transitions,
-            "TransmissionMatrix": transmission_matrix}
+            "TransmissionMatrix": {'Matrix': transmission_matrix, 'Route': 'Contact'}}
 
         self.assertDictEqual(demo.nodes[0].individual_properties[0].to_dict(), individual_properties_reference)
         self.assertDictEqual(demo.nodes[2].individual_properties[0].to_dict(), individual_properties_reference)
 
     def test_default_individual_property_parameters_to_dict(self):
-        individual_property = IndividualProperty(property='very meaningful')
-        self.assertDictEqual(individual_property.to_dict(), {'Property': 'very meaningful'})  # empty, no keys/values added
+        individual_property = IndividualProperty(property='very meaningful', values=["wow", "thanks"])
+        self.assertDictEqual(individual_property.to_dict(), {'Property': 'very meaningful', 'Values':["wow", "thanks"]})  # empty, no keys/values added
 
     def test_overlay_individual_properties(self):
         # create simple demographics
@@ -870,11 +819,11 @@ class DemogTest(unittest.TestCase):
         demo = Demographics.from_csv(csv_file)
         csv_file.unlink()
 
-        initial_distribution = 999
+        initial_distribution = [0, 0.3, 0.7]
         property = "Property"
         values = [1, 2, 3]
-        transitions = [3, 4, 5]
-        transmission_matrix = [[1, 2], [3, 4]]
+        transitions = [{}, {}, {}]
+        transmission_matrix = [[1, 2, 3], [3, 4, 5], [3, 4, 5]]
 
         node = demo.nodes[0]
         node.individual_properties.add(IndividualProperty(initial_distribution=initial_distribution,
@@ -887,7 +836,7 @@ class DemogTest(unittest.TestCase):
         new_population = 999
         new_property = "Test_Property"
 
-        ip_overlay = IndividualProperty(property='yet another one')
+        ip_overlay = IndividualProperty(property='yet another one', values=values)
         ip_overlay.initial_distribution = new_population
         ip_overlay.property = new_property
         node.individual_properties[0].update(ip_overlay)
@@ -931,8 +880,8 @@ class DemogTest(unittest.TestCase):
         self.assertDictEqual(demo.nodes[2].individual_attributes.to_dict(), individual_attributes)
 
     def test_applyoverlay_individual_properties(self):
-        node_attributes_1 = NodeAttributes(name="test_demo")
-        node_attributes_2 = NodeAttributes(name="test_demo")
+        node_attributes_1 = NodeAttributes(name="test_demo1")
+        node_attributes_2 = NodeAttributes(name="test_demo2")
         nodes = [Node.Node(1, 0, 1001, node_attributes=node_attributes_1, forced_id=1),
                  Node.Node(0, 1, 1002, node_attributes=node_attributes_2, forced_id=2)]
         demog = Demographics.Demographics(nodes=nodes)
@@ -943,11 +892,7 @@ class DemogTest(unittest.TestCase):
         initial_distribution = [0.1, 0.9]
         property = "QualityOfCare"
         values = ["High", "Low"]
-        transmission_matrix = {
-            "Matrix": [
-                [0.5, 0.0],
-                [0.0, 1]],
-            "Route": "Contact"}
+        transmission_matrix =  [[0.5, 0.0], [0.0, 1]]
         new_individual_properties = IndividualProperties()
         new_individual_properties.add(IndividualProperty(initial_distribution=initial_distribution,
                                                          property=property,
@@ -977,9 +922,9 @@ class DemogTest(unittest.TestCase):
                          values)
 
         self.assertEqual(demographics['Nodes'][0]["IndividualProperties"][0]['TransmissionMatrix'],
-                         transmission_matrix)
+                         {'Matrix': [[0.5, 0.0], [0.0, 1]], 'Route': 'Contact'})
         self.assertEqual(demographics['Nodes'][1]["IndividualProperties"][0]['TransmissionMatrix'],
-                         transmission_matrix)
+                         {'Matrix': [[0.5, 0.0], [0.0, 1]], 'Route': 'Contact'})
 
     def test_applyoverlay_individual_attributes(self):
         individual_attributes_1 = IndividualAttributes(age_distribution_flag=1,
@@ -1015,10 +960,10 @@ class DemogTest(unittest.TestCase):
         self.assertEqual(demographics['Nodes'][1]["IndividualAttributes"]['AgeDistribution2'], 600)
 
     def test_applyoverlay_individual_attributes_mortality_distribution(self):
-        mortality_dist_f_1 = IndividualAttributes.MortalityDistribution(result_values=[[123], [345]])
-        mortality_dist_m_1 = IndividualAttributes.MortalityDistribution(result_values=[[123], [345]])
-        mortality_dist_f_2 = IndividualAttributes.MortalityDistribution(result_values=[[123], [345]])
-        mortality_dist_m_2 = IndividualAttributes.MortalityDistribution(result_values=[[123], [345]])
+        mortality_dist_f_1 = MortalityDistribution(result_values=[[123], [345]])
+        mortality_dist_m_1 = MortalityDistribution(result_values=[[123], [345]])
+        mortality_dist_f_2 = MortalityDistribution(result_values=[[123], [345]])
+        mortality_dist_m_2 = MortalityDistribution(result_values=[[123], [345]])
 
         individual_attributes_1 = IndividualAttributes(mortality_distribution_female=mortality_dist_f_1,
                                                        mortality_distribution_male=mortality_dist_m_1)
@@ -1030,8 +975,8 @@ class DemogTest(unittest.TestCase):
         demog = Demographics.Demographics(nodes=nodes)
 
         overlay_nodes = []
-        mortality_dist_f_new = IndividualAttributes.MortalityDistribution(result_values=[[111], [222]])
-        mortality_dist_m_new = IndividualAttributes.MortalityDistribution(result_values=[[333], [444]])
+        mortality_dist_f_new = MortalityDistribution(result_values=[[111], [222]])
+        mortality_dist_m_new = MortalityDistribution(result_values=[[333], [444]])
         new_individual_attributes = IndividualAttributes(mortality_distribution_male=mortality_dist_m_new,
                                                          mortality_distribution_female=mortality_dist_f_new)
 
@@ -1169,25 +1114,6 @@ class DemogTest(unittest.TestCase):
         self.assertIn("uniform", demog.raw['Defaults']['IndividualAttributes']['PrevalenceDistribution_Description'])
         self.assertEqual(len(demog.implicits), 2)
 
-    def test_set_constant_risk(self):
-        demog = Demographics.from_template_node()
-        risk = 0.1
-        demog.SetConstantRisk(risk)
-        self.assertEqual(1, demog.raw['Defaults']['IndividualAttributes']['RiskDistributionFlag'])
-        self.assertEqual(risk, demog.raw['Defaults']['IndividualAttributes']['RiskDistribution1'])
-        self.assertEqual(risk, demog.raw['Defaults']['IndividualAttributes']['RiskDistribution2'])
-        self.assertIn("constant", demog.raw['Defaults']['IndividualAttributes']['RiskDistribution_Description'])
-        self.assertEqual(len(demog.implicits), 2)
-
-    def test_set_full_risk(self):
-        demog = Demographics.from_template_node()
-        demog.SetConstantRisk()
-        self.assertEqual(0, demog.raw['Defaults']['IndividualAttributes']['RiskDistributionFlag'])
-        self.assertEqual(1, demog.raw['Defaults']['IndividualAttributes']['RiskDistribution1'])
-        self.assertEqual(0, demog.raw['Defaults']['IndividualAttributes']['RiskDistribution2'])
-        self.assertIn("constant", demog.raw['Defaults']['IndividualAttributes']['RiskDistribution_Description'])
-        self.assertEqual(len(demog.implicits), 2)
-
     def test_set_predefined_mortality_distribution(self):
         demog = Demographics.from_template_node()
         mortality_distribution = Distributions.SEAsia_Diag
@@ -1274,7 +1200,6 @@ class DemogTest(unittest.TestCase):
         self.assertDictAlmostEqual( female_test, mort_ref )
 
     def test_demographic_json_integrity(self):
-        import pandas as pd
         df = pd.read_csv(manifest.mortality_data_age_year_csv)
 
         demog = Demographics.from_template_node()
@@ -1397,11 +1322,9 @@ class DemogTest(unittest.TestCase):
 
         demog = Demographics.from_template_node()
         demog.SetMortalityOverTimeFromData(manifest.mortality_data_age_year_csv, base_year=1950)
-        import numpy as np
         years_male = np.asarray(demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionMale']['ResultValues']).transpose()
         # Years_Female = demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionFemale']['ResultValues']
 
-        import pandas as pd
         data = pd.read_csv(manifest.mortality_data_age_year_csv)
         df_Years = pd.DataFrame(data)
         df_Years = df_Years.drop('Age_Bin', axis=1)
@@ -1467,7 +1390,7 @@ class DemogTest(unittest.TestCase):
     def test_wrap_distribution_const(self):
         # Test if wrapper ConstantDistribution changes distribution
         distribution = Distributions.Constant_Mortality
-        predefined_mort_dist = IndividualAttributes.MortalityDistribution(num_population_axes=2,
+        predefined_mort_dist = MortalityDistribution(num_population_axes=2,
                                                                           axis_names=["gender", "age"],
                                                                           axis_units=["male=0,female=1", "years"],
                                                                           axis_scale_factors=[1, 365],
@@ -1859,8 +1782,9 @@ class DemographicsComprehensiveTests_Fertility(unittest.TestCase):
                 self.assertGreater(len(demog.to_dict()['Nodes'][j]['IndividualAttributes']['MortalityDistributionFemale']), 0)  
                 self.assertGreater(len(demog.to_dict()['Nodes'][j]['IndividualAttributes']['MortalityDistributionMale']), 0) 
         
-        fertility_data = demog.SetFertilityOverTimeFromParams(years_region1=110, years_region2=60, start_rate=16, inflection_rate=18.4, end_rate=17,  node_ids=list_of_all_node_ids[88:89]) 
+        fertility_data = demog.SetFertilityOverTimeFromParams(years_region1=110, years_region2=60, start_rate=16, inflection_rate=18.4, end_rate=17,  node_ids=list_of_all_node_ids[88:89])
         demog.generate_file(out_updated_2_filename)
+
 
 class DemographicsOverlayTest(unittest.TestCase):
     def setUp(self) -> None:
@@ -1883,7 +1807,9 @@ class DemographicsOverlayTest(unittest.TestCase):
                         ]
                     }
                 },
-                #                    "NodeAttributes": {}
+                "NodeAttributes": {
+                    "BirthRate": 0
+                }
             },
             "Metadata": {
                 "IdReference": "polio-custom"
@@ -1896,11 +1822,11 @@ class DemographicsOverlayTest(unittest.TestCase):
         }
 
         individual_attributes = IndividualAttributes()
-        individual_attributes.susceptibility_distribution = IndividualAttributes.SusceptibilityDistribution(distribution_values=[0.0, 3650],
-                                                                                                                      result_scale_factor=1,
-                                                                                                                      result_values=[1.0, 0.0])
+        individual_attributes.susceptibility_distribution = SusceptibilityDistribution(distribution_values=[0.0, 3650],
+                                                                                       result_scale_factor=1,
+                                                                                       result_values=[1.0, 0.0])
 
-        overlay      = Demographics.DemographicsOverlay(nodes=[Node.OverlayNode(1)], individual_attributes=individual_attributes)
+        overlay = DemographicsOverlay(nodes=[Node.OverlayNode(1)], individual_attributes=individual_attributes)
 
         overlay_dict = overlay.to_dict()
         self.assertDictEqual(reference["Defaults"], overlay_dict["Defaults"])
@@ -1912,17 +1838,13 @@ class DemographicsOverlayTest(unittest.TestCase):
                 "IndividualAttributes": {
                     "AgeDistribution": {
                         "DistributionValues": [
-                            [
                                 0.0,
                                 1.0
-                            ]
                         ],
                         "ResultScaleFactor": 1,
                         "ResultValues": [
-                            [
                                 0,
                                 43769
-                            ]
                         ]
                     },
                     "MortalityDistribution": {
@@ -1981,23 +1903,23 @@ class DemographicsOverlayTest(unittest.TestCase):
         }
 
         individual_attributes = IndividualAttributes()
-        individual_attributes.age_distribution = IndividualAttributes.AgeDistribution(distribution_values=[[0.0, 1.0]],
-                                                                                                result_scale_factor=1,
-                                                                                                result_values=[[0, 43769]])
+        individual_attributes.age_distribution = AgeDistribution(distribution_values=[0.0, 1.0],
+                                                                 result_scale_factor=1,
+                                                                 result_values=[0, 43769])
 
-        individual_attributes.mortality_distribution = IndividualAttributes.MortalityDistribution(axis_names=["gender", "age"],
-                                                                                                            axis_scale_factors=[1, 1],
-                                                                                                            num_distribution_axes=2,
-                                                                                                            num_population_groups=[2, 54],
-                                                                                                            population_groups=[[0, 1], [0.6, 43829.5]],
-                                                                                                            result_scale_factor=1,
-                                                                                                            result_values=[[0.0013, 1.0], [0.0013, 1.0]])
+        individual_attributes.mortality_distribution = MortalityDistribution(axis_names=["gender", "age"],
+                                                                             axis_scale_factors=[1, 1],
+                                                                             num_distribution_axes=2,
+                                                                             num_population_groups=[2, 54],
+                                                                             population_groups=[[0, 1], [0.6, 43829.5]],
+                                                                             result_scale_factor=1,
+                                                                             result_values=[[0.0013, 1.0], [0.0013, 1.0]])
 
         node_attributes = NodeAttributes(birth_rate=0.1, growth_rate=1.01)
 
-        overlay = Demographics.DemographicsOverlay(nodes=[Node.OverlayNode(1), Node.OverlayNode(2)],
-                                                   individual_attributes=individual_attributes,
-                                                   node_attributes=node_attributes)
+        overlay = DemographicsOverlay(nodes=[Node.OverlayNode(1), Node.OverlayNode(2)],
+                                      individual_attributes=individual_attributes,
+                                      node_attributes=node_attributes)
 
         overlay_dict = overlay.to_dict()
         self.assertDictEqual(reference["Defaults"], overlay_dict["Defaults"])
@@ -2045,7 +1967,7 @@ class DemographicsOverlayTest(unittest.TestCase):
         population_groups = [mort_vec_X, mort_year]
 
         # Vital dynamics overlays
-        vd_over_dict['Defaults'] = {'IndividualAttributes': dict()}
+        vd_over_dict['Defaults'] = {'IndividualAttributes': dict(), 'NodeAttributes': {'BirthRate': 0}}
 
         vd_over_dict['Nodes'] = [{'NodeID': node_obj.forced_id} for node_obj in node_list]
 
@@ -2066,8 +1988,7 @@ class DemographicsOverlayTest(unittest.TestCase):
         individual_attributes['MortalityDistributionFemale']['ResultScaleFactor'] = 1
         individual_attributes['MortalityDistributionFemale']['ResultValues'] = result_values
 
-
-        demog = Demographics.DemographicsOverlay(nodes=[Node.OverlayNode(1),Node.OverlayNode(2)])
+        demog = DemographicsOverlay(nodes=[Node.OverlayNode(1), Node.OverlayNode(2)])
         demog.AddMortalityByAgeSexAndYear(age_bin_boundaries_in_years=mort_vec_X,
                                           year_bin_boundaries=mort_year,
                                           male_mortality_rates=result_values,
@@ -2075,6 +1996,7 @@ class DemographicsOverlayTest(unittest.TestCase):
 
         overlay_dict = demog.to_dict()
         self.assertDictEqual(vd_over_dict["Defaults"], overlay_dict["Defaults"])
+
 
 class DemographicsComprehensiveTests_Migration(unittest.TestCase):
     def setUp(self) -> None:
@@ -2609,8 +2531,24 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
         self.from_csv_with_country("Least developed countries: UN classification", 1980)
     def test_SetEquilibriumVitalDynamicsFromWorldBank_EH_07(self):
         self.from_csv_with_country("Turks and Caicos Islands", 1980)
-        
     #endregion
+
+    # moved from now-defunct test_demog_Parser.py, because the file it used to test has been deleted.    
+    def test_node_id_from_lat_lon_res(self):
+        node_id = Demographics._node_id_from_lat_lon_res(lat=1000, lon=1000, res=30 / 3600)
+        node_id_2 = Demographics._node_id_from_lat_lon_res(lat=1000, lon=1000, res=30 / 3600)
+        self.assertEqual(node_id, node_id_2)
+
+        node_id_3 = Demographics._node_id_from_lat_lon_res(lat=1000, lon=1000, res=30 / 360)
+        self.assertNotEqual(node_id, node_id_3)
+
+        node_id_4 = Demographics._node_id_from_lat_lon_res(lat=999, lon=1000, res=30 / 3600)
+        self.assertNotEqual(node_id, node_id_4)
+
+        node_id_5 = Demographics._node_id_from_lat_lon_res(lat=1000, lon=1001, res=30 / 3600)
+        self.assertNotEqual(node_id, node_id_5)
+
+    
 if __name__ == '__main__':
     unittest.main()
 

@@ -1,5 +1,7 @@
-from emod_api.demographics.PropertiesAndAttributes import IndividualAttributes
 import copy
+
+from emod_api.demographics.age_distribution_old import AgeDistributionOld as AgeDistribution
+from emod_api.demographics.mortality_distribution_old import MortalityDistributionOld as MortalityDistribution
 
 
 class ConstantDistribution:
@@ -34,43 +36,38 @@ class ConstantDistribution:
 
 
 # Mortality Distributions
-Constant_Mortality = ConstantDistribution(IndividualAttributes.MortalityDistribution(num_population_axes=2,
-                                                                                     axis_names=["gender", "age"],
-                                                                                     axis_units=["male=0,female=1",
-                                                                                                 "years"],
-                                                                                     axis_scale_factors=[1, 365],
-                                                                                     population_groups=[[0, 1], [0]],
-                                                                                     result_scale_factor=1,
-                                                                                     result_units="daily probability "
-                                                                                                  "of dying",
-                                                                                     result_values=[[0.5], [0.5]]))
+Constant_Mortality = ConstantDistribution(
+    MortalityDistribution(num_population_axes=2,
+                                                                axis_names=["gender", "age"],
+                                                                axis_units=["male=0,female=1", "years"],
+                                                                axis_scale_factors=[1, 365],
+                                                                population_groups=[[0, 1], [0]],
+                                                                result_scale_factor=1,
+                                                                result_units="daily probability of dying",
+                                                                result_values=[[0.5], [0.5]]))
 
-SEAsia_Diag = ConstantDistribution(IndividualAttributes.MortalityDistribution(num_population_axes=2,
-                                                                              num_population_groups=[2, 1],
-                                                                              axis_names=["gender", "age"],
-                                                                              axis_units=["male=0,female=1", "years"],
-                                                                              axis_scale_factors=[1, 365],
-                                                                              population_groups=[[0, 1],
-                                                                                                 [0, 1, 5, 25, 40, 60,
-                                                                                                  80, 95]],
-                                                                              result_scale_factor=0.00000274,
-                                                                              result_units="annual deaths per 1000 "
-                                                                                           "individuals",
-                                                                              result_values=[
-                                                                                  [35, 5, 1, 2, 5, 30, 350, 1000],
-                                                                                  [35, 5, 1, 2, 5, 30, 350, 1000]]))
+SEAsia_Diag = ConstantDistribution(MortalityDistribution(num_population_axes=2,
+                                                         num_population_groups=[2, 1],
+                                                         axis_names=["gender", "age"],
+                                                         axis_units=["male=0,female=1", "years"],
+                                                         axis_scale_factors=[1, 365],
+                                                         population_groups=[[0, 1], [0, 1, 5, 25, 40, 60, 80, 95]],
+                                                         result_scale_factor=0.00000274,
+                                                         result_units="annual deaths per 1000 individuals",
+                                                         result_values=[[35, 5, 1, 2, 5, 30, 350, 1000],
+                                                                        [35, 5, 1, 2, 5, 30, 350, 1000]]))
 
 # Age Distributions
-AgeDistribution_Mosambique = ConstantDistribution(IndividualAttributes.AgeDistribution(
+AgeDistribution_Mosambique = ConstantDistribution(AgeDistribution(
     distribution_values=[0.1059, 0.2005, 0.3011, 0.4154, 0.5256, 0.6186, 0.7023, 0.7492, 0.8062, 0.8556, 0.8989, 0.9309,
                          0.9558, 0.9727, 0.9850, 0.9930, 1.0, 1.0],
     result_scale_factor=1,
     result_values=[0, 1825, 3650, 5475, 7300, 9125, 10950, 12775, 14600, 16425, 18250, 20075, 21900, 23725, 25550,
                    27375, 29200, 32850]))
 
-AgeDistribution_Mozambique = AgeDistribution_Mosambique  # Fix spelling AND stay backwards compatible
+AgeDistribution_Mozambique = AgeDistribution_Mosambique     # Fix spelling AND stay backwards compatible
 
-AgeDistribution_SEAsia = ConstantDistribution(IndividualAttributes.AgeDistribution(
+AgeDistribution_SEAsia = ConstantDistribution(AgeDistribution(
     distribution_values=[0,
                          0.05131030266354994,
                          0.10043221053926492,
@@ -173,7 +170,7 @@ AgeDistribution_SEAsia = ConstantDistribution(IndividualAttributes.AgeDistributi
                    42906,
                    43800]))
 
-AgeDistribution_SSAfrica = ConstantDistribution(IndividualAttributes.AgeDistribution(
+AgeDistribution_SSAfrica = ConstantDistribution(AgeDistribution(
     distribution_values=[0,
                          0.0874071047257126,
                          0.16737703029028825,
@@ -276,7 +273,7 @@ AgeDistribution_SSAfrica = ConstantDistribution(IndividualAttributes.AgeDistribu
                    42906,
                    43800]))
 
-AgeDistribution_Americas = ConstantDistribution(IndividualAttributes.AgeDistribution(
+AgeDistribution_Americas = ConstantDistribution(AgeDistribution(
     distribution_values=[0.0,
                          0.05561604975889523,
                          0.1085504268939315,

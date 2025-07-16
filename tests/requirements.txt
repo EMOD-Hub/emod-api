@@ -1,0 +1,4 @@
+--extra-index-url=https://packages.idmod.org/api/pypi/pypi-production/simple
+emod-common
+emod-generic
+emod-malaria

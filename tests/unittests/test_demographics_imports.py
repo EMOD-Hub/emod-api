@@ -43,7 +43,7 @@ class EmodapiDemographicsImportTest(unittest.TestCase):
             'from_params',
             'get_node_ids_from_file',
             'get_node_pops_from_params',
-            'node_ID_from_lat_long'
+            '_node_id_from_lat_lon_res'
         ]
         import emod_api.demographics.Demographics as eaddf
         self.verify_expected_items_present(namespace=eaddf)

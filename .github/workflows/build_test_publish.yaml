@@ -3,8 +3,12 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - release*
-      - master
+      - 'main'
+    paths:
+      - 'emod_api/**'
+      - 'pyproject.toml'
+permissions:
+  contents: write # Allow writing to the repository (e.g., commits, pushes)
 jobs:
   build_test_publish:
     runs-on: ubuntu-latest
@@ -15,7 +19,7 @@ jobs:
         python-version: [ '3.9' ]
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Config github user
@@ -33,10 +37,10 @@ jobs:
         name: Build and install package
         uses: ./.github/actions/build-install-package
         with:
-          package_file: 'setup.py'
+          pyproject_file: 'pyproject.toml'
       - name: run unit tests
         run: |
-          pip install lz4
+          pip install -r requirements.txt
           python -m unittest discover .
         working-directory: ./tests
       - name: Push version bump
@@ -44,11 +48,5 @@ jobs:
         run: git push
       - name: twine upload
         if: success()
-        run: twine upload --verbose --repository-url https://packages.idmod.org/api/pypi/idm-pypi-staging/ --username ${{ secrets.ARTIFACTORY_USER }} --password ${{ secrets.ARTIFACTORY_TOKEN }} ${{ steps.build-install.outputs.wheel-file }}
-      - name: Add wheel artifact
-        if: success()
-        uses: actions/upload-artifact@v2
-        with:
-          name: emodpy-covid.wheel
-          path: ${{ steps.build-install.outputs.wheel-file }}
-
+        run: twine upload --verbose --repository-url https://packages.idmod.org/api/pypi/idm-pypi-staging/ --username ${{ secrets.STAGING_ARTIFACTORY_USERNAME }} --password ${{ secrets.STAGING_ARTIFACTORY_PASSWORD }} dist/*
+        working-directory: ./

@@ -15,7 +15,7 @@ class NodeTest(unittest.TestCase):
         self.assertFalse(individual_properties)
 
     def test_individual_properties_length_1(self):
-        individual_property = IndividualProperty(property='deliciousness', initial_distribution=123, values=456)
+        individual_property = IndividualProperty(property='deliciousness',initial_distribution=[0.1, 0.9], values=["a", "b"])
         individual_properties = IndividualProperties(individual_property)
 
         self.assertEqual(len(individual_properties), 1)
@@ -23,15 +23,16 @@ class NodeTest(unittest.TestCase):
         self.assertDictEqual(individual_properties[0].to_dict(), individual_property.to_dict())
 
     def test_individual_properties_iter(self):
-        individual_property1 = IndividualProperty(property='something', initial_distribution=123, values=456)
-        individual_property2 = IndividualProperty(property='else', initial_distribution=123, values=456)
+        individual_property1 = IndividualProperty(property='something', initial_distribution=[0.1, 0.9], values=["a", "b"])
+        individual_property2 = IndividualProperty(property='else', initial_distribution=[0.3, 0.7], values=["c", "d"])
         individual_properties = IndividualProperties()
         individual_properties.add(individual_property1)
         individual_properties.add(individual_property2)
 
-        for ip in individual_properties:
-            self.assertEqual(ip.initial_distribution, 123)
-            self.assertEqual(ip.values, 456)
+        ip = individual_properties[0]
+        self.assertEqual(ip.initial_distribution, [0.1, 0.9])
+        ip2 = individual_properties[1]
+        self.assertEqual(ip2.values, ["c", "d"])
 
     def test_basicNode(self):
         latitude = 123
@@ -83,8 +84,9 @@ class NodeTest(unittest.TestCase):
         self.assertEqual(individual_attributes.to_dict()["user_defined_2"], 2)
         self.assertNotIn("user_defined_2", individual_attributes_2.to_dict())
 
-        individual_properties = IndividualProperties(IndividualProperty(property='cloudy'))
-        individual_properties_2 = IndividualProperties(IndividualProperty(property='White House'))
+        individual_properties = IndividualProperties(IndividualProperty(property='cloudy', values=["yes", "no"],
+                                                                        initial_distribution=[0.5, 0.5]))
+        individual_properties_2 = IndividualProperties(IndividualProperty(property='White House', values=["yes", "no"]))
         individual_properties[0].add_parameter("user_defined_3", 3)
         self.assertEqual(individual_properties[0].to_dict()["user_defined_3"], 3)
         self.assertNotIn("user_defined_3", individual_properties_2.to_dict())
@@ -110,21 +112,22 @@ class NodeTest(unittest.TestCase):
         self.assertEqual(node.to_dict()["NodeAttributes"]["InfectivityMultiplier"], infectivity_multiplier_val)
 
     def test_raise_error_add_parameter_to_individual_properties(self):
-        individual_properties = IndividualProperties(IndividualProperty(property='color'))
+        individual_properties = IndividualProperties(IndividualProperty(property='color', values=["red", "blue"],
+                                                                        initial_distribution=[0.5, 0.5]))
         with self.assertRaises(NotImplementedError):
-            individual_properties.add_parameter("My_Parameter", 123)
+            individual_properties.add_parameter("transmission_route", "sexual")
 
     def test_set_predefined_mortality_distribution(self):
         node = Node.Node(lat=1, lon=2, pop=100)
         mortality_distribution = Distributions.SEAsia_Diag
-        node._set_mortality_distribution(Distributions.SEAsia_Diag)
+        node._set_mortality_complex_distribution(Distributions.SEAsia_Diag)
         self.assertDictEqual(node.individual_attributes.mortality_distribution.to_dict(),
                              mortality_distribution.to_dict())
 
     def test_set_predefined_age_distribution(self):
         node = Node.Node(lat=1, lon=2, pop=100)
         age_distribution = Distributions.SEAsia_Diag
-        node._set_age_distribution(age_distribution)
+        node._set_age_complex_distribution(age_distribution)
         self.assertDictEqual(node.individual_attributes.age_distribution.to_dict(),
                              age_distribution.to_dict())
 
@@ -133,6 +136,7 @@ class NodeTest(unittest.TestCase):
         self.assertIsNone(node.node_attributes.birth_rate)
         node.birth_rate = 0.5
         self.assertEqual(node.birth_rate, 0.5)
+
 
 if __name__ == '__main__':
     unittest.main()
