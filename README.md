@@ -1,10 +1,10 @@
 # emod-api
-Python library/utilities/tools for interacting with DTK input and output files
+Python library/utilities/tools for interacting with EMOD input and output files
 
 Developer note: Any .py file in emod_api will be included in the package.
 
-![](https://github.com/institutefordiseasemodeling/emod-api/workflows/Package%20and%20test%20on%20Ubuntu/badge.svg)  
-![](https://github.com/institutefordiseasemodeling/emod-api/workflows/Package%20and%20test%20on%20Windows/badge.svg)
+![](https://github.com/EMOD-Hub/emod-api/workflows/build_test_ubuntu/badge.svg)
+![](https://github.com/EMOD-Hub/emod-api/workflows/build_test_windows/badge.svg)
 
 ## Documentation
 
@@ -27,20 +27,13 @@ To build the documentation locally, do the following:
 
 ### Linux
 
-emod-api can use Snappy [de]compression (python-snappy, actually) as necessary if it is installed
-which requires libdev-snappy (Debian/Ubuntu) or snappy-devel (RedHat/CentOS) on Linux.
+emod-api can use Snappy [de]compression (python-snappy) as necessary if it is installed which requires libdev-snappy (Debian/Ubuntu) or snappy-devel (RedHat/CentOS) on Linux.
 
 Ubuntu: ```[sudo] apt install libdev-snappy```
 
 CentOS: ```[sudo] yum install snappy-devel``` (not yet tested)
 
-### Windows
-
-If Snappy compression support is desired or needed, consider downloading and installing the latest
-python-snappy package for Windows from Christoph Gohlke's python package website:
-https://www.lfd.uci.edu/~gohlke/pythonlibs/#python-snappy
-
-## user stories
+## User Stories
 
 Input
 - User wants to be able to create a minimal working config.json for any sim type guaranteed to work with a given Eradication binary.
@@ -83,17 +76,16 @@ Output
 
 ### Running tests
 
-`python3 tests/channel_reports.py`  
-`python3 tests/serialization.py`  
-`python3 tests/spatial_reports.py`  
-`python3 tests/weather_files.py`  
+`python3 tests/channel_reports.py`
+`python3 tests/serialization.py`
+`python3 tests/spatial_reports.py`
+`python3 tests/weather_files.py`
 
 
 # Community
 
 The EMOD Community is made up of researchers and software developers, primarily focused on malaria and HIV research.
-We value mutual respect, openness, and a collaborative spirit. If these values resonate with you, 
-we invite you to join our EMOD Slack Community by completing this form:
+We value mutual respect, openness, and a collaborative spirit. If these values resonate with you, we invite you to join our EMOD Slack Community by completing this form:
 
 https://forms.office.com/r/sjncGvBjvZ
 
@@ -101,6 +93,5 @@ https://forms.office.com/r/sjncGvBjvZ
 # Disclaimer
 
 The code in this repository was developed by IDM and other collaborators to support our joint research on flexible agent-based modeling.
- We've made it publicly available under the MIT License to provide others with a better understanding of our research and an opportunity to build upon it for 
- their own work. We make no representations that the code works as intended or that we will provide support, address issues that are found, or accept pull requests.
- You are welcome to create your own fork and modify the code to suit your own modeling needs as permitted under the MIT License.
+We've made it publicly available under the MIT License to provide others with a better understanding of our research and an opportunity to build upon it for their own work. We make no representations that the code works as intended or that we will provide support, address issues that are found, or accept pull requests.
+You are welcome to create your own fork and modify the code to suit your own modeling needs as permitted under the MIT License.
