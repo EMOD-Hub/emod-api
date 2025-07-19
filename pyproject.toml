@@ -17,16 +17,16 @@ authors = [
     {name = "Ye Chen", email = "ye.chen@gatesfoundation.org"}]
 keywords = ['modeling', 'IDM']
 dependencies = [
-    "scipy",
     "matplotlib",
+    "scipy",
     "pandas",
+    "numpy",
     "shapely",
     "pyproj",
     "geographiclib",
     "scikit-learn",
     "lz4",
-    "prodict", # utility for dictionaries
-    "parse"]
+    "prodict"]
 license = {text = "MIT"}
 classifiers = [
     "Programming Language :: Python :: 3.9",
