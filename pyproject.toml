@@ -17,26 +17,22 @@ authors = [
     {name = "Ye Chen", email = "ye.chen@gatesfoundation.org"}]
 keywords = ['modeling', 'IDM']
 dependencies = [
-    "numpy!=1.19.4",
-    "pyyaml",
-    "pandas",
+    "matplotlib",
     "scipy",
+    "pandas",
+    "numpy",
     "shapely",
     "pyproj",
     "geographiclib",
     "scikit-learn",
-    "lz4",
-    "prodict", # utility for dictionaries
-    "graphviz",
-    "parse",
-    "matplotlib"
-]
+    "lz4"]
 license = {text = "MIT"}
 classifiers = [
     "Programming Language :: Python :: 3.9",
     "Framework:: IDM-Tools :: models",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent"]
+
 [project.urls]
 Repository="https://github.com/EMOD-Hub/emod-api"
 Issues="https://github.com/EMOD-Hub/emod-api/issues"
@@ -45,8 +41,7 @@ Issues="https://github.com/EMOD-Hub/emod-api/issues"
 test = [
     "emod-common",
     "emod-generic",
-    "emod-malaria"
-]
+    "emod-malaria"]
 packaging = [
     "build",
     "flake8",  # for lint check
