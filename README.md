@@ -76,10 +76,7 @@ Output
 
 ### Running tests
 
-`python3 tests/channel_reports.py`
-`python3 tests/serialization.py`
-`python3 tests/spatial_reports.py`
-`python3 tests/weather_files.py`
+Please see the documentation for [testing](/tests/README.md).
 
 
 # Community
