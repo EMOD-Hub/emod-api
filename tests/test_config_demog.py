@@ -3,7 +3,6 @@ import emod_api.demographics.Demographics as Demographics
 import json
 import emod_api.demographics.PreDefinedDistributions as Distributions
 
-from prodict import Prodict
 from emod_api.config import default_from_schema_no_validation as dfs
 import manifest
 
@@ -15,16 +14,13 @@ class DemoConfigTest(unittest.TestCase):
     def get_config_as_object(self):
         config_file = "default_config_test_config_demog.json"
         schema_name = manifest.generic_schema_path
-        dfs.get_default_config_from_schema(schema_name, output_filename=config_file)
-        with open(config_file, 'r') as c_file:
-            config_obj = Prodict.from_dict(json.load(c_file))
+        config_obj = dfs.get_default_config_from_schema(schema_name, as_rod=True)
         return config_obj
 
     def reset_config(self):
         self.config = self.get_config_as_object()
 
 
-    
     # Tests that if overdispersion is set, Enable_Infection_Rate_Overdispersion is True
     def test_age_dependent_transmission_config(self):
         for index in range(2):
@@ -45,7 +41,6 @@ class DemoConfigTest(unittest.TestCase):
         demog.SetBirthRate(0.7)
         self.assertEqual(len(demog.implicits), 2)
         demog.implicits[-1](self.config)
-        #self.assertEqual(self.config.parameters.Enable_Birth, 1) # This should get set also during finalize
         self.assertEqual(self.config.parameters.Birth_Rate_Dependence, "POPULATION_DEP_RATE")
 
     def test_set_mortality_rate_config(self):
@@ -53,12 +48,10 @@ class DemoConfigTest(unittest.TestCase):
             demog = Demographics.from_template_node()
             if index:
                 demog.SetMortalityRate(0.75)
-            # self.assertEqual(len(demog.implicits), 1+index) # why are there 3 implicits?
             demog.implicits[-1](self.config)
 
     def test_set_mortality_distribution(self):
         demog = Demographics.from_template_node()
-        self.config.parameters.Death_Rate_Dependence = "DISEASE_MORTALITY"
 
         mortality_distribution = Distributions.SEAsia_Diag
         demog.SetMortalityDistribution(mortality_distribution)
