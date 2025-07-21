@@ -4,7 +4,6 @@ Python library/utilities/tools for interacting with EMOD input and output files
 Developer note: Any .py file in emod_api will be included in the package.
 
 [![Package and test on Ubuntu](https://github.com/EMOD-Hub/emod-api/actions/workflows/build_test_ubuntu.yaml/badge.svg)](https://github.com/EMOD-Hub/emod-api/actions/workflows/build_test_ubuntu.yaml)
-
 [![Package and test on windows](https://github.com/EMOD-Hub/emod-api/actions/workflows/build_test_windows.yaml/badge.svg)](https://github.com/EMOD-Hub/emod-api/actions/workflows/build_test_windows.yaml)
 
 ## Documentation
