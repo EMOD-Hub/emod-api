@@ -639,7 +639,7 @@ def _EquilibriumAgeDistFromBirthAndMortRates(birth_rate=YearlyRate(40/1000.), mo
 def birthrate_multiplier(pop_dat_file: Path,
                          base_year: int,
                          start_year: int,
-                         max_daily_mort: float = 0.01) -> tuple(np.Array, np.Array):
+                         max_daily_mort: float = 0.01) -> tuple(np.ndarray, np.ndarray):
     """
     Create a birth rate multiplier from UN World Population data file.
     Args:
