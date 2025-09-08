@@ -6,7 +6,9 @@ import warnings
 import emod_api.schema_to_class as s2c
 
 
-def _set_defaults_for_schema_group(dc_param, schema_section, schema):
+def _set_defaults_for_schema_group(dc_param,
+                                   schema_section,
+                                   schema):
     """
     By making this part of write_default_from_schema its own function, it becomes reusable for the purposes
     of Malaria_Drug_params which is a pretty funky part of the schema honestly.
@@ -37,7 +39,10 @@ def _set_defaults_for_schema_group(dc_param, schema_section, schema):
                 dc_param["schema"][param] = schema_section[param]
 
 
-def get_default_config_from_schema(path_to_schema, schema_node=True, as_rod=False, output_filename=None):
+def get_default_config_from_schema(path_to_schema,
+                                   schema_node=True,
+                                   as_rod=False,
+                                   output_filename=None):
     """
     This returns a default config object as defined from reading a schema file.
 
@@ -69,7 +74,9 @@ def get_default_config_from_schema(path_to_schema, schema_node=True, as_rod=Fals
     return default_config
 
 
-def write_default_from_schema(path_to_schema, output_filename='default_config.json', schema_node=True):
+def write_default_from_schema(path_to_schema,
+                              output_filename='default_config.json',
+                              schema_node=True):
     """
     DEPRECATED: This function simply calls get_default_config_from_schema with specific arguments.
 
@@ -84,10 +91,11 @@ def write_default_from_schema(path_to_schema, output_filename='default_config.js
     return output_filename
 
 
-def load_default_config_as_rod(config):
+def load_default_config_as_rod(config) -> ReadOnlyDict:
     """
     Parameters:
         config (string/path): path to default or base config.json
+
     Returns:
         config (as ReadOnlyDict) with schema ready for schema-verified param sets.
     """
@@ -100,16 +108,20 @@ def load_default_config_as_rod(config):
     return config_rod
 
 
-def get_config_from_default_and_params(config_path=None, set_fn=None, config=None, verbose=False):
+def get_config_from_default_and_params(config_path: Union[str, Path, None] = None,
+                                       set_fn = None,
+                                       config:ReadOnlyDict = None,
+                                       verbose: bool = False) -> ReadOnlyDict:
     """
     Use this function to create a valid config.json file from a schema-derived
     base config, a callback that sets your parameters of interest
 
     Parameters:
         config_path (string/path): Path to valid config.json
-        config: read-only dict configuration object. Pass this XOR the config_path.
         set_fn (function): Callback that sets params with implicit schema enforcement.
-        verbose (Boolean): Flag to print debug statements
+        config: Read-only dict configuration object. Pass this XOR the config_path.
+        verbose: Flag to print debug statements
+
     Returns:
         config: read-only dict
     """
@@ -133,18 +145,22 @@ def get_config_from_default_and_params(config_path=None, set_fn=None, config=Non
     return config
 
 
-def write_config_from_default_and_params(config_path, set_fn, config_out_path, verbose=False):
+def write_config_from_default_and_params(config_path,
+                                         set_fn,
+                                         config_out_path: Union[str, Path],
+                                         verbose: bool = False):
     """
     Use this function to create a valid config.json file from a schema-derived
     base config, a callback that sets your parameters of interest, and an output path.
 
     Parameters:
         config_path (string/path): Path to valid config.json
-        set_fn (function): Callback that sets params with implicit schema enforcement.
-        config_out_path: (string/path) Path to write new config.json
-        verbose (Boolean): Flag to print debug statements
+        set_fn (function): Callback that sets params with implicit schema enforcement
+        config_out_path: Path to write new config.json
+        verbose: Flag to print debug statements
+
     Returns:
-        Nothing
+
     """
     if verbose:
         print(f"DEBUG: write_config_from_default_and_params invoked with {config_path}, {set_fn}, and {config_out_path}.")

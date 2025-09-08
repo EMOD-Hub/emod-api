@@ -4,6 +4,7 @@ import os
 import pathlib
 import sys
 import tempfile
+import warnings
 from collections import Counter
 from functools import partial
 from typing import List, Iterable, Any, Dict, Union
@@ -90,7 +91,8 @@ class DemographicsBase(BaseInputFile):
 
     # TODO: example of node-node update() call, make sure this still works after changing Updateable.update()
     # Or do we really need this?? (only used in tests or maybe emodpy-malaria; don't know for the latter)
-    def apply_overlay(self, overlay_nodes: list):
+    def apply_overlay(self,
+                      overlay_nodes: list):
         """
         :param overlay_nodes: Overlay list of nodes over existing nodes in demographics
         :return:
@@ -103,7 +105,9 @@ class DemographicsBase(BaseInputFile):
             if map_ids_overlay.get(node.forced_id):
                 self.nodes[index].update(map_ids_overlay[node.forced_id])
 
-    def send(self, write_to_this, return_from_forked_sender=False):
+    def send(self,
+             write_to_this: Union [int, str, Path],
+             return_from_forked_sender: bool = False):
         """
         Write data to a file descriptor as specified by the caller. It must be a pipe,
         a filename, or a file 'handle'
@@ -157,7 +161,7 @@ class DemographicsBase(BaseInputFile):
             os.remove(tmpfile)
 
         Returns:
-            N/A
+
         """
 
         if type(write_to_this) is int:
@@ -205,9 +209,8 @@ class DemographicsBase(BaseInputFile):
         """
         Return the number of (geographic) nodes.
         """
-        from warnings import warn
         message = f"node_count is a deprecated property of Node objects, use len(demog.nodes) instead."
-        warn(message=message, category=DeprecationWarning, stacklevel=2)
+        warnings.warn(message=message, category=DeprecationWarning, stacklevel=2)
         return len(self.nodes)
 
     # TODO: this is deprecated because it is (was) odd, searching by id THEN name.
@@ -223,10 +226,9 @@ class DemographicsBase(BaseInputFile):
         Returns:
             a Node object
         """
-        from warnings import warn
         message = f"get_node() is a deprecated function of Node objects, use get_node_by_id() instead. " \
                   f"(e.g. demographics.get_node_by_id(node_id=4))"
-        warn(message=message, category=DeprecationWarning, stacklevel=2)
+        warnings.warn(message=message, category=DeprecationWarning, stacklevel=2)
         return self.get_node_by_id(node_id=nodeid)
 
     def verify_demographics_integrity(self):
@@ -411,7 +413,10 @@ class DemographicsBase(BaseInputFile):
         if self.implicits is not None:
             self.implicits.append(partial(DT._set_demographic_filenames, file_names=file_names))
 
-    def SetRoundTripMigration(self, gravity_factor, probability_of_return=1.0, id_ref='short term commuting migration'):
+    def SetRoundTripMigration(self,
+                              gravity_factor: float,
+                              probability_of_return: float = 1.0,
+                              id_ref: str = 'short term commuting migration'):
         """
         Set commuter/seasonal/temporary/round-trip migration rates. You can use the x_Local_Migration configuration
             parameter to tune/calibrate.
@@ -445,7 +450,9 @@ class DemographicsBase(BaseInputFile):
                                           file_name=pathlib.PurePath(migration_file_path).name))
         self.SetMigrationPattern("srt")
 
-    def SetOneWayMigration(self, rates_path, id_ref='long term migration'):
+    def SetOneWayMigration(self,
+                           rates_path: Union[str, Path],
+                           id_ref: str = 'long term migration'):
         """
         Set one way migration. You can use the x_Regional_Migration configuration parameter to tune/calibrate.
 
@@ -467,7 +474,10 @@ class DemographicsBase(BaseInputFile):
                                           file_name=pathlib.PurePath(migration_file_path).name))
         self.SetMigrationPattern("srt")
 
-    def SetSimpleVitalDynamics(self, crude_birth_rate=CrudeRate(40), crude_death_rate=CrudeRate(20), node_ids=None):
+    def SetSimpleVitalDynamics(self,
+                               crude_birth_rate: CrudeRate = CrudeRate(40),
+                               crude_death_rate: CrudeRate = CrudeRate(20),
+                               node_ids: List = None):
         """
         Set fertility, mortality, and initial age with single birth rate and single mortality rate.
 
@@ -484,7 +494,9 @@ class DemographicsBase(BaseInputFile):
 
     # TODO: is this useful in a way that warrants a special-case function in emodpy?
     #  https://github.com/InstituteforDiseaseModeling/emod-api-old/issues/790
-    def SetEquilibriumVitalDynamics(self, crude_birth_rate=CrudeRate(40), node_ids=None):
+    def SetEquilibriumVitalDynamics(self,
+                                    crude_birth_rate: CrudeRate = CrudeRate(40),
+                                    node_ids: List = None):
         """
         Set fertility, mortality, and initial age with single rate and mortality to achieve steady state population.
 
@@ -498,7 +510,11 @@ class DemographicsBase(BaseInputFile):
 
     # TODO: is this useful in a way that warrants a special-case function in emodpy?
     #  https://github.com/InstituteforDiseaseModeling/emod-api-old/issues/791
-    def SetEquilibriumVitalDynamicsFromWorldBank(self, wb_births_df, country, year, node_ids=None):
+    def SetEquilibriumVitalDynamicsFromWorldBank(self,
+                                                 wb_births_df: DataFrame,
+                                                 country: str,
+                                                 year: int,
+                                                 node_ids: List = None):
         """
         Set steady-state fertility, mortality, and initial age with rates from world bank, for given country and year.
 
@@ -522,7 +538,6 @@ class DemographicsBase(BaseInputFile):
         """
         NOTE: This is very Measles-ish. We might want to move into MeaslesDemographics
         """
-        import warnings
         warnings.warn('SetDefaultIndividualAttributes() is deprecated. Default nodes should now be represented by Node '
                       'objects and passed to the Demographics object during the constructor call. They can be modified '
                       'afterward, if needed.',
@@ -536,7 +551,6 @@ class DemographicsBase(BaseInputFile):
         DT.DefaultSusceptibilityDistribution(self)
 
     def SetMinimalNodeAttributes(self):
-        import warnings
         warnings.warn('SetMinimalNodeAttributes() is deprecated. Default nodes should now be represented by Node '
                       'objects and passed to the Demographics object during the constructor call. They can be modified '
                       'afterward, if needed.',
@@ -545,11 +559,12 @@ class DemographicsBase(BaseInputFile):
 
     # WB is births per 1000 pop per year
     # DTK is births per person per day.
-    def SetBirthRate(self, birth_rate, node_ids=None):
+    def SetBirthRate(self,
+                     birth_rate: float,
+                     node_ids: List= None):
         """
         Set Default birth rate to birth_rate. Turn on Vital Dynamics and Births implicitly.
         """
-        import warnings
         warnings.warn('SetBirthRate() is deprecated. Default nodes should now be represented by Node '
                       'objects and passed to the Demographics object during the constructor call. They can be modified '
                       'afterward, if needed.',
@@ -566,11 +581,11 @@ class DemographicsBase(BaseInputFile):
                 self.get_node_by_id(node_id=node_id).birth_rate = dtk_birthrate
         self.implicits.append(DT._set_population_dependent_birth_rate)
 
-    def SetMortalityRate(self, mortality_rate: CrudeRate, node_ids: List[int] = None):
+    def SetMortalityRate(self,
+                         mortality_rate: CrudeRate, node_ids: List[int] = None):
         """
         Set constant mortality rate to mort_rate. Turn on Enable_Natural_Mortality implicitly.
         """
-        import warnings
         warnings.warn('SetMortalityRate() is deprecated. Please use the emodpy Demographics method: '
                       'set_mortality_distribution()', DeprecationWarning, stacklevel=2)
 
@@ -601,9 +616,8 @@ class DemographicsBase(BaseInputFile):
             node_ids: a list of node_ids
 
         Returns:
-            None
+
         """
-        import warnings
         warnings.warn('SetMortalityDistribution() is deprecated. Please use the emodpy Demographics method: '
                       'set_mortality_distribution()', DeprecationWarning, stacklevel=2)
         if node_ids is None:
@@ -626,9 +640,8 @@ class DemographicsBase(BaseInputFile):
             node_ids: a list of node_ids
 
         Returns:
-            None
+
         """
-        import warnings
         warnings.warn('SetMortalityDistributionFemale() is deprecated. Please use the emodpy Demographics method: '
                       'set_mortality_distribution()', DeprecationWarning, stacklevel=2)
 
@@ -652,9 +665,8 @@ class DemographicsBase(BaseInputFile):
             node_ids: a list of node_ids
 
         Returns:
-            None
+
         """
-        import warnings
         warnings.warn('SetMortalityDistributionMale() is deprecated. Please use the emodpy Demographics method: '
                       'set_mortality_distribution()', DeprecationWarning, stacklevel=2)
 
@@ -667,7 +679,10 @@ class DemographicsBase(BaseInputFile):
         if self.implicits is not None:
             self.implicits.append(DT._set_mortality_age_gender)
 
-    def SetMortalityOverTimeFromData(self, data_csv, base_year, node_ids: List = None):
+    def SetMortalityOverTimeFromData(self,
+                                     data_csv: Union[str, Path],
+                                     base_year: int,
+                                     node_ids: List = None):
         """
         Set default mortality rates for all nodes or per node. Turn on mortality configs implicitly. You can use
         the x_Other_Mortality configuration parameter to tune/calibrate.
@@ -678,9 +693,8 @@ class DemographicsBase(BaseInputFile):
             node_ids: Optional list of node ids to apply this to. Defaults to all.
 
         Returns:
-            None
+
         """
-        import warnings
         warnings.warn('SetMortalityOverTimeFromData() is deprecated. Please use the emodpy Demographics method: '
                       'set_mortality_distribution()', DeprecationWarning, stacklevel=2)
 
@@ -765,9 +779,8 @@ class DemographicsBase(BaseInputFile):
             node_ids: a list of node_ids
 
         Returns:
-            None
+
         """
-        import warnings
         warnings.warn("SetAgeDistibution is deprecated. Please use emodpy Demographics.set_age_distribution instead.",
                       DeprecationWarning, stacklevel=2)
         if node_ids is None:
@@ -784,7 +797,6 @@ class DemographicsBase(BaseInputFile):
         Set the default NodeAttributes (Altitude, Airport, Region, Seaport), optionally including birth,
         which is most important actually.
         """
-        import warnings
         warnings.warn('SetDefaultNodeAttributes() is deprecated. Default nodes should now be represented by Node '
                       'objects and passed to the Demographics object during the constructor call. They can be modified '
                       'afterward, if needed.',
@@ -802,7 +814,6 @@ class DemographicsBase(BaseInputFile):
         """
         Set a bunch of defaults (age structure, initial susceptibility and initial prevalencec) to sensible values.
         """
-        import warnings
         warnings.warn('SetDefaultProperties() is deprecated. Default nodes should now be represented by Node objects '
                       'and passed to the Demographics object during the constructor call. They can be modified '
                       'afterward, if needed.',
@@ -818,7 +829,6 @@ class DemographicsBase(BaseInputFile):
         function in DemographicsTemplates. Eventually this function will be hidden and only
         accessed via separate application-specific API functions such as the ones below.
         """
-        import warnings
         warnings.warn('SetDefaultFromTemplate() is deprecated. Please use the emodpy Demographics methods: '
                       'set_XYZ_distribution() as needed and other object-based setting functions',
                       DeprecationWarning, stacklevel=2)
@@ -835,7 +845,6 @@ class DemographicsBase(BaseInputFile):
         Set the inital ages of the population to a sensible equilibrium profile based on the specified input birth and
         death rates. Note this does not set the fertility and mortality rates.
         """
-        import warnings
         warnings.warn('SetEquilibriumAgeDistFromBirthAndMortRates() is deprecated. Please use the emodpy Demographics method: '
                       'set_age_distribution()', DeprecationWarning, stacklevel=2)
 
@@ -858,7 +867,6 @@ class DemographicsBase(BaseInputFile):
         :param  rate: rate
         :param  description: description, why was this distribution chosen
         """
-        import warnings
         warnings.warn('SetInitialAgeExponential() is deprecated. Please use the emodpy Demographics method: '
                       'set_age_distribution()', DeprecationWarning, stacklevel=2)
 
@@ -877,7 +885,6 @@ class DemographicsBase(BaseInputFile):
         sub-Saharan Africa. This uses the SetInitialAgeExponential.
         :param  description: description, why was this age chosen?
         """
-        import warnings
         warnings.warn('SetInitialAgeLikeSubSaharanAfrica() is deprecated. Please use the emodpy Demographics method: '
                       'set_age_distribution()', DeprecationWarning, stacklevel=2)
 
@@ -913,7 +920,6 @@ class DemographicsBase(BaseInputFile):
         if not description:
             description = f"Drawing prevalence from uniform distribution, min={min_init_prev} and max={max_init_prev}"
 
-        import warnings
         warnings.warn('SetInitPrevFromUniformDraw() is deprecated. Please use the emodpy Demographics method: '
                       'set_prevalence_distribution()', DeprecationWarning, stacklevel=2)
 
@@ -923,7 +929,6 @@ class DemographicsBase(BaseInputFile):
                                     year_bin_boundaries: List[float],
                                     male_mortality_rates: List[List[float]],
                                     female_mortality_rates: List[List[float]]):
-        import warnings
         warnings.warn('AddMortalityByAgeSexAndYear() is deprecated. Please use the emodpy Demographics method: '
                       'set_mortality_distribution()', DeprecationWarning, stacklevel=2)
 
@@ -977,8 +982,13 @@ class DemographicsBase(BaseInputFile):
         if self.implicits is not None:
             self.implicits.append(DT._set_mortality_age_gender_year)
 
-    def SetFertilityOverTimeFromParams(self, years_region1, years_region2, start_rate, inflection_rate, end_rate,
-                                       node_ids: List = None):
+    def SetFertilityOverTimeFromParams(self,
+                                       years_region1: int,
+                                       years_region2: int,
+                                       start_rate: float,
+                                       inflection_rate: float,
+                                       end_rate: float,
+                                       node_ids: List = None) -> List[float]:
         """
         Set fertility rates that vary over time based on a model with two linear regions. Note that fertility rates
         use GFR units: babies born per 1000 women of child-bearing age annually. You can use the x_Birth configuration
@@ -1001,7 +1011,6 @@ class DemographicsBase(BaseInputFile):
         Returns:
             rates array (Just in case user wants to do something with them like inspect or plot.)
         """
-        import warnings
         warnings.warn('SetFertilityOverTimeFromParams() is deprecated. Please use the emodpy-hiv Demographics method: '
                       'set_fertility_distribution()', DeprecationWarning, stacklevel=2)
         if node_ids is None:
@@ -1058,7 +1067,6 @@ class DemographicsBase(BaseInputFile):
         from sklearn.linear_model import LinearRegression
         from functools import reduce
 
-        import warnings
         warnings.warn('infer_natural_mortality() is deprecated. Please use modern country model loading.',
                       DeprecationWarning, stacklevel=2)
 

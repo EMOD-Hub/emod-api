@@ -59,11 +59,12 @@ class Layer(dict):
     # def Nodes(self) -> dict:
     #     return self._nodes
 
-    def __getitem__(self, key):
+    def __getitem__(self,
+                    key: int) -> dict:
         """Allows indexing directly into this object with source node id
 
         Args:
-            key (int): source node id
+            key: source node id
 
         Returns:
             Dictionary of outbound rates for the given node id
@@ -102,10 +103,10 @@ class Migration(object):
     and saved to a file with the to_file() method.
     Given migration = Migration(), syntax is as follows:
 
-    age and gender agnostic:  migration[source_id][dest_id]
-    age dependent:            migration[source_id:age]          # age should be >= 0, ages > last bucket value use last bucket value
-    gender dependent:         migration[source_id:gender]       # gender one of Migration.MALE or Migration.FEMALE
-    age and gender dependent: migration[source_id:gender:age]   # gender one of Migration.MALE or Migration.FEMALE
+    age and gender agnostic:  `migration[source_id][dest_id]`
+    age dependent:            `migration[source_id:age]`          # age should be >= 0, ages > last bucket value use last bucket value
+    gender dependent:         `migration[source_id:gender]`       # gender one of Migration.MALE or Migration.FEMALE
+    age and gender dependent: `migration[source_id:gender:age]`   # gender one of Migration.MALE or Migration.FEMALE
 
     EMOD/DTK format migration files (and associated metadata files) can be written with migration.to_file(<filename>).
     EMOD/DTK format migration files (with associated metadata files) can be read with migration.from_file(<filename>).
@@ -506,7 +507,8 @@ class Migration(object):
     }
 
 
-def from_file(binaryfile: Path, metafile: Path = None):
+def from_file(binaryfile: Path,
+              metafile: Path = None) -> Migration:
     """Reads migration data file from given binary (and associated JSON metadata file)
 
     Args:
@@ -650,7 +652,13 @@ utility functions emodpy-utils?
 """
 
 
-def from_params(demographics_file_path=None, pop=1e6, num_nodes=100, mig_factor=1.0, frac_rural=0.3, id_ref="from_params", migration_type=Migration.LOCAL):
+def from_params(demographics_file_path = None,
+                pop = 1e6,
+                num_nodes = 100,
+                mig_factor = 1.0,
+                frac_rural = 0.3,
+                id_ref = "from_params",
+                migration_type = Migration.LOCAL):
     """
     This function is for creating a migration file that goes with a (multinode)
     demographics file created from a few parameters, as opposed to one from real-world data.
@@ -710,7 +718,15 @@ def from_params(demographics_file_path=None, pop=1e6, num_nodes=100, mig_factor=
     return migration
 
 
-def from_demog_and_param_gravity_webservice(demographics_file_path: str, params: str, id_ref: str, migration_type=Migration.LOCAL) -> Migration:
+def from_demog_and_param_gravity_webservice(demographics_file_path: str,
+                                            params: str,
+                                            id_ref: str,
+                                            migration_type: Literal[Migration.LOCAL,
+                                                                    Migration.AIR,
+                                                                    Migration.REGIONAL,
+                                                                    Migration.SEA,
+                                                                    Migration.FAMILY,
+                                                                    Migration.INTERVENTION] = Migration.LOCAL) -> Migration:
     """
     Calls a webservice (running on a GPU) to calculate the migration patterns quickly.
 
@@ -855,7 +871,9 @@ def to_csv(filename: Path):
                     print(display(node, gender, age, destination, rate))
 
 
-def from_csv(filename: Path, id_ref, mig_type=None):
+def from_csv(filename: Path,
+             id_ref,
+             mig_type = None) -> Migration:
     """Create migration from csv file. The file should have columns 'source' for the source node, 'destination' for the destination node, and 'rate' for the migration rate.
 
     Args:

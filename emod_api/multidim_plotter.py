@@ -8,7 +8,11 @@ import sqlite3
 """
 Plot EMOD output data from an experiment found in an SQLite db created by emodpy.
 """
-def plot_from_sql(x_tag, y_tag, output, label, exp_id=None):
+def plot_from_sql(x_tag: str,
+                  y_tag: str,
+                  output: str,
+                  label: str,
+                  exp_id: str = None):
     """
     Plot colormap/3D figure from data in <experiment_id>/results.db.
 

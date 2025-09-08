@@ -218,20 +218,21 @@ def FullRisk( demog, description="" ):
     demog.SetDefaultFromTemplate( setting, _set_enable_demog_risk  )
 
 
-def InitRiskUniform( demog, min_lim=0, max_lim=1, description="" ):
+def InitRiskUniform(demog,
+                    min_lim: float = 0,
+                    max_lim: float = 1,
+                    description: str = "" ):
     """
     InitRiskUniform puts everyone at somewhere between 0% risk and 100% risk, drawn uniformly.
 
     Args:
-        min (float): Low end of uniform distribution. Must be >=0, <1.
-        max (float): High end of uniform distribution. Must be >=min, <=1.
+        min_lim: Low end of uniform distribution. Must be >=0, <1.
+        max_lim: High end of uniform distribution. Must be >=min, <=1.
         description: Why were these values chosen?
 
     Returns:
-        json object aka python dict that can be directly passed to Demographics::SetDefaultFromTemplate
 
     Raises:
-        None
 
     """
     if not description:
@@ -256,10 +257,8 @@ def InitRiskLogNormal( demog, mean=0.0, sigma=1.0 ):
         sigma (float): Sigma of lognormal distribution.
 
     Returns:
-        json object aka python dict that can be directly passed to Demographics::SetDefaultFromTemplate
 
     Raises:
-        None
 
     """
     setting = {"RiskDist_Description": "LogNormal distributed risk",
@@ -269,18 +268,17 @@ def InitRiskLogNormal( demog, mean=0.0, sigma=1.0 ):
     demog.SetDefaultFromTemplate( setting, _set_enable_demog_risk )
 
 
-def InitRiskExponential( demog, mean=1.0 ):
+def InitRiskExponential( demog,
+                         mean: float = 1.0 ):
     """
     InitRiskExponential puts everyone at somewhere between 0% risk and 100% risk, drawn from Exponential.
 
     Args:
-        mean (float): Mean of exponential distribution. 
+        mean: Mean of exponential distribution. 
 
     Returns:
-        json object aka python dict that can be directly passed to Demographics::SetDefaultFromTemplate
 
     Raises:
-        None
 
     """
     setting = {"RiskDist_Description": "Exponentially distributed risk",
@@ -294,7 +292,7 @@ def InitRiskExponential( demog, mean=1.0 ):
 # Initial Prevalence
 # config: Enable_Initial_Prevalence=1
 #
-def NoInitialPrevalence( demog ):
+def NoInitialPrevalence( demog: Demographics ):
     """
     NoInitialPrevalence disables initial prevalence; outbreak seeding must be done from an Outbreak intervention (or serialized population).
 
@@ -302,10 +300,9 @@ def NoInitialPrevalence( demog ):
         demog: emod-api.demographics.Demographics instance.
 
     Returns:
-        None
 
     Raises:
-        None
+
     """
 
     setting = {"PrevalenceDist_Description": "No initial prevalence",
@@ -368,15 +365,16 @@ def StepFunctionSusceptibility( demog, protected_setting=0.0, threshold_age=365*
     demog.SetDefaultFromTemplate( suscDist, _set_suscept_complex )
 
 
-def SimpleSusceptibilityDistribution( demog, meanAgeAtInfection=2.5): 
+def SimpleSusceptibilityDistribution( demog: Demographics,
+                                      meanAgeAtInfection: float=2.5): 
     """
     Rough initialization to reduce burn-in and prevent huge outbreaks at sim start.  
     For ages 0 through 99 the susceptibility distribution is set to an exponential distribution with an average age at infection.
     The minimum susceptibility is 2.5% at old ages.
 
     Args:
-        demog (:py:class:`~emod_api.demographics.Demographics.Demographics`): Demographics object to update
-        meanAgeAtInfection (float, optional): Rough average age at infection in years.
+        demog: `~emod_api.demographics.Demographics.Demographics`
+        meanAgeAtInfection: Rough average age at infection in years.
 
     Note:
     Requires that ``config.parameters.Susceptibility_Initialization_Distribution_Type=DISTRIBUTION_COMPLEX``
@@ -419,7 +417,9 @@ def DefaultSusceptibilityDistribution( demog ):
 #
 # Mortality
 #
-def MortalityRateByAge(demog, age_bins, mort_rates):
+def MortalityRateByAge(demog,
+                       age_bins: list[float],
+                       mort_rates: list[float]):
     """
         Set (non-disease) mortality rates by age bins. No checks are done on input arrays.
 
@@ -428,7 +428,7 @@ def MortalityRateByAge(demog, age_bins, mort_rates):
             mort_rates: list of mortality rates, where mortality rate is daily probability of dying..
 
         Returns:
-            N/A.
+
     """
     # Note that the first input axis is sex (or gender). There are two values, but the rates are applied
     # equally for both here. The second input axis is age bin, and that is much more configurable.
@@ -497,7 +497,7 @@ def MortalityStructureNigeriaDHS(demog):
 #
 # Fertilty
 #
-def get_fert_dist_from_rates( rates ):
+def get_fert_dist_from_rates( rates: list[float] ):
     """
     Create dictionary with DTK-compatible distributions from input vectors of fertility (crude) rates.
 
@@ -636,7 +636,10 @@ def _EquilibriumAgeDistFromBirthAndMortRates(birth_rate=YearlyRate(40/1000.), mo
     return setting
 
 
-def birthrate_multiplier(pop_dat_file: Path, base_year: int, start_year: int, max_daily_mort: float=0.01):
+def birthrate_multiplier(pop_dat_file: Path,
+                         base_year: int,
+                         start_year: int,
+                         max_daily_mort: float = 0.01) -> tuple(Array, Array):
     """
     Create a birth rate multiplier from UN World Population data file.
     Args:
@@ -710,9 +713,12 @@ def _read_un_worldpop_file(pop_dat_file, base_year, start_year):
     return year_vec, year_init, pop_mat, pop_init
 
 
-def demographicsBuilder(pop_dat_file: Path, base_year: int, start_year: int=1950, max_daily_mort: float=0.01,
-                        mortality_rate_x_values: list=DemographicsTemplatesConstants.Mortality_Rates_Mod30_5yrs_Xval,
-                        years_per_age_bin: int=5):
+def demographicsBuilder(pop_dat_file: Path,
+                        base_year: int,
+                        start_year: int = 1950,
+                        max_daily_mort: float = 0.01,
+                        mortality_rate_x_values: list = DemographicsTemplatesConstants.Mortality_Rates_Mod30_5yrs_Xval,
+                        years_per_age_bin: int = 5) -> tuple(IndividualAttributes, NodeAttributes):
     """
     Build demographics from UN World Population data.
     Args:
@@ -777,4 +783,3 @@ def demographicsBuilder(pop_dat_file: Path, base_year: int, start_year: int=1950
     ia.mortality_distribution_male = md
 
     return ia, na
-

@@ -1,12 +1,17 @@
 name: Package and test on Ubuntu
+
 on:
-  workflow_dispatch:
   push:
     branches-ignore:
       - 'main'
+
   pull_request:
     branches:
       - 'main'
+
+  # Allows manual run from the Actions tab
+  workflow_dispatch:
+
 jobs:
   build_test_ubuntu:
     runs-on: ubuntu-latest

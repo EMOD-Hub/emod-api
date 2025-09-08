@@ -7,14 +7,14 @@ class MortalityDistributionOld(Updateable):
     def __init__(self,
                  axis_names: List[str] = None,
                  axis_scale_factors: List[float] = None,
-                 axis_units=None,
-                 num_distribution_axes=None,
-                 num_population_axes=None,
-                 num_population_groups=None,
-                 population_groups=None,
-                 result_scale_factor=None,
-                 result_units=None,
-                 result_values=None):
+                 axis_units: Any = None,
+                 num_distribution_axes: Any = None,
+                 num_population_axes: Any = None,
+                 num_population_groups: Any = None,
+                 population_groups:List[List[float]] = None,
+                 result_scale_factor: int = None,
+                 result_units: Any = None,
+                 result_values: List = None):
         """
         https://docs.idmod.org/projects/emod-generic/en/latest/parameter-demographics.html#complex-distributions
 

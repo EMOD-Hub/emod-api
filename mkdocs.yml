@@ -1,0 +1,61 @@
+site_name: emod-api
+site_url: https://docs.idmod.org/projects/emod-api/en/latest/
+repo_name: EMOD-Hub/emod-api
+repo_url: https://github.com/EMOD-Hub/emod-api
+
+theme:
+  name: material
+  font: 
+    text: Roboto
+    code: Roboto Mono
+  features:
+    - navigation.footer
+  palette:
+    - scheme: default
+      primary: black
+      toggle:
+        icon: material/toggle-switch
+        name: Light mode
+    - scheme: slate
+      primary: black
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Dark mode
+  favicon: images/favicon.ico
+  logo: images/EMOD_logo.png
+
+nav:
+  - Home: index.md
+  - FAQ: faq.md
+  - API Reference: autoapi/
+  - Glossary: glossary.md
+  - Plotters: plotters.md
+  - Related Projects:
+    - emodpy: https://docs.idmod.org/projects/emodpy/
+    - EMOD-Generic: https://docs.idmod.org/projects/emod-generic
+    - idmtools: https://docs.idmod.org/projects/idmtools/
+
+plugins:
+  - search
+  - autorefs
+  - include-markdown
+  - glightbox
+  - mkdocs-autoapi:
+      autoapi_ignore:
+        - .github/**/*
+        - emod_api/.dtk_tools/**/*
+        - emod_api/**/__main__.py
+        - tests/**/*
+        - build/**/*
+        - docs/*
+        - setup.py
+      autoapi_add_nav_entry: False
+  - mkdocstrings
+
+markdown_extensions:
+  - def_list
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
+
+copyright: Copyright &copy; 2025 Gates Foundation. All rights reserved.

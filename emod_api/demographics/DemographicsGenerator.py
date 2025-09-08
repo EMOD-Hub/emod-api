@@ -65,9 +65,10 @@ def validate_res_in_arcsec(res_in_arcsec):
         res_in_arcsec: Resolution in arsecond. Supported values can be found in VALID_RESOLUTIONS
 
     Returns:
-        None.
+
     Raise:
         KeyError: If the resolution is invalid, a key error is raised
+
     """
     try:
         VALID_RESOLUTIONS[res_in_arcsec]
@@ -83,22 +84,18 @@ class DemographicsGenerator:
     Generates demographics file based on population input file.
     The population input file is csv with structure
 
-    node_label\*, lat, lon, pop\*
+    node_label, [lat], [lon], [pop]
 
-    \*-ed columns are optional
+    [columns] are optional
     """
 
     # mapping of requested arcsecond resolution -> demographic metadata arcsecond resolution.
     # All Hash values must be integers.
-    def __init__(
-        self,
-        nodes,
-        concerns: Optional[
-            Union[DemographicsGeneratorConcern, List[DemographicsGeneratorConcern]]
-        ] = None,
-        res_in_arcsec=CUSTOM_RESOLUTION,
-        node_id_from_lat_long=False,
-    ):
+    def __init__(self,
+                 nodes,
+                 concerns: Union[DemographicsGeneratorConcern, List[DemographicsGeneratorConcern], None] = None,
+                 res_in_arcsec = CUSTOM_RESOLUTION,
+                 node_id_from_lat_long: bool = False):
         """
         Initialize the Demographics generator
         Args:
@@ -126,7 +123,8 @@ class DemographicsGenerator:
         self.demographics = None
 
 
-    def set_resolution(self, res_in_arcsec):
+    def set_resolution(self,
+                       res_in_arcsec: Literal[30, 250, CUSTOM_RESOLUTION]):
         """
         The canonical way to set arcsecond/degree resolutions on a DemographicsGenerator object. Verifies everything
         is set properly
@@ -147,7 +145,8 @@ class DemographicsGenerator:
                 % (self.res_in_arcsec, self.res_in_degrees, res_in_arcsec)
             )
 
-    def generate_nodes(self, defaults):
+    def generate_nodes(self,
+                       defaults) -> dict:
         """
         generate demographics file nodes
 
@@ -221,21 +220,19 @@ class DemographicsGenerator:
         return nodes
 
     @staticmethod
-    def __to_grid_file(
-        grid_file_name,
-        demographics,
-        include_attributes: Optional[List[str]] = None,
-        node_attributes: Optional[List[str]] = None,
-    ):
+    def __to_grid_file(grid_file_name: str,
+                       demographics: Demographics,
+                       include_attributes: Optional[List[str]] = None,
+                       node_attributes: Optional[List[str]] = None):
         """
         Convert a demographics object(Full object represented as a nested dictionary) to a grid file
-
 
         Args:
             grid_file_name: Name of grid file to save
             demographics: Demographics object
             include_attributes: Attributes to include in export
             node_attributes: Optional list of attributes from the NodeAttributes path to include
+
         Returns:
 
         """
@@ -262,7 +259,7 @@ class DemographicsGenerator:
 
         pd.DataFrame(rows).to_csv(grid_file_name)
 
-    def generate_metadata(self):
+    def generate_metadata(self) -> dict:
         """
         generate demographics file metadata
         """
@@ -299,23 +296,19 @@ class DemographicsGenerator:
         return self.demographics
 
 # MOVE TO demographics/DemographicsInputDataParsers.py
-def from_dataframe(
-    df,
-    demographics_filename: Optional[str] = None,
-    concerns: Optional[
-        Union[DemographicsGeneratorConcern, List[DemographicsGeneratorConcern]]
-    ] = None,
-    res_in_arcsec=CUSTOM_RESOLUTION,
-    node_id_from_lat_long=True,
-    default_population: int = 1000,
-    load_other_columns_as_attributes=False,
-    include_columns: Optional[List[str]] = None,
-    exclude_columns: Optional[List[str]] = None,
-    nodeid_column_name: Optional[str] = None,
-    latitude_column_name: str = "lat",
-    longitude_column_name: str = "lon",
-    population_column_name: str = "pop",
-):
+def from_dataframe(df: DataFrame,
+                   demographics_filename: Optional[str] = None,
+                   concerns: Union[DemographicsGeneratorConcern, List[DemographicsGeneratorConcern], None] = None,
+                   res_in_arcsec: Literal[30, 250, CUSTOM_RESOLUTION] = CUSTOM_RESOLUTION,
+                   node_id_from_lat_long: bool = True,
+                   default_population: int = 1000,
+                   load_other_columns_as_attributes: bool = False,
+                   include_columns: Optional[List[str]] = None,
+                   exclude_columns: Optional[List[str]] = None,
+                   nodeid_column_name: Optional[str] = None,
+                   latitude_column_name: str = "lat",
+                   longitude_column_name: str = "lon",
+                   population_column_name: str = "pop") -> Demographics:
     """
 
     Generates a demographics file from a dataframe
@@ -324,15 +317,15 @@ def from_dataframe(
         df: pandas DataFrame containing demographics information. Must contain all the columns specified by latitude_column_name,
             longitude_column_name. The population_column_name is optional. If not found, we fall back to default_population
         demographics_filename: demographics file to save the demographics file too. This is optional
-        concerns (Optional[DemographicsNodeGeneratorConcern]): What DemographicsNodeGeneratorConcern should
-        we apply. If not specified, we use the DefaultWorldBankEquilibriumConcern
+            concerns (Optional[DemographicsNodeGeneratorConcern]): What DemographicsNodeGeneratorConcern should
+            we apply. If not specified, we use the DefaultWorldBankEquilibriumConcern
         res_in_arcsec: Resolution in Arcseconds
         node_id_from_lat_long: Determine if we should calculate the node id from the lat long. By default this is
-         true unless you also set res_in_arcsec to CUSTOM_RESOLUTION. When not using lat/long for ids, the first
-         fallback it to check the node for a forced id. If that is not found, we assign it an index as id
+            true unless you also set res_in_arcsec to CUSTOM_RESOLUTION. When not using lat/long for ids, the first
+            fallback it to check the node for a forced id. If that is not found, we assign it an index as id
         load_other_columns_as_attributes: Load additional columns from a csv file as node attributes
         include_columns: A list of columns that should be added as node attributes from the csv file. To be used in
-         conjunction with load_other_columns_as_attributes.
+            conjunction with load_other_columns_as_attributes.
         exclude_columns: A list of columns that should be ignored as attributes when
             load_other_columns_as_attributes is enabled. This cannot be combined with include_columns
         default_population: Default population. Only used if population_column_name does not exist
@@ -445,23 +438,19 @@ def from_dataframe(
     return demographics
 
 # MOVE TO demographics/DemographicsInputDataParsers.py
-def from_file(
-    population_input_file: str,
-    demographics_filename: Optional[str] = None,
-    concerns: Optional[
-        Union[DemographicsGeneratorConcern, List[DemographicsGeneratorConcern]]
-    ] = None,
-    res_in_arcsec=CUSTOM_RESOLUTION,
-    node_id_from_lat_long=True,
-    default_population: int = 1000,
-    load_other_columns_as_attributes=False,
-    include_columns: Optional[List[str]] = None,
-    exclude_columns: Optional[List[str]] = None,
-    nodeid_column_name: Optional[str] = None,
-    latitude_column_name: str = "lat",
-    longitude_column_name: str = "lon",
-    population_column_name: str = "pop",
-):
+def from_file(population_input_file: str,
+              demographics_filename: Optional[str] = None,
+              concerns: Union[DemographicsGeneratorConcern, List[DemographicsGeneratorConcern], None] = None,
+              res_in_arcsec: Literal[30, 250, CUSTOM_RESOLUTION] = CUSTOM_RESOLUTION,
+              node_id_from_lat_long: bool = True,
+              default_population: int = 1000,
+              load_other_columns_as_attributes: bool = False,
+              include_columns: Optional[List[str]] = None,
+              exclude_columns: Optional[List[str]] = None,
+              nodeid_column_name: Optional[str] = None,
+              latitude_column_name: str = "lat",
+              longitude_column_name: str = "lon",
+              population_column_name: str = "pop") -> Demographics:
     """
 
     Generates a demographics file from a CSV population
@@ -470,15 +459,15 @@ def from_file(
         population_input_file: CSV population file. Must contain all the columns specified by latitude_column_name,
             longitude_column_name. The population_column_name is optional. If not found, we fall back to default_population
         demographics_filename: demographics file to save the demographics file too. This is optional
-        concerns (Optional[DemographicsNodeGeneratorConcern]): What DemographicsNodeGeneratorConcern should
-        we apply. If not specified, we use the DefaultWorldBankEquilibriumConcern
+            concerns (Optional[DemographicsNodeGeneratorConcern]): What DemographicsNodeGeneratorConcern should
+            we apply. If not specified, we use the DefaultWorldBankEquilibriumConcern
         res_in_arcsec: Resolution in Arcseconds
         node_id_from_lat_long: Determine if we should calculate the node id from the lat long. By default this is
-         true unless you also set res_in_arcsec to CUSTOM_RESOLUTION. When not using lat/long for ids, the first
-         fallback it to check the node for a forced id. If that is not found, we assign it an index as id
+            true unless you also set res_in_arcsec to CUSTOM_RESOLUTION. When not using lat/long for ids, the first
+            fallback it to check the node for a forced id. If that is not found, we assign it an index as id
         load_other_columns_as_attributes: Load additional columns from a csv file as node attributes
         include_columns: A list of columns that should be added as node attributes from the csv file. To be used in
-         conjunction with load_other_columns_as_attributes.
+            conjunction with load_other_columns_as_attributes.
         exclude_columns: A list of columns that should be ignored as attributes when
             load_other_columns_as_attributes is enabled. This cannot be combined with include_columns
         default_population: Default population. Only used if population_column_name does not exist

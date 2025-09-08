@@ -16,9 +16,9 @@ class Node(Updateable):
     res_in_degrees = 2.5 / 60
 
     def __init__(self,
-                 lat,
-                 lon,
-                 pop,
+                 lat: float,
+                 lon: float,
+                 pop: float,
                  name: str = None,
                  area: float = None,
                  forced_id: int = None,
@@ -30,17 +30,17 @@ class Node(Updateable):
         Represent a Node (the metapopulation unit)
 
         Args:
-            lat (float): Latitude in degrees
-            lon (float): Longitude in degrees
-            pop (float): Population
-            name (str, optional): name of the node
-            area (float, optional): Area
-            forced_id (int, optional): A custom id instead of the default ID based on lat/lon
-            individual_attributes (:py:class:`emod_api.demographics.PropertiesAndAttributes.IndividualAttributes`, optional):
-            individual_properties (:py:class:`emod_api.demographics.PropertiesAndAttributes.IndividualProperty`, optional):
-            node_attributes (:py:class:`emod_api.demographics.PropertiesAndAttributes.NodeAttributes`, optional):
-            meta: (dict) (optional) A metadata dictionary for a Node. Entries in here are effectively comments as EMOD
-                binaries do not recognize node-level metadata.
+            lat: Latitude in degrees
+            lon: Longitude in degrees
+            pop: Population
+            name: name of the node
+            area: Area
+            forced_id: A custom id instead of the default ID based on lat/lon
+            individual_attributes: `emod_api.demographics.PropertiesAndAttributes.IndividualAttributes`
+            individual_properties: `emod_api.demographics.PropertiesAndAttributes.IndividualProperty`
+            node_attributes: `emod_api.demographics.PropertiesAndAttributes.NodeAttributes`
+            meta: A metadata dictionary for a Node. Entries in here are effectively comments as EMOD
+                  binaries do not recognize node-level metadata.
         """
         super().__init__()
         self.forced_id = forced_id
@@ -126,7 +126,8 @@ class Node(Updateable):
             raise Exception("Don't recognize resolution from demographics filename")
 
     @classmethod
-    def from_data(cls, data: dict):
+    def from_data(cls,
+                  data: dict) -> Node:
         """
         Function used to create the node object from data (most likely coming from a demographics file)
 
@@ -134,7 +135,7 @@ class Node(Updateable):
             data (dict): Contains the node definitions
 
         Returns:
-            A :py:class:`emod_api.Demographics.Node.Node`        
+            A :py:class:`emod_api.Demographics.Node.Node`
         """
         nodeid = data["NodeID"]
         node_attributes_dict = dict(data.get("NodeAttributes"))

@@ -24,7 +24,11 @@ from emod_api.demographics.service import service
 
 # TODO: All following "from_X()" methods should be class methods of Demographics
 #  https://github.com/InstituteforDiseaseModeling/emod-api/issues/688
-def from_template_node(lat=0, lon=0, pop=1000000, name="Erewhon", forced_id=1):
+def from_template_node(lat=0,
+                       lon=0,
+                       pop=1000000,
+                       name="Erewhon",
+                       forced_id=1):
     """
     Create a single-node :py:class:`Demographics` instance from a few parameters.    
     """
@@ -59,7 +63,9 @@ def get_node_ids_from_file(demographics_file):
     return sorted(d.node_ids)
 
 
-def get_node_pops_from_params(tot_pop, num_nodes, frac_rural):
+def get_node_pops_from_params(tot_pop,
+                              num_nodes,
+                              frac_rural) -> list:
     """
     Get a list of node populations from the params used to create a sparsely 
     parameterized multi-node :py:class:`Demographics` instance. The first population 
@@ -91,7 +97,11 @@ def get_node_pops_from_params(tot_pop, num_nodes, frac_rural):
     return npops
 
 
-def from_params(tot_pop=1000000, num_nodes=100, frac_rural=0.3, id_ref="from_params", random_2d_grid=False):
+def from_params(tot_pop: int = 1000000,
+                num_nodes: int = 100,
+                frac_rural: float = 0.3,
+                id_ref: str = "from_params", 
+                random_2d_grid: bool = False) -> Demographics:
     """
     Create an EMOD-compatible :py:class:`Demographics` object with the population and numbe of nodes specified.
  
@@ -105,7 +115,7 @@ def from_params(tot_pop=1000000, num_nodes=100, frac_rural=0.3, id_ref="from_par
         random_2d_grid: Create a random distanced grid with num_nodes nodes.
 
     Returns:
-        A :py:class:`Demographics` object
+        `Demographics`
     """
     if frac_rural > 1.0:
         raise ValueError(f"frac_rural can't be greater than 1.0")
@@ -149,7 +159,9 @@ def _node_id_from_lat_lon_res(lat: float, lon: float, res: float = 30 / 3600) ->
     return node_id
 
 
-def from_csv(input_file, res=30/3600, id_ref="from_csv"):
+def from_csv(input_file,
+             res = 30/3600,
+             id_ref = "from_csv"):
     """
     Create an EMOD-compatible :py:class:`Demographics` instance from a csv population-by-node file.
 
@@ -217,13 +229,11 @@ def from_csv(input_file, res=30/3600, id_ref="from_csv"):
 
 
 # This will be the long-term API for this function.
-def from_pop_raster_csv(
-    pop_filename_in,
-    res=1/120,
-    id_ref="from_raster",
-    pop_filename_out="spatial_gridded_pop_dir",
-    site="No_Site"
-):
+def from_pop_raster_csv(pop_filename_in,
+                        res = 1/120,
+                        id_ref = "from_raster",
+                        pop_filename_out = "spatial_gridded_pop_dir",
+                        site = "No_Site") -> Demographics:
     """
         Take a csv of a population-counts raster and build a grid for use with EMOD simulations.
         Grid size is specified by grid resolution in arcs or in kilometers. The population counts 
@@ -240,10 +250,9 @@ def from_pop_raster_csv(
         site (str, optional): The site name or identifier. Default is "No_Site".
     
     Returns:
-        :py:class`Demographics` object: The generated demographics object based on the grid file.
+        `Demographics`: The generated demographics object based on the grid file.
     
     Raises:
-        N/A
     
     """
     grid_file_path = service._create_grid_files(pop_filename_in, pop_filename_out, site)
@@ -251,13 +260,11 @@ def from_pop_raster_csv(
     return from_csv(grid_file_path, res, id_ref)
 
 
-def from_pop_csv(
-    pop_filename_in,
-    res=1/120,
-    id_ref="from_raster",
-    pop_filename_out="spatial_gridded_pop_dir",
-    site="No_Site"
-):
+def from_pop_csv(pop_filename_in,
+                 res = 1/120,
+                 id_ref = "from_raster",
+                 pop_filename_out = "spatial_gridded_pop_dir",
+                 site = "No_Site"):
     """
         Deprecated. Please use from_pop_raster_csv.
     """

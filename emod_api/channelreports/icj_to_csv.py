@@ -18,7 +18,7 @@ def _get_sim_years( output_path ):
     sim_year = [ base_year + step * x for x in range(steps) ]
     return sim_year
 
-def inset_chart_json_to_csv_dataframe_pd( output_path ):
+def inset_chart_json_to_csv_dataframe_pd( output_path: str ):
     """
     Convert InsetChart.json file in 'output_path' to InsetChart.csv.
     Adding Simulation_Year column if Base_Year exists in config.json.
@@ -28,11 +28,10 @@ def inset_chart_json_to_csv_dataframe_pd( output_path ):
         output_path (str): Subdirectory in which to find InsetChart.json
 
     Returns:
-        N/A
 
     Raises:
-        - ValueError if InsetChart.json can't be found.
-        - ValueError if InsetChart.csv can't be written.
+        ValueError: if InsetChart.json can't be found.
+        ValueError: if InsetChart.csv can't be written.
     """
 
     icj_path = os.path.join( output_path, "InsetChart.json" )
