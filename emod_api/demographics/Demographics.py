@@ -115,7 +115,7 @@ def from_params(tot_pop: int = 1000000,
         random_2d_grid: Create a random distanced grid with num_nodes nodes.
 
     Returns:
-        (`emod_api.demographics.Demographics.Demographics`): Demographics object
+        (Demographics): New Demographics object
     """
     if frac_rural > 1.0:
         raise ValueError(f"frac_rural can't be greater than 1.0")
@@ -250,7 +250,7 @@ def from_pop_raster_csv(pop_filename_in,
         site (str, optional): The site name or identifier. Default is "No_Site".
     
     Returns:
-        (`emod_api.demographics.Demographics.Demographics`): Demographics object based on the grid file.
+        (Demographics): New Demographics object based on the grid file.
 
     Raises:
 

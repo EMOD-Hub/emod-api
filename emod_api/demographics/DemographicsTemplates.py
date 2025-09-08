@@ -297,7 +297,7 @@ def NoInitialPrevalence( demog ):
     NoInitialPrevalence disables initial prevalence; outbreak seeding must be done from an Outbreak intervention (or serialized population).
 
     Args:
-        demog (`emod_api.demographics.Demographics.Demographics`): Demographics object
+        demog (Demographics): Demographics object
 
     Returns:
 
@@ -373,7 +373,7 @@ def SimpleSusceptibilityDistribution( demog,
     The minimum susceptibility is 2.5% at old ages.
 
     Args:
-        demog (`emod_api.demographics.Demographics.Demographics`): Demographics object
+        demog (Demographics): Demographics object
         meanAgeAtInfection: Rough average age at infection in years.
 
     Note:

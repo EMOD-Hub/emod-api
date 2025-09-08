@@ -135,7 +135,7 @@ class Node(Updateable):
             data (dict): Contains the node definitions
 
         Returns:
-            (`emod_api.demographics.Node.Node`): Node object
+            (Node): New Node object
         """
         nodeid = data["NodeID"]
         node_attributes_dict = dict(data.get("NodeAttributes"))
@@ -478,7 +478,7 @@ def nodes_for_DTK(filename, nodes):
 
     Args:
         filename (str): Name of output file
-        nodes (list): List of :py:class:`emod_api.Demographics.Node.Node`
+        nodes (list[Node]): List of Node objects
     """
     with open(filename, "w") as f:
         json.dump(
