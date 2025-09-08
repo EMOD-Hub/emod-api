@@ -718,7 +718,7 @@ def demographicsBuilder(pop_dat_file: Path,
                         start_year: int = 1950,
                         max_daily_mort: float = 0.01,
                         mortality_rate_x_values: list = DemographicsTemplatesConstants.Mortality_Rates_Mod30_5yrs_Xval,
-                        years_per_age_bin: int = 5) -> tuple(IndividualAttributes, NodeAttributes):
+                        years_per_age_bin: int = 5) -> tuple[IndividualAttributes, NodeAttributes]:
     """
     Build demographics from UN World Population data.
     Args:
