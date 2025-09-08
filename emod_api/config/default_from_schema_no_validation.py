@@ -109,7 +109,7 @@ def load_default_config_as_rod(config) -> s2c.ReadOnlyDict:
     return config_rod
 
 
-def get_config_from_default_and_params(config_path: Union[str, Path, None] = None,
+def get_config_from_default_and_params(config_path: Union[str, os.PathLike, None] = None,
                                        set_fn = None,
                                        config: s2c.ReadOnlyDict = None,
                                        verbose: bool = False) -> s2c.ReadOnlyDict:
@@ -148,7 +148,7 @@ def get_config_from_default_and_params(config_path: Union[str, Path, None] = Non
 
 def write_config_from_default_and_params(config_path,
                                          set_fn,
-                                         config_out_path: Union[str, Path],
+                                         config_out_path: Union[str, os.PathLike],
                                          verbose: bool = False):
     """
     Use this function to create a valid config.json file from a schema-derived
