@@ -6,8 +6,7 @@ import scipy.sparse.linalg as la
 
 from collections import defaultdict
 from pathlib import Path
-
-from emod_api.demographics.Demographics import Demographics
+from typing import Type
 
 from emod_api.demographics.age_distribution_old import AgeDistributionOld as AgeDistribution
 from emod_api.demographics.fertility_distribution_old import FertilityDistributionOld as FertilityDistribution
@@ -294,12 +293,12 @@ def InitRiskExponential( demog,
 # Initial Prevalence
 # config: Enable_Initial_Prevalence=1
 #
-def NoInitialPrevalence( demog: Demographics ):
+def NoInitialPrevalence( demog: Type[Demographics] ):
     """
     NoInitialPrevalence disables initial prevalence; outbreak seeding must be done from an Outbreak intervention (or serialized population).
 
     Args:
-        demog: emod-api.demographics.Demographics instance.
+        demog: `emod_api.demographics.Demographics.Demographics`
 
     Returns:
 
@@ -367,7 +366,7 @@ def StepFunctionSusceptibility( demog, protected_setting=0.0, threshold_age=365*
     demog.SetDefaultFromTemplate( suscDist, _set_suscept_complex )
 
 
-def SimpleSusceptibilityDistribution( demog: Demographics,
+def SimpleSusceptibilityDistribution( demog: Type[Demographics],
                                       meanAgeAtInfection: float=2.5): 
     """
     Rough initialization to reduce burn-in and prevent huge outbreaks at sim start.  
@@ -375,7 +374,7 @@ def SimpleSusceptibilityDistribution( demog: Demographics,
     The minimum susceptibility is 2.5% at old ages.
 
     Args:
-        demog: `~emod_api.demographics.Demographics.Demographics`
+        demog: `emod_api.demographics.Demographics.Demographics`
         meanAgeAtInfection: Rough average age at infection in years.
 
     Note:
