@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Any
 
 from emod_api.demographics.Updateable import Updateable
 
