@@ -101,7 +101,7 @@ def from_params(tot_pop: int = 1000000,
                 num_nodes: int = 100,
                 frac_rural: float = 0.3,
                 id_ref: str = "from_params", 
-                random_2d_grid: bool = False) -> Demographics:
+                random_2d_grid: bool = False):
     """
     Create an EMOD-compatible :py:class:`Demographics` object with the population and numbe of nodes specified.
  
@@ -115,7 +115,7 @@ def from_params(tot_pop: int = 1000000,
         random_2d_grid: Create a random distanced grid with num_nodes nodes.
 
     Returns:
-        `Demographics`
+        (`emod_api.demographics.Demographics.Demographics`): Demographics object
     """
     if frac_rural > 1.0:
         raise ValueError(f"frac_rural can't be greater than 1.0")
@@ -233,7 +233,7 @@ def from_pop_raster_csv(pop_filename_in,
                         res = 1/120,
                         id_ref = "from_raster",
                         pop_filename_out = "spatial_gridded_pop_dir",
-                        site = "No_Site") -> Demographics:
+                        site = "No_Site"):
     """
         Take a csv of a population-counts raster and build a grid for use with EMOD simulations.
         Grid size is specified by grid resolution in arcs or in kilometers. The population counts 
@@ -250,10 +250,10 @@ def from_pop_raster_csv(pop_filename_in,
         site (str, optional): The site name or identifier. Default is "No_Site".
     
     Returns:
-        `Demographics`: The generated demographics object based on the grid file.
-    
+        (`emod_api.demographics.Demographics.Demographics`): Demographics object based on the grid file.
+
     Raises:
-    
+
     """
     grid_file_path = service._create_grid_files(pop_filename_in, pop_filename_out, site)
     print(f"{grid_file_path} grid file created.")

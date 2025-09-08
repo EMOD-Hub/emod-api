@@ -135,7 +135,7 @@ class Node(Updateable):
             data (dict): Contains the node definitions
 
         Returns:
-            (`emod_api.Demographics.Node.Node`): Node object
+            (`emod_api.demographics.Node.Node`): Node object
         """
         nodeid = data["NodeID"]
         node_attributes_dict = dict(data.get("NodeAttributes"))
