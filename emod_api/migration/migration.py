@@ -11,6 +11,8 @@ from warnings import warn
 import numpy as np
 import csv
 
+from typing import Literal
+
 # for from_params()
 import scipy.spatial.distance as spspd
 from emod_api.demographics import Demographics as Demog

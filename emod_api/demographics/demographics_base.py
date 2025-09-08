@@ -106,7 +106,7 @@ class DemographicsBase(BaseInputFile):
                 self.nodes[index].update(map_ids_overlay[node.forced_id])
 
     def send(self,
-             write_to_this: Union [int, str, Path],
+             write_to_this: Union [int, str, os.PathLike],
              return_from_forked_sender: bool = False):
         """
         Write data to a file descriptor as specified by the caller. It must be a pipe,
@@ -451,7 +451,7 @@ class DemographicsBase(BaseInputFile):
         self.SetMigrationPattern("srt")
 
     def SetOneWayMigration(self,
-                           rates_path: Union[str, Path],
+                           rates_path: Union[str, os.PathLike],
                            id_ref: str = 'long term migration'):
         """
         Set one way migration. You can use the x_Regional_Migration configuration parameter to tune/calibrate.
@@ -680,7 +680,7 @@ class DemographicsBase(BaseInputFile):
             self.implicits.append(DT._set_mortality_age_gender)
 
     def SetMortalityOverTimeFromData(self,
-                                     data_csv: Union[str, Path],
+                                     data_csv: Union[str, os.PathLike],
                                      base_year: int,
                                      node_ids: List = None):
         """
