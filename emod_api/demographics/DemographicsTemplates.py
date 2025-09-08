@@ -7,6 +7,8 @@ import scipy.sparse.linalg as la
 from collections import defaultdict
 from pathlib import Path
 
+from emod_api.demographics.Demographics import Demographics
+
 from emod_api.demographics.age_distribution_old import AgeDistributionOld as AgeDistribution
 from emod_api.demographics.fertility_distribution_old import FertilityDistributionOld as FertilityDistribution
 from emod_api.demographics.mortality_distribution_old import MortalityDistributionOld as MortalityDistribution

@@ -91,7 +91,7 @@ def write_default_from_schema(path_to_schema,
     return output_filename
 
 
-def load_default_config_as_rod(config) -> ReadOnlyDict:
+def load_default_config_as_rod(config) -> s2c.ReadOnlyDict:
     """
     Parameters:
         config (string/path): path to default or base config.json
@@ -110,8 +110,8 @@ def load_default_config_as_rod(config) -> ReadOnlyDict:
 
 def get_config_from_default_and_params(config_path: Union[str, Path, None] = None,
                                        set_fn = None,
-                                       config:ReadOnlyDict = None,
-                                       verbose: bool = False) -> ReadOnlyDict:
+                                       config: s2c.ReadOnlyDict = None,
+                                       verbose: bool = False) -> s2c.ReadOnlyDict:
     """
     Use this function to create a valid config.json file from a schema-derived
     base config, a callback that sets your parameters of interest
