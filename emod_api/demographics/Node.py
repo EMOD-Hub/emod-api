@@ -127,7 +127,7 @@ class Node(Updateable):
 
     @classmethod
     def from_data(cls,
-                  data: dict) -> Node:
+                  data: dict):
         """
         Function used to create the node object from data (most likely coming from a demographics file)
 
@@ -135,7 +135,7 @@ class Node(Updateable):
             data (dict): Contains the node definitions
 
         Returns:
-            A :py:class:`emod_api.Demographics.Node.Node`
+            (`emod_api.Demographics.Node.Node`): Node object
         """
         nodeid = data["NodeID"]
         node_attributes_dict = dict(data.get("NodeAttributes"))
