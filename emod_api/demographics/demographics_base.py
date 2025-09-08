@@ -511,7 +511,7 @@ class DemographicsBase(BaseInputFile):
     # TODO: is this useful in a way that warrants a special-case function in emodpy?
     #  https://github.com/InstituteforDiseaseModeling/emod-api-old/issues/791
     def SetEquilibriumVitalDynamicsFromWorldBank(self,
-                                                 wb_births_df: DataFrame,
+                                                 wb_births_df: pd.DataFrame,
                                                  country: str,
                                                  year: int,
                                                  node_ids: List = None):
