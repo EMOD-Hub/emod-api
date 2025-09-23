@@ -4,6 +4,7 @@ import os
 from collections import OrderedDict
 
 schema_cache = None
+_schema_path = None
 
 
 class ReadOnlyDict(OrderedDict):
@@ -207,26 +208,28 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None, show_
 
     def get_schema(schema_path=None, schema_json=None):
         global schema_cache
+        global _schema_path
         schema_ret = None
 
         # Prefer schema-as-dict if provided
         if schema_json:
-            schema_cache = schema_json
             schema_ret = schema_json
-        # Check cache
-        elif schema_cache:
-            schema_ret = schema_cache
         # Then check file path
         elif schema_path:
             if not os.path.exists(schema_path):
                 raise ValueError(f"ERROR: No file found at {schema_path}. "
                                  f"A valid schema path needs to exist at the path specified.")
-            with open(schema_path) as file:
-                schema_val = json.load(file)
-            schema_cache = schema_val
-            schema_ret = schema_val
+
+            if schema_cache is None or _schema_path != schema_path:
+                with open(schema_path) as file:
+                    schema_val = json.load(file)
+                schema_cache = schema_val
+                schema_ret = schema_val
+                _schema_path = schema_path
+            else:
+                schema_ret = schema_cache
         else:
-            raise ValueError("A valid schema path needs to be specified.")
+            raise ValueError("A valid schema_path or schema_json needs to be specified.")
 
         return schema_ret
 
