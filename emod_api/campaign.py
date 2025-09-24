@@ -6,6 +6,7 @@ You use this simple campaign builder by importing it, adding valid events via "a
 import json
 
 schema_path = None
+schema_json = None
 campaign_dict = {"Events": [], "Use_Defaults": 1}
 pubsub_signals_subbing = []
 pubsub_signals_pubbing = []
@@ -32,7 +33,7 @@ def reset():
     del (custom_node_events[:])
     event_map = {}
     from emod_api import schema_to_class as s2c
-    s2c.schema_cache = None
+    s2c.clear_schema_cache()
     del (implicits[:])
 
 
@@ -42,22 +43,20 @@ def set_schema(schema_path_in):
     "start_building_campaign" function.
 
     Args:
-
         schema_path_in. The path to a schema.json.
     Returns:
         Nothing
     """
     reset()
-    global schema_path
+    global schema_path, schema_json
+
     schema_path = schema_path_in
+    with open(schema_path_in) as schema_file:
+        schema_json = json.load(schema_file)
 
 
 def get_schema():
-    schema = None
-    if schema_path:
-        with open(schema_path) as schema_file:
-            schema = json.load(schema_file)
-    return schema
+    return schema_json
 
 
 def add(event, name=None, first=False):
