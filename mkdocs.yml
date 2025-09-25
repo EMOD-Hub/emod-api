@@ -28,7 +28,6 @@ nav:
   - Home: index.md
   - FAQ: faq.md
   - API Reference: autoapi/
-  - Glossary: glossary.md
   - Plotters: plotters.md
   - Related Projects:
     - emodpy: https://docs.idmod.org/projects/emodpy/
