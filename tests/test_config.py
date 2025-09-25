@@ -556,8 +556,11 @@ class ConfigTest(unittest.TestCase):
             "idmType:WaningEffectCollection"
         ]
 
+        with open(schema_path) as fid01:
+            schema_json = json.load(fid01)
+
         for idmtype in mytypes:
-            type_dict = s2c.get_class_with_defaults( idmtype, schema_path ) # checking for error
+            type_dict = s2c.get_class_with_defaults( idmtype, schema_json=schema_json ) # checking for error
 
     def compare_config_with_po(self, config, po, default):
         for key, value in config.items():
@@ -577,7 +580,10 @@ class ConfigTest(unittest.TestCase):
 class ReadOnlyDictTest(unittest.TestCase):
     def test_schema_to_class(self):
         schema_path = manifest.common_schema_path
-        coordinator = s2c.get_class_with_defaults("StandardEventCoordinator", schema_path)
+        with open(schema_path) as fid01:
+            schema_json = json.load(fid01)
+
+        coordinator = s2c.get_class_with_defaults("StandardEventCoordinator", schema_json=schema_json)
 
         coordinator.Number_Repetitions = 123    # doesn't raise an exception
 
