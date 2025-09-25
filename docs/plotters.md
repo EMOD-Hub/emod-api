@@ -2,7 +2,7 @@
 
 The emod- package has various built-in plotting utilities. We expect you have your own favorite tools and scripts but these should help you at least get started and also discover what output files/reports exist and what they contain.
 
-### Plot mean and spread of aggregate output (InsetChart.json) for an experiment
+## Plot mean and spread from InsetChart for an experiment
 
 This script works on a set of InsetChart.json files, which are sometimes known as the Default Report.
 
@@ -10,14 +10,14 @@ This script expects the InsetChart.json files for an experiment to be downloaded
 
 ```
 ├── experiment_id
-│   ├── sim_id_1
-│   │   └── InsetChart.json
-│   ├── sim_id_2
-│   │   └── InsetChart.json
-│   ├── sim_id_3
-│   │   └── InsetChart.json
-│   ├── sim_id_4
-│   │   └── InsetChart.json
+│ ├── sim_id_1
+│ │ └── InsetChart.json
+│ ├── sim_id_2
+│ │ └── InsetChart.json
+│ ├── sim_id_3
+│ │ └── InsetChart.json
+│ ├── sim_id_4
+│ │ └── InsetChart.json
 etc.
 ```
 
@@ -29,7 +29,7 @@ If you don't specify a (COMPS) tag, it plots the mean and spread (1 std-dev) of 
 If you specify a tag as '<key>=<value>', it will plot the mean and spread of all the sims with that tag match. Replace <key> with an actual key of course, and same for value.
 If you specify the tag as '<key>=SWEEP', it will look for all the values of that key and plot the mean and spread for each of them on the same plot.
 
-**Script usage**
+#### Script usage
 
 `emod_api.channelreports.plot_icj_means`
 ```
@@ -38,7 +38,7 @@ data = plotter.collect( "df26ed6c-a33e-ed1-a9fc-b88303911bc1", tag="iv_cost=SWEE
 plotter.display( data )
 ```
 
-**Command-line usage**
+#### Command-line usage
 ```
 python -m emod_api.channelreports.plot_icj_means [-h] [-c CHANNEL] [-e EXPERIMENT_ID] [-t TAG]
 ```
@@ -50,11 +50,11 @@ optional arguments:
 
 ![Figure 1: Sample Output](images/sweep_plot.png)
 
-### Plot mean spatial reports for an experiment
+## Plot mean spatial reports for an experiment
 
 This script reads and plots downloaded Spatial Report files from an experiment. It assumes the files are locally present and structured similarly to plot_icj_means.
 
-**Script usage**
+#### Script usage
 
 `emod_api.spatialreports.plot_spat_means`
 ```
@@ -62,7 +62,7 @@ import emod_api.spatialreports.plot_spat_means as plotter
 plotter.plot( "eedf7b5a-3b17-ed11-a9fb-b88303911bc1" )
 ```
 
-**Command-line usage**
+#### Command-line usage
 ```
 python -m emod_api.spatialreports.plot_spat_means [-h] [-c CHANNEL] [-e EXPERIMENT_ID] [-t TAG]
 ```
@@ -74,11 +74,11 @@ optional arguments:
 
 ![Figure 2: Sample Output](images/spat_plot.png)
 
-### Plot property report for a simulation
+## Plot property report for a simulation
 
 This script accepts a single PropertyReport.json file as input. Note that this is the only script in this group that accepts a single simulation output file as input (vs. a set of files from an experiment). Unlike InsetChart.json files which have a single aggregated time series per channel, Property Report files are massively disaggregated by design and so are much easier to use with some tooling like this script.
 
-**Command-line usage**
+#### Command-line usage
 ```
 python -m emod_api.channelreports.plot_prop_report.py [-h] [-c channelName] [-p PRIMARY] [-n] [-b BY] [-o] [-s] [-m] [-v] [--no-legend] [-l] [filename]
 ```
@@ -99,11 +99,11 @@ optional arguments:
 
 ![Figure 3: Sample Output](images/prop_plot.png)
 
-### Visualize multidimensional sweep outputs
+## Visualize sweep outputs
 
 This script reads and plots colormaps of custom output data from an 2-dimensional sweep. It assumes the files are local similarly to plot_icj_means.
 
-**Script usage**
+#### Script usage
 `emod_api.multidim_plotter`
 ```
 output_for_analysis=["final_prev"]
@@ -125,7 +125,7 @@ Example Explained:
 * cache_experiment_metadata_in_sql retrieves the tag info from COMPS for the experiment and creates a local sqlite db (called 'results.db', in the latest experiment directory). It will include a column with the value in 'final_prev' for each simulation.
 * The function 'plot_from_sql' in multidim_plotter then displays a 3D plot (displayed as a 2D colourmap by default) for the two tag axes specified. The color represents the corresponding value of 'final_prev' in this example.
 
-**Command-line usage**
+#### Command-line usage
 ```
 python -m emod_api.multidim_plotter [-h] [-x XTAG] [-y YTAG] [-o OUTPUT] [-t TITLE] [-e EXPERIMENT_ID]
 ```
@@ -134,8 +134,7 @@ optional arguments:
 : `-x XTAG, --xtag XTAG` X tag (must be in db)
 : `-y YTAG, --ytag YTAG` Y tag (must be in db)
 : `-o OUTPUT, --output OUTPUT` Single value output file
-: '-t TITLE, --title TITLE` Graph title
-: '-e EXPERIMENT_ID, --experiment_id EXPERIMENT_ID` experiment id to plot, uses latest_experiment folder if omitted (not used yet)
+: `-t TITLE, --title TITLE` Graph title
+: `-e EXPERIMENT_ID, --experiment_id EXPERIMENT_ID` experiment id to plot, uses latest_experiment folder if omitted (not used yet)
 
-**Sample Output**
 ![Figure 3: Sample Output](images/colormap_plot.png)
