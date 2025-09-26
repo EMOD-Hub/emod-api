@@ -7,7 +7,10 @@ import os
 import sys
 import sqlite3
 
-def collect( exp_id, chan="Infected", tag=None, smoothing=True ):
+def collect( exp_id: str,
+             chan: str = "Infected",
+             tag: str = None,
+             smoothing: bool = True ) -> dict:
     """
     Collect all the time series data for a given channel for a given experiment from InsetChart.json
     files in local subdirectory that have been downoaded from COMPS, assuming following structure.

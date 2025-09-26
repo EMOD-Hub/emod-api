@@ -124,19 +124,21 @@ class SerializedPopulation:
 
 
 ### Some useful functions ###
-def find(name: str, handle, currentlevel="dtk.nodes"):
+def find(name: str,
+         handle: Union[str, Iterable],
+         currentlevel: str = "dtk.nodes"):
     """Recursively searches for a paramters that matches or is close to name and prints out where to find it in the file.
 
     Args:     
         name: the paramter you are looking for e.g. "age", "gender".
         handle: some iterable data structure, can be a list of
-                nodes, a node, list of individuals, etc     currentlevel: just a
-                string to print out where the found item is located e.g. "dtk.nodes"
-                or "dtk.node.individuals"
-    
+                nodes, a node, list of individuals, etc
+        currentlevel: just a string to print out where the found item
+                is located e.g. "dtk.nodes" or "dtk.node.individuals"
+
     Examples:
         What is the exact paramteter name used for the age of an individual?::
-        
+
             SerPop.find("age", node)
             ...
             1998   Found in:  dtk.nodes.individualHumans[999].m_age
@@ -147,12 +149,7 @@ def find(name: str, handle, currentlevel="dtk.nodes"):
  
     """
     global COUNTER
-    if isinstance(
-            handle,
-            str) and difflib.get_close_matches(
-            name,
-            [handle],
-            cutoff=0.6):
+    if isinstance(handle, str) and difflib.get_close_matches(name, [handle], cutoff=0.6):
         print(COUNTER, "  Found in: ", currentlevel)
         COUNTER += 1
         return
@@ -181,20 +178,21 @@ def find(name: str, handle, currentlevel="dtk.nodes"):
             find(name, handle[key], level)  # check if string is key for a dict
 
 
-def get_parameters(handle, currentlevel="dtk.nodes"):
+def get_parameters(handle: Union[str, Iterable],
+                   currentlevel: str = "dtk.nodes"):
     """Return a set of all parameters in the serialized population file. Helpful to get an overview about what is in the serialized population file.
 
-    Args:     
+    Args:
         handle: some iterable data structure, can be a list of
                 nodes, a node, list of individuals, etc     
         currentlevel: just a string to print out where the found item
-                is located e.g. "dtk.nodes"or "dtk.node.individuals
+                is located e.g. "dtk.nodes" or "dtk.node.individuals
                 
     Examples:
         Print all parameters in serialized population file::
         
             for n in sorted(SerPop.get_parameters(node)):
-                print(n)            
+                print(n)
     """
     global COUNTER
     param = set()

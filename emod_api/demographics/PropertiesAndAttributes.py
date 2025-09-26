@@ -510,10 +510,10 @@ class IndividualAttributes(Updateable):
 class NodeAttributes(Updateable):
     def __init__(self,
                  airport: int = None,
-                 altitude=None,
+                 altitude: float = None,
                  area: float = None,
                  birth_rate: float = None,
-                 country=None,
+                 country: str = None,
                  growth_rate: float = None,
                  name: str = None,
                  latitude: float = None,
@@ -522,8 +522,8 @@ class NodeAttributes(Updateable):
                  initial_population: int = None,
                  region: int = None,
                  seaport: int = None,
-                 larval_habitat_multiplier: List[float] = None,
-                 initial_vectors_per_species=None,
+                 larval_habitat_multiplier: Union[List[float], None] = None,
+                 initial_vectors_per_species: Union[dict, int, None] = None,
                  infectivity_multiplier: float = None,
                  extra_attributes: dict = None):
         """

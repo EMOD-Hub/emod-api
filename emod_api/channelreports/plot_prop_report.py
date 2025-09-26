@@ -78,7 +78,8 @@ def list_channels_and_ips(channel_keys: List[str]) -> None:
     return
 
 
-def call_plot_traces(args: argparse.Namespace, trace_values: Dict[str, np.ndarray]) -> None:
+def call_plot_traces(args: argparse.Namespace,
+                     trace_values: Dict[str, np.ndarray]) -> None:
 
     """
     Call the internal `plot_traces` function and, optionally, save the results to disk.
@@ -106,19 +107,20 @@ def call_plot_traces(args: argparse.Namespace, trace_values: Dict[str, np.ndarra
 
     return
 
-def prop_report_json_to_csv( output_path, channel_name="Infected", groupby = "Geographic" ): 
+def prop_report_json_to_csv( output_path: str,
+                             channel_name: str = "Infected",
+                             groupby: str = "Geographic" ): 
     """
     Converts selected channel of PropertyReportXXX.json into a CSV file, rolled up into a single property.
 
     Args:
-        output_path (str): Subdirectory in which to find a file called PropertyReportXXX.json.
+        output_path: Subdirectory in which to find a file called PropertyReportXXX.json.
             XXX can be blank or a disease named like 'TB'.
-        channel_name (str, optional): Name of the channel to process from the property report.
+        channel_name: Name of the channel to process from the property report.
             Defaults to "Infected".
-        groupby (str, optional): Property to group by. Defaults to "Geographic".
+        groupby: Property to group by. Defaults to "Geographic".
 
     Returns:
-        None
 
     Raises:
         ValueError: If no PropertyReportXXX.json file is found in the directory.
