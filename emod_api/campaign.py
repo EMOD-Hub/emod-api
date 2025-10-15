@@ -6,7 +6,7 @@ You use this simple campaign builder by importing it, adding valid events via "a
 import json
 
 schema_path = None
-schema_json = None
+_schema_json = None
 campaign_dict = {"Events": [], "Use_Defaults": 1}
 pubsub_signals_subbing = []
 pubsub_signals_pubbing = []
@@ -48,15 +48,15 @@ def set_schema(schema_path_in):
         Nothing
     """
     reset()
-    global schema_path, schema_json
+    global schema_path, _schema_json
 
     schema_path = schema_path_in
     with open(schema_path_in) as schema_file:
-        schema_json = json.load(schema_file)
+        _schema_json = json.load(schema_file)
 
 
 def get_schema():
-    return schema_json
+    return _schema_json
 
 
 def add(event, name=None, first=False):
