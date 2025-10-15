@@ -42,10 +42,11 @@ def set_schema(schema_path_in):
     Set the (path to) the schema file. And reset all campaign variables. This is essentially a
     "start_building_campaign" function.
 
-    Args:
-        schema_path_in. The path to a schema.json.
+    Parameters:
+        schema_path_in (str): The path to a schema.json file
+
     Returns:
-        Nothing
+
     """
     reset()
     global schema_path, _schema_json
