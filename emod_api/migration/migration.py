@@ -20,7 +20,6 @@ from emod_api.demographics import Demographics as Demog
 # for from_demog_and_param_gravity()
 from geographiclib.geodesic import Geodesic
 
-from .client import client
 
 class Layer(dict):
 
@@ -717,51 +716,6 @@ def from_params(demographics_file_path = None,
             migration[source][destination] = rate
 
     migration.MigrationType = migration_type
-    return migration
-
-
-def from_demog_and_param_gravity_webservice(demographics_file_path: str,
-                                            params: str,
-                                            id_ref: str,
-                                            migration_type: Literal[Migration.LOCAL,
-                                                                    Migration.AIR,
-                                                                    Migration.REGIONAL,
-                                                                    Migration.SEA,
-                                                                    Migration.FAMILY,
-                                                                    Migration.INTERVENTION] = Migration.LOCAL) -> Migration:
-    """
-    Calls a webservice (running on a GPU) to calculate the migration patterns quickly.
-
-    Args:
-        demographics_file_path: Path to the demographics file.
-        params: Path to the json file with parameters for gravity calculation and server url.
-        id_ref: Metadata tag that needs to match corresponding value in demographics file.
-        migration_type: Migration type.
-
-    Returns:
-        Migration object
-
-    """
-
-    with Path(params).open("r") as f_params:
-        params_url = json.load(f_params)
-
-    # load
-    rates = client.run(Path(demographics_file_path), params_url)
-
-    demog = Demog.from_file(demographics_file_path)
-    migration = Migration()
-    nodes = [node.forced_id for node in demog.nodes]
-
-    # we need a 0-N index for the NumPy array and the node ID for the migration file
-    for i, src in enumerate(nodes):
-        for j, dst in enumerate(nodes):
-            if dst != src:
-                migration[dst][src] = rates[i, j]
-
-    migration.IdReference = id_ref
-    migration.MigrationType = migration_type
-
     return migration
 
 
