@@ -13,8 +13,7 @@ from platform import system
 from tempfile import mkstemp
 import unittest
 from sys import platform
-from emod_api.migration import Migration, from_file, from_params, from_demog_and_param_gravity, to_csv, examine_file
-from emod_api.migration.migration import from_csv
+from emod_api.migration.migration import Migration, from_file, from_params, from_demog_and_param_gravity, to_csv, examine_file, from_csv
 import pandas as pd
 import io
 from contextlib import redirect_stdout
@@ -817,12 +816,9 @@ class MigrationTests(unittest.TestCase):
 
         migration_local.to_file(migration_local_file)
 
-        import emod_api.migration as mi
-        import io
-        from contextlib import redirect_stdout
         f = io.StringIO()
         with redirect_stdout(f):
-            mi.to_csv(migration_local_file)
+            to_csv(migration_local_file)
         migration_rate = f.getvalue().split("\n")
 
         verify_distance(migration_rate, locations)
@@ -871,16 +867,13 @@ class MigrationTests(unittest.TestCase):
     def compare_migration_file_to_reference(self, migration_file, migration_reference_file, exact_compare=True):
         self.assertTrue(migration_file.is_file())
         self.assertTrue(migration_reference_file.is_file())
-        import emod_api.migration as mi
-        import io
-        from contextlib import redirect_stdout
         f = io.StringIO()
         with redirect_stdout(f):
-            mi.to_csv(migration_file)
+            to_csv(migration_file)
         migration_rate = f.getvalue().split("\n")
         f = io.StringIO()
         with redirect_stdout(f):
-            mi.to_csv(migration_reference_file)
+            to_csv(migration_reference_file)
         migration_rate_reference = f.getvalue().split("\n")
         if exact_compare:
             self.assertListEqual(migration_rate, migration_rate_reference)
