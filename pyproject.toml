@@ -44,10 +44,8 @@ docs = [
     "mkdocs-autoapi",
     "mkdocs-glightbox",
 ]
-test = [
-    "emod-common",
-    "emod-generic",
-    "emod-malaria",
+lint = [
+    "flake8",
 ]
 packaging = [
     "build",
@@ -56,6 +54,11 @@ packaging = [
     "py-make",
     "bump2version",
     "twine",
+]
+test = [
+    "emod-common",
+    "emod-generic",
+    "emod-malaria",
 ]
 
 [project.urls]
