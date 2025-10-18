@@ -46,17 +46,20 @@ class SerializedPopulation:
 
             Copy individual[0] from node 0, change properties and add individual as new individual::
                 import copy
-                individual_properties={"m_age": 1234}
+                individual_properties = {"m_age": 1234}
                 individual = copy.deepcopy(node.individualHumans[0])
                 individual["suid"] = ser_pop.get_next_individual_suid(0)
                 individual.update(individual_properties)
                 ser_pop.nodes[0].individualHumans.append(individual)
 
             Infect an individual with an infection copied from another individual::
-                infection = node["individualHumans"][0]["infections"][0]
-                infection["suid"] = self.get_next_infection_suid()
-                node["individualHumans"][1]["infections"].append(infection)
-                node["individualHumans"][1].m_is_infected = True
+                import copy
+                individual_0 = node.individualHumans[0]
+                individual_1 = node.individualHumans[1]
+                new_infection = copy.deepcopy(individual_0.infections[0])
+                new_infection["suid"] = ser_pop.get_next_infection_suid()
+                individual_1.infections.append(new_infection)
+                individual_1.m_is_infected = True
 
         """
         return self._nodes

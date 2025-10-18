@@ -158,7 +158,7 @@ class SpatialReport(object):
                 assert self.start >= 0
                 assert self.interval >= 1
             else:
-                raise RuntimeError(f"Unexpected file size {file_size}, expected {simple_size} (standard spatial report) or {filtered_size} (filtered spatial report.")
+                raise RuntimeError(f"Unexpected file size {file_size}, expected {simple_size} (standard spatial report) or {filtered_size} (filtered spatial report).")
 
             node_ids = np.fromfile(file, dtype=np.uint32, count=num_nodes)
             data = np.fromfile(file, dtype=np.float32, count=num_nodes * num_time_steps)
