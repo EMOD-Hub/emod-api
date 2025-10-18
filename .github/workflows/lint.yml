@@ -25,4 +25,4 @@ jobs:
           python -m pip install .[lint]
       - name: Lint
         run: |
-          flake8 --ignore=E501,E261,W503 --exclude=".dtk_tools/**" emod_api
+          flake8 --ignore=E501,E261,W503 --exclude=.dtk_tools/** emod_api
