@@ -1,6 +1,6 @@
 from typing import List, Dict, Union
 
-from emod_api.demographics.demographic_exceptions import *
+import emod_api.demographics.demographic_exceptions as demog_ex
 from emod_api.demographics.Updateable import Updateable
 from emod_api.utils import check_dimensionality
 
@@ -179,24 +179,22 @@ class MortalityDistribution(Updateable):
             for key, expected_value in expected_values.items():
                 value = distribution_dict[key]
                 if value != expected_value:
-                    message = cls._validation_messages['fixed_value_check'][source_is_dict] % \
-                              (key, value, expected_value)
-                    raise InvalidFixedValueException(message)
+                    message = cls._validation_messages['fixed_value_check'][source_is_dict] % (key, value, expected_value)
+                    raise demog_ex.InvalidFixedValueException(message)
 
         # ensure the data table is MxN for the population groups == [M, N]
         population_groups = distribution_dict['PopulationGroups']
         data_table = distribution_dict['ResultValues']
         if source_is_dict is True:
             if len(population_groups) != 2:
-                message = cls._validation_messages['population_group_length_check'][source_is_dict] % \
-                          (len(population_groups))
-                raise InvalidPopulationGroupLengthException(message)
+                message = cls._validation_messages['population_group_length_check'][source_is_dict] % (len(population_groups))
+                raise demog_ex.InvalidPopulationGroupLengthException(message)
 
         # ensure the data table has the correct dimensionality. It must be 2-d.
         is_2d = check_dimensionality(data=data_table, dimensionality=2)
         if not is_2d:
             message = cls._validation_messages['data_dimensionality_check'][source_is_dict]
-            raise InvalidDataDimensionality(message)
+            raise demog_ex.InvalidDataDimensionality(message)
 
         # continue checking dimension lengths
         ages = population_groups[0]
@@ -204,29 +202,26 @@ class MortalityDistribution(Updateable):
         n_ages = len(ages)
         n_times = len(times)
         if len(data_table) != n_ages:
-            message = cls._validation_messages['data_dimensionality_check_dim0'][source_is_dict] % \
-                      (len(data_table), n_ages)
-            raise InvalidDataDimensionDim0Exception(message)
+            message = cls._validation_messages['data_dimensionality_check_dim0'][source_is_dict] % (len(data_table), n_ages)
+            raise demog_ex.InvalidDataDimensionDim0Exception(message)
         for i in range(len(data_table)):
             if len(data_table[i]) != n_times:
-                message = cls._validation_messages['data_dimensionality_check_dim1'][source_is_dict] % \
-                          (len(data_table[i]), n_times)
-                raise InvalidDataDimensionDim1Exception(message)
+                message = cls._validation_messages['data_dimensionality_check_dim1'][source_is_dict] % (len(data_table[i]), n_times)
+                raise demog_ex.InvalidDataDimensionDim1Exception(message)
 
         # ensure the age and time lists are ascending and in reasonable ranges
         if any([(age < 0) or (age > 200) for age in ages]):
             message = cls._validation_messages['age_range_check'][source_is_dict]
-            raise AgeOutOfRangeException(message)
+            raise demog_ex.AgeOutOfRangeException(message)
         if any([(time < 1900) or (time > 2200) for time in times]):
             message = cls._validation_messages['time_range_check'][source_is_dict]
-            raise TimeOutOfRangeException(message)
+            raise demog_ex.TimeOutOfRangeException(message)
 
         for i in range(1, len(ages)):
-            if ages[i] - ages[i-1] <= 0:
+            if ages[i] - ages[i - 1] <= 0:
                 message = cls._validation_messages['age_monotonicity_check'][source_is_dict] % (i, ages[i])
-                raise NonMonotonicAgeException(message)
+                raise demog_ex.NonMonotonicAgeException(message)
         for i in range(1, len(times)):
-            if times[i] - times[i-1] <= 0:
-                message = cls._validation_messages['time_monotonicity_check'][source_is_dict] % \
-                          (i, times[i])
-                raise NonMonotonicTimeException(message)
+            if times[i] - times[i - 1] <= 0:
+                message = cls._validation_messages['time_monotonicity_check'][source_is_dict] % (i, times[i])
+                raise demog_ex.NonMonotonicTimeException(message)

@@ -24,20 +24,11 @@ class EmodapiMigrationImportTest(unittest.TestCase):
             'from_file',
             'examine_file',
             'from_params',
-            'from_demog_and_param_gravity_webservice',
             'from_demog_and_param_gravity',
             'to_csv'
         ]
         import emod_api.migration.migration as migration
         self.verify_expected_items_present(namespace=migration)
-        pass
-
-    def test_migration_client_import(self):
-        self.expected_items = [
-            'run'
-        ]
-        import emod_api.migration.client.client as client
-        self.verify_expected_items_present(namespace=client)
         pass
 
 

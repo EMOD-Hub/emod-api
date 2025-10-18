@@ -2,13 +2,10 @@
 
 """Module for reading InsetChart.json channels."""
 
-from csv import writer as CsvWriter
 from datetime import datetime
 import json
 from pathlib import Path
 from typing import Dict, List, Union
-import warnings
-
 import pandas as pd
 
 _CHANNELS = "Channels"
@@ -410,7 +407,7 @@ class ChannelReport(object):
 
         return
 
-    def to_csv(self, filename: Union[str, Path], channel_names: List[str]=None, transpose: bool=False) -> None:
+    def to_csv(self, filename: Union[str, Path], channel_names: List[str] = None, transpose: bool = False) -> None:
 
         """
         Write each channel from the report to a row, CSV style, in the given file.

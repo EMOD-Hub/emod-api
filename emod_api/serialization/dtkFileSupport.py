@@ -5,7 +5,7 @@ import lz4.block
 try:
     import snappy
     SNAPPY_SUPPORT = True
-except:
+except Exception:
     SNAPPY_SUPPORT = False
 
 
@@ -59,4 +59,3 @@ class NullPtr(SerialObject):
     def __init__(self):
         nullptr = {'__class__': 'nullptr'}
         super(NullPtr, self).__init__(nullptr)
-

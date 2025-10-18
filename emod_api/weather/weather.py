@@ -72,15 +72,15 @@ class Metadata(object):
     """
     Metadata:
 
-    * [DateCreated]  
-    * [Author]  
-    * [OriginalDataYears]  
-    * [StartDayOfYear]  
-    * [DataProvenance]  
-    * IdReference  
-    * NodeCount  
-    * DatavalueCount  
-    * UpdateResolution  
+    * [DateCreated]
+    * [Author]
+    * [OriginalDataYears]
+    * [StartDayOfYear]
+    * [DataProvenance]
+    * IdReference
+    * NodeCount
+    * DatavalueCount
+    * UpdateResolution
     * NodeOffsets
     """
 
@@ -139,11 +139,11 @@ class Metadata(object):
     def id_reference(self) -> str:
         """
         'Schema' for node IDs. Commonly `Legacy`, `Gridded world grump2.5arcmin`, and `Gridded world grump30arcsec`.
-        
+
         `Legacy` usually indicates a 0 or 1 based scheme with increasing ID numbers.
 
         `Gridded world grump2.5arcmin` and `Gridded world grump30arcsec` encode latitude and longitude values in the node ID with the following formula::
-        
+
             latitude  = (((nodeid - 1) & 0xFFFF) * resolution) -  90
             longitude = ((nodeid >> 16)          * resolution) - 180
             # nodeid = 90967271 @ 2.5 arcmin resolution
@@ -208,7 +208,7 @@ class Metadata(object):
         meta = jason["Metadata"]
         offsets = jason["NodeOffsets"]
         node_ids = sorted(
-            [int(offsets[i * 16 : i * 16 + 8], 16) for i in range(len(offsets) // 16)]
+            [int(offsets[(i * 16):(i * 16 + 8)], 16) for i in range(len(offsets) // 16)]
         )
 
         metadata = Metadata(

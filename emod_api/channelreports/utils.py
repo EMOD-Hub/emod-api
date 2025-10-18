@@ -25,7 +25,11 @@ __all__ = [
     "__title_for"]
 
 
-def property_report_to_csv(source_file: Union[str, Path], csv_file: Union[str, Path], channels: Optional[List[str]]=None, groupby: Optional[List[str]]=None, transpose: bool=False) -> None:
+def property_report_to_csv(source_file: Union[str, Path],
+                           csv_file: Union[str, Path],
+                           channels: Optional[List[str]] = None,
+                           groupby: Optional[List[str]] = None,
+                           transpose: bool = False) -> None:
 
     """
     Write a property report to a CSV formatted file.
@@ -84,7 +88,7 @@ def _validate_property_report_channels(channels, channel_data) -> None:
 
     if channels:
         keys = set(map(lambda name: name.split(":", 1)[0], channel_data))
-        not_found = [name for name in channels if not name in keys]
+        not_found = [name for name in channels if name not in keys]
         if not_found:
             print("Valid channel names:")
             print("\n".join(keys))
@@ -99,7 +103,7 @@ def _validate_property_report_ips(groupby, channel_data) -> None:
         first = next(iter(channel_data))
         ip_string = first.split(":", 1)[1]
         ips = [kvp.split(":")[0] for kvp in ip_string.split(",")]
-        not_found = [ip for ip in groupby if not ip in ips]
+        not_found = [ip for ip in groupby if ip not in ips]
         if not_found:
             print("Valid IPs:")
             print("\n".join(ips))
@@ -138,7 +142,7 @@ def accumulate_channel_data(channels: List[str], verbose: bool, groupby: List[st
 
         key_value_pairs = key_value_pairs.split(',')
         trace_name = __get_trace_name(channel_title, key_value_pairs, groupby)
-        trace_data = np.array(channel_data[ f"{channel_title}:{','.join(key_value_pairs)}" ][ 'Data' ], dtype=np.float32)
+        trace_data = np.array(channel_data[f"{channel_title}:{','.join(key_value_pairs)}"]['Data'], dtype=np.float32)
 
         if trace_name not in trace_values:
             if verbose:
@@ -193,7 +197,9 @@ def __get_trace_name(channel_title: str, key_value_pairs: List[str], groupby: Li
     return trace_name
 
 
-def save_to_csv(trace_values: Dict[str, np.ndarray], filename: Union[str, Path], transpose: bool=False) -> None:
+def save_to_csv(trace_values: Dict[str, np.ndarray],
+                filename: Union[str, Path],
+                transpose: bool = False) -> None:
 
     """
     Save property report to CSV. Uses underlying ChannelReport.to_csv() function.
@@ -214,14 +220,12 @@ def save_to_csv(trace_values: Dict[str, np.ndarray], filename: Union[str, Path],
     return
 
 
-def plot_traces(
-    trace_values: Dict[str, np.ndarray],
-    norm_values: Optional[Union[int, np.ndarray]],
-    overlay: bool,
-    channels: List[str],
-    title: str,
-    legend: bool,
-    ) -> plt.Figure:
+def plot_traces(trace_values: Dict[str, np.ndarray],
+                norm_values: Optional[Union[int, np.ndarray]],
+                overlay: bool,
+                channels: List[str],
+                title: str,
+                legend: bool) -> plt.Figure:
 
     """
     Plot trace data. One subplot per channel unless overlaying all variations of rolled-up IP(s) is requested.
@@ -254,7 +258,7 @@ def plot_traces(
     if normalize:
         plot_count *= 2
 
-    figure = plt.figure(title, figsize=(16,9), dpi=300)
+    figure = plt.figure(title, figsize=(16, 9), dpi=300)
     trace_keys = sorted(trace_values)
 
     # plotting here
@@ -263,9 +267,9 @@ def plot_traces(
         plt.subplot(plot_count, 1, plot_index)
         plt.plot(trace_values[trace_name], label=trace_name)
         if normalize:
-            plt.subplot(plot_count, 1, plot_index+1)
+            plt.subplot(plot_count, 1, plot_index + 1)
             plt.ylim((0.0, 1.0))    # yes, this takes a tuple
-            plt.plot(trace_values[trace_name]/norm_values, label=trace_name)
+            plt.plot(trace_values[trace_name] / norm_values, label=trace_name)
 
     # make it pretty
     _ = plt.subplot(plot_count, 1, 1)
@@ -277,7 +281,7 @@ def plot_traces(
         if legend:
             plt.legend()
         if normalize:
-            plt.subplot(plot_count, 1, plot_index+1)
+            plt.subplot(plot_count, 1, plot_index + 1)
             plt.title(f"{plot_title} normalized by 'Statistical Population'")
             if legend:
                 plt.legend()
@@ -305,7 +309,7 @@ def __index_for(trace_name: str, channels: List[str], trace_keys: List[str], nor
         index *= 2
 
     # matplotlib is 1-based (like MATLAB)
-    return index+1
+    return index + 1
 
 
 def __title_for(trace_name: str, channels: List[str], overlay: bool):

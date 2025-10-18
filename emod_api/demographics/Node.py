@@ -131,7 +131,7 @@ class Node(Updateable):
         """
         Function used to create the node object from data (most likely coming from a demographics file)
 
-        Args: 
+        Args:
             data (dict): Contains the node definitions
 
         Returns:
@@ -140,9 +140,6 @@ class Node(Updateable):
         nodeid = data["NodeID"]
         node_attributes_dict = dict(data.get("NodeAttributes"))
         attributes = data["NodeAttributes"]
-        latitude = attributes.pop("Latitude")
-        longitude = attributes.pop("Longitude")
-        population = attributes.pop("InitialPopulation", Node.default_population)
         name = attributes.pop("FacilityName", nodeid)
         individual_attributes_dict = data.get("IndividualAttributes")
         individual_properties_dict = data.get("IndividualProperties")
@@ -154,9 +151,9 @@ class Node(Updateable):
             if type(individual_properties_dict) is list:
                 for ip in individual_properties_dict:
                     individual_properties.add(IndividualProperty(property=ip["Property"],
-                                                                           values=ip["Values"],
-                                                                           transitions=ip["Transitions"],
-                                                                           initial_distribution=ip["Initial_Distribution"]))
+                                                                 values=ip["Values"],
+                                                                 transitions=ip["Transitions"],
+                                                                 initial_distribution=ip["Initial_Distribution"]))
         individual_attributes = None
         if individual_attributes_dict:
             individual_attributes = IndividualAttributes().from_dict(individual_attributes_dict)
@@ -459,7 +456,7 @@ def lat_lon_from_nodeid(nodeid, res_in_deg=Node.res_in_degrees):
 
 
 def xpix_ypix_from_lat_lon(lat, lon, res_in_deg=Node.res_in_degrees):
-    """ Pixel position (origin is -90°N and -180°E). No modular arithmentic is done."""    
+    """ Pixel position (origin is -90°N and -180°E). No modular arithmentic is done."""
     xpix = int(math.floor((lon + 180.0) / res_in_deg))
     ypix = int(math.floor((lat + 90.0) / res_in_deg))
     return xpix, ypix

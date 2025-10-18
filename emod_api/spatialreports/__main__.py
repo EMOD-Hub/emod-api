@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from collections import namedtuple
-import numpy as np
 import os
 from argparse import ArgumentParser
 from emod_api.spatialreports.spatial import SpatialReport
@@ -18,13 +16,14 @@ except ModuleNotFoundError:
 SCRIPT_PATH = os.path.realpath(__file__)
 WORKING_DIRECTORY = os.path.dirname(SCRIPT_PATH)
 
+
 def main(filename: str):
 
     report = SpatialReport(filename)
 
     plt.xkcd()
 
-    y_axis_guess = os.path.basename(filename).strip( "SpatialReport_" ).strip( ".bin" )
+    y_axis_guess = os.path.basename(filename).strip("SpatialReport_").strip(".bin")
     # Show node-wise time series data
     for node_id in report.node_ids:
         plt.plot(report[node_id].data, label=f"Node {node_id}")
@@ -46,7 +45,7 @@ def dump_source():
 
 
 if __name__ == "__main__":
-    parser = ArgumentParser() 
+    parser = ArgumentParser()
     parser.add_argument(
         "-f", "--filename", default=None, help="spatial report filename"
     )
@@ -66,4 +65,3 @@ if __name__ == "__main__":
         main(args.filename)
     else:
         parser.print_help()
-

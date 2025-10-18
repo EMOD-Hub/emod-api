@@ -192,7 +192,7 @@ def set_static_demographics(cb, use_existing=False):
     }
 
     def set_attributes(d):
-        if not "IndividualAttributes" in d:
+        if "IndividualAttributes" not in d:
             d["IndividualAttributes"] = {}
 
         d["IndividualAttributes"].update(

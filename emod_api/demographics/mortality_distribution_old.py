@@ -11,7 +11,7 @@ class MortalityDistributionOld(Updateable):
                  num_distribution_axes: Any = None,
                  num_population_axes: Any = None,
                  num_population_groups: Any = None,
-                 population_groups:List[List[float]] = None,
+                 population_groups: List[List[float]] = None,
                  result_scale_factor: int = None,
                  result_units: Any = None,
                  result_values: List = None):

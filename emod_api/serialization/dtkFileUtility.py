@@ -39,7 +39,7 @@ def __do_read__(args):
             else:
                 # Expand compressed contents, serialize, write out formatted
                 obj = dtk_file.objects[index]
-                print('Formatting chunk {0} of {1}... '.format(index+1, len(dtk_file.chunks)), end='')
+                print('Formatting chunk {0} of {1}... '.format(index + 1, len(dtk_file.chunks)), end='')
                 output = json.dumps(obj, indent=2, separators=(',', ':'))
 
         if index == 0:
@@ -102,6 +102,7 @@ def _prepare_node_data(filenames, dtk_file):
             dtk_file.contents.append(data)
 
     return
+
 
 if __name__ == '__main__':
 

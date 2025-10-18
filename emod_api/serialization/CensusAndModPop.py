@@ -1,6 +1,3 @@
-import os
-import sys
-
 import emod_api.serialization.SerializedPopulation as sp
 
 
@@ -25,30 +22,27 @@ def change_ser_pop(input_serpop_path, mod_fn=None, save_file_path=None):
     """
 
     if mod_fn is None:
-        print( "Calling with no mod_fn serves to test whether the .dtk input file can be loaded, but makes no change." )
+        print("Calling with no mod_fn serves to test whether the .dtk input file can be loaded, but makes no change.")
 
-    ser_pop = sp.SerializedPopulation(input_serpop_path) 
+    ser_pop = sp.SerializedPopulation(input_serpop_path)
 
     if len(ser_pop.nodes) > 1:
-        print( "This code currently operates properly on single-node population files. This file has {len(ser_pop)} nodes." )
+        print("This code currently operates properly on single-node population files. This file has {len(ser_pop)} nodes.")
         return
 
     node_0 = ser_pop.nodes[0]
-    pop_size = len( node_0["individualHumans"] )
-    print( f"Found {pop_size} people -- or agents -- in serialized population file." )
-  
+    pop_size = len(node_0["individualHumans"])
+    print(f"Found {pop_size} people -- or agents -- in serialized population file.")
+
     for person in range(len(node_0["individualHumans"])):
         # 1) Figure out what age bucket this person is in.
         if "individualHumans" not in node_0:
-            print( "ERROR: Failed to find 'individualHumans' in node_0 serialized population input." )
+            print("ERROR: Failed to find 'individualHumans' in node_0 serialized population input.")
 
         if mod_fn:
-            node_0["individualHumans"][person] = mod_fn( node_0["individualHumans"][person] )
+            node_0["individualHumans"][person] = mod_fn(node_0["individualHumans"][person])
 
     if mod_fn:
-        if save_file_path==None:
-            save_file_path = input( "Enter filename of new serialized population (e.g., my_sp_file.dtk): " )
-    ser_pop.write( save_file_path )
-
-
-
+        if not save_file_path:
+            save_file_path = input("Enter filename of new serialized population (e.g., my_sp_file.dtk): ")
+    ser_pop.write(save_file_path)

@@ -11,8 +11,6 @@ from warnings import warn
 import numpy as np
 import csv
 
-from typing import Literal
-
 # for from_params()
 import scipy.spatial.distance as spspd
 from emod_api.demographics import Demographics as Demog
@@ -20,7 +18,6 @@ from emod_api.demographics import Demographics as Demog
 # for from_demog_and_param_gravity()
 from geographiclib.geodesic import Geodesic
 
-from .client import client
 
 class Layer(dict):
 
@@ -142,7 +139,7 @@ class Migration(object):
         self._agesyears = []
         try:
             self._author = _author()
-        except Exception as ex:
+        except Exception:
             self._author = "Mystery Guest"
         self._datecreated = datetime.now()
         self._genderdatatype = self.SAME_FOR_BOTH_GENDERS
@@ -158,7 +155,7 @@ class Migration(object):
     def _create_layers(self):
 
         self._layers = []
-        for gender in range(0, self._genderdatatype+1):
+        for gender in range(0, self._genderdatatype + 1):
             for age in range(0, len(self.AgesYears) if self.AgesYears else 1):
                 self._layers.append(Layer())
 
@@ -306,7 +303,7 @@ class Migration(object):
         # offsets = {}
         # for index, node in enumerate(sorted(nodes)):
         #     offsets[node] = index * 12 * count
-        offsets = {node: 12*index*count for index, node in enumerate(sorted(nodes))}
+        offsets = {node: 12 * index * count for index, node in enumerate(sorted(nodes))}
         return offsets
 
     @property
@@ -555,7 +552,7 @@ def from_file(binaryfile: Path,
 
     node_count = metadata[_NODECOUNT]
     node_offsets = jason[_NODEOFFSETS]
-    if len(node_offsets) != 16*node_count:
+    if len(node_offsets) != 16 * node_count:
         raise RuntimeError(f"Length of node offsets string {len(node_offsets)} != 16 * node count {node_count}.")
     offsets = _parse_node_offsets(node_offsets, node_count)
     datavalue_count = metadata[_DATAVALUECOUNT]
@@ -604,21 +601,21 @@ def examine_file(filename):
 def _author() -> str:
     username = "Unknown"
     if system() == "Windows":
-        username = environ["USERNAME"] 
+        username = environ["USERNAME"]
     elif "USER" in environ:
         username = environ["USER"]
-    return username 
+    return username
 
 
 def _parse_node_offsets(string: str, count: int) -> dict:
 
-    assert len(string) == 16*count, f"Length of node offsets string {len(string)} != 16 * node count {count}."
+    assert len(string) == 16 * count, f"Length of node offsets string {len(string)} != 16 * node count {count}."
 
     offsets = {}
     for index in range(count):
         base = 16 * index
         offset = base + 8
-        offsets[int(string[base:base+8], 16)] = int(string[offset:offset+8], 16)
+        offsets[int(string[base:base + 8], 16)] = int(string[offset:offset + 8], 16)
 
     return offsets
 
@@ -654,13 +651,13 @@ utility functions emodpy-utils?
 """
 
 
-def from_params(demographics_file_path = None,
-                pop = 1e6,
-                num_nodes = 100,
-                mig_factor = 1.0,
-                frac_rural = 0.3,
-                id_ref = "from_params",
-                migration_type = Migration.LOCAL):
+def from_params(demographics_file_path=None,
+                pop=1e6,
+                num_nodes=100,
+                mig_factor=1.0,
+                frac_rural=0.3,
+                id_ref="from_params",
+                migration_type=Migration.LOCAL):
     """
     This function is for creating a migration file that goes with a (multinode)
     demographics file created from a few parameters, as opposed to one from real-world data.
@@ -720,51 +717,6 @@ def from_params(demographics_file_path = None,
     return migration
 
 
-def from_demog_and_param_gravity_webservice(demographics_file_path: str,
-                                            params: str,
-                                            id_ref: str,
-                                            migration_type: Literal[Migration.LOCAL,
-                                                                    Migration.AIR,
-                                                                    Migration.REGIONAL,
-                                                                    Migration.SEA,
-                                                                    Migration.FAMILY,
-                                                                    Migration.INTERVENTION] = Migration.LOCAL) -> Migration:
-    """
-    Calls a webservice (running on a GPU) to calculate the migration patterns quickly.
-
-    Args:
-        demographics_file_path: Path to the demographics file.
-        params: Path to the json file with parameters for gravity calculation and server url.
-        id_ref: Metadata tag that needs to match corresponding value in demographics file.
-        migration_type: Migration type.
-
-    Returns:
-        Migration object
-
-    """
-
-    with Path(params).open("r") as f_params:
-        params_url = json.load(f_params)
-
-    # load
-    rates = client.run(Path(demographics_file_path), params_url)
-
-    demog = Demog.from_file(demographics_file_path)
-    migration = Migration()
-    nodes = [node.forced_id for node in demog.nodes]
-
-    # we need a 0-N index for the NumPy array and the node ID for the migration file
-    for i, src in enumerate(nodes):
-        for j, dst in enumerate(nodes):
-            if dst != src:
-                migration[dst][src] = rates[i, j]
-
-    migration.IdReference = id_ref
-    migration.MigrationType = migration_type
-
-    return migration
-
-
 def from_demog_and_param_gravity(demographics_file_path, gravity_params, id_ref, migration_type=Migration.LOCAL):
     demog = Demog.from_file(demographics_file_path)
     return _from_demog_and_param_gravity(demog, gravity_params, id_ref, migration_type)
@@ -775,20 +727,17 @@ def _from_demog_and_param_gravity(demographics, gravity_params, id_ref, migratio
     Create migration files from a gravity model and an input demographics file.
     """
 
-    def _compute_migr_prob(grav_params, home_population, dest_population, distance):
+    def _compute_migr_prob(grav_params, home_pop, dest_pop, dist):
         """
         Utility function for computing migration probabilities for gravity model.
         """
 
         # If home/dest node has 0 pop, assume this node is the regional work node-- no local migration allowed
-        if home_population == 0 or dest_population == 0:
+        if home_pop == 0 or dest_pop == 0:
             return 0.
         else:
-            num_trips = grav_params[0] *\
-                        home_population ** grav_params[1] *\
-                        dest_population ** grav_params[2] *\
-                        distance ** grav_params[3]
-            prob_trip = np.min([1., num_trips / home_population])
+            num_trips = grav_params[0] * home_pop ** grav_params[1] * dest_pop ** grav_params[2] * dist ** grav_params[3]
+            prob_trip = np.min([1., num_trips / home_pop])
             return prob_trip
 
     def _compute_migr_dict(node_list, grav_params, **kwargs):
@@ -875,7 +824,7 @@ def to_csv(filename: Path):
 
 def from_csv(filename: Path,
              id_ref,
-             mig_type = None) -> Migration:
+             mig_type=None) -> Migration:
     """Create migration from csv file. The file should have columns 'source' for the source node, 'destination' for the destination node, and 'rate' for the migration rate.
 
     Args:
@@ -883,7 +832,6 @@ def from_csv(filename: Path,
 
     Returns:
         Migration object
-
     """
     migration = Migration()
     migration.IdReference = id_ref
