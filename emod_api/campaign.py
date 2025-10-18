@@ -5,6 +5,8 @@ You use this simple campaign builder by importing it, adding valid events via "a
 
 import json
 
+from emod_api import schema_to_class as s2c
+
 schema_path = None
 _schema_json = None
 campaign_dict = {"Events": [], "Use_Defaults": 1}
@@ -21,20 +23,18 @@ trigger_list = None
 
 
 def reset():
-    del (campaign_dict["Events"][:])
-    global pubsub_signals_subbing
-    global pubsub_signals_pubbing
-    global adhocs
-    global event_map
-    del (pubsub_signals_subbing[:])
-    del (pubsub_signals_pubbing[:])
-    del (adhocs[:])
-    del (custom_coordinator_events[:])
-    del (custom_node_events[:])
-    event_map = {}
-    from emod_api import schema_to_class as s2c
+    campaign_dict["Events"].clear()
+
+    pubsub_signals_subbing.clear()
+    pubsub_signals_pubbing.clear()
+    adhocs.clear()
+    custom_coordinator_events.clear()
+    custom_node_events.clear()
+    implicits.clear()
+
+    event_map.clear()
+
     s2c.clear_schema_cache()
-    del (implicits[:])
 
 
 def set_schema(schema_path_in):
@@ -70,8 +70,7 @@ def add(event, name=None, first=False):
     event.finalize()
     if first:
         print("Use of 'first' flag is deprecated. Use set_schema to start build a new, empty campaign.")
-        global campaign_dict
-        campaign_dict["Events"] = []
+        campaign_dict["Events"].clear()
     if "Event_Name" not in event and name is not None:
         event["Event_Name"] = name
     if "Listening" in event:

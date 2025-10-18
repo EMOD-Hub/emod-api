@@ -185,7 +185,6 @@ def get_parameters(handle: Union[str, collections.Iterable],
             for n in sorted(SerPop.get_parameters(node)):
                 print(n)
     """
-    global COUNTER
     param = set()
 
     if isinstance(handle, str):
