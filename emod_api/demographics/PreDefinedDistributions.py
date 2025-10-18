@@ -36,8 +36,7 @@ class ConstantDistribution:
 
 
 # Mortality Distributions
-Constant_Mortality = ConstantDistribution(
-    MortalityDistribution(num_population_axes=2,
+Constant_Mortality = ConstantDistribution(MortalityDistribution(num_population_axes=2,
                                                                 axis_names=["gender", "age"],
                                                                 axis_units=["male=0,female=1", "years"],
                                                                 axis_scale_factors=[1, 365],

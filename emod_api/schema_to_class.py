@@ -89,13 +89,11 @@ class ReadOnlyDict(OrderedDict):
         self["explicits"].append(key)
         return
 
-
     def set_schema(self, schema):
         """
             Add schema node.
         """
         self["schema"] = schema
-
 
     def to_file(self, config_name="config.json"):
         """
@@ -105,7 +103,6 @@ class ReadOnlyDict(OrderedDict):
         config = self.finalize()
         with open(config_name, "w") as config_file:
             json.dump(config, config_file, indent=4, sort_keys=True)
-
 
     def finalize(self, show_warnings: bool = False):
         """
@@ -191,7 +188,7 @@ def clear_schema_cache():
     return None
 
 
-def get_class_with_defaults(classname, schema_path=None, schema_json=None, show_warnings: bool=False):
+def get_class_with_defaults(classname, schema_path=None, schema_json=None, show_warnings=False):
     """
     Return the default parameter values for a datatype defined in schema.
 
@@ -204,7 +201,6 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None, show_
     Returns:
         (dict): Default parameter values for requested datatype
     """
-
 
     def get_schema(schema_path=None, schema_json=None):
         global schema_cache
@@ -233,7 +229,6 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None, show_
 
         return schema_ret
 
-
     def get_default(schema_blob, key, schema):
         default = None
         try:
@@ -247,7 +242,6 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None, show_
             raise ValueError(f"ERROR for key '{key}': {ex}")
         return default
 
-
     # Depending on the schema, a WaningEffect may be an abstract type or a
     # concrete type. If the text 'WaningEffect' is part of any of the keys in
     # idmType:WaningEffect, then the schema is using WaningEffect as an
@@ -255,7 +249,6 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None, show_
     def uses_old_waning(schema_idm):
         waning_effects = schema_idm["idmType:WaningEffect"].keys()
         return any(["WaningEffect" in k for k in waning_effects])
-
 
     schema = get_schema(schema_path, schema_json)
     schema_blob = None
@@ -356,8 +349,8 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None, show_
                     continue
                 ret_json[wan_key] = get_default(schema_blob, wan_key, schema)
 
-    elif ("idmType:AdditionalRestrictions" in schema_idm.keys() and
-          classname in schema_idm["idmType:AdditionalRestrictions"].keys()):
+    elif ("idmType:AdditionalRestrictions" in schema_idm.keys()
+          and classname in schema_idm["idmType:AdditionalRestrictions"].keys()):
         # Only used if the class is in idmType:AdditionalRestrictions
 
         schema_blob = schema_idm["idmType:AdditionalRestrictions"][classname]

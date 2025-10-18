@@ -36,4 +36,4 @@ class SusceptibilityDistributionOld(Updateable):
         return susceptibility_distribution
 
     def from_dict(self, age_distribution: Dict):
-        raise NotImplemented('Reading of a complex SusceptibilityDistribution json is not currently supported')
+        raise NotImplementedError('Reading of a complex SusceptibilityDistribution json is not currently supported')

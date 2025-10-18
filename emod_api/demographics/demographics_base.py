@@ -16,9 +16,8 @@ from sklearn.preprocessing import StandardScaler
 
 from emod_api.demographics import DemographicsTemplates as DT
 from emod_api.demographics.BaseInputFile import BaseInputFile
-from emod_api.demographics.DemographicsTemplates import CrudeRate, DemographicsTemplatesConstants, YearlyRate
+from emod_api.demographics.DemographicsTemplates import CrudeRate, YearlyRate
 from emod_api.demographics.Node import Node
-from emod_api.demographics.PropertiesAndAttributes import IndividualProperty
 from emod_api.demographics.age_distribution_old import AgeDistributionOld as AgeDistribution
 from emod_api.demographics.demographic_exceptions import InvalidNodeIdException
 from emod_api.demographics.mortality_distribution_old import MortalityDistributionOld as MortalityDistribution
@@ -106,7 +105,7 @@ class DemographicsBase(BaseInputFile):
                 self.nodes[index].update(map_ids_overlay[node.forced_id])
 
     def send(self,
-             write_to_this: Union [int, str, os.PathLike],
+             write_to_this: Union[int, str, os.PathLike],
              return_from_forked_sender: bool = False):
         """
         Write data to a file descriptor as specified by the caller. It must be a pipe,
@@ -209,7 +208,7 @@ class DemographicsBase(BaseInputFile):
         """
         Return the number of (geographic) nodes.
         """
-        message = f"node_count is a deprecated property of Node objects, use len(demog.nodes) instead."
+        message = "node_count is a deprecated property of Node objects, use len(demog.nodes) instead."
         warnings.warn(message=message, category=DeprecationWarning, stacklevel=2)
         return len(self.nodes)
 
@@ -226,8 +225,8 @@ class DemographicsBase(BaseInputFile):
         Returns:
             a Node object
         """
-        message = f"get_node() is a deprecated function of Node objects, use get_node_by_id() instead. " \
-                  f"(e.g. demographics.get_node_by_id(node_id=4))"
+        message = "get_node() is a deprecated function of Node objects, use get_node_by_id() instead. " \
+                  "(e.g. demographics.get_node_by_id(node_id=4))"
         warnings.warn(message=message, category=DeprecationWarning, stacklevel=2)
         return self.get_node_by_id(node_id=nodeid)
 
@@ -430,7 +429,7 @@ class DemographicsBase(BaseInputFile):
                 file.
         """
         if gravity_factor < 0:
-            raise ValueError(f"gravity factor can't be negative.")
+            raise ValueError("gravity factor can't be negative.")
 
         gravity_params = [gravity_factor, 1.0, 1.0, -2.0]
         if probability_of_return < 0 or probability_of_return > 1.0:
@@ -561,7 +560,7 @@ class DemographicsBase(BaseInputFile):
     # DTK is births per person per day.
     def SetBirthRate(self,
                      birth_rate: float,
-                     node_ids: List= None):
+                     node_ids: List = None):
         """
         Set Default birth rate to birth_rate. Turn on Vital Dynamics and Births implicitly.
         """
@@ -713,11 +712,11 @@ class DemographicsBase(BaseInputFile):
         year_end = int(header[-1])
         if year_end <= year_start:
             raise ValueError(f"Failed check that {year_end} is greater than {year_start} in csv dataset.")
-        num_years = year_end-year_start+1
+        num_years = year_end - year_start + 1
         rel_years = list()
-        for year in range(year_start, year_start+num_years):
+        for year in range(year_start, year_start + num_years):
             mort_data = list(df[str(year)])
-            rel_years.append(year-base_year)
+            rel_years.append(year - base_year)
 
         age_key = None
         for trykey in df.keys():
@@ -726,7 +725,7 @@ class DemographicsBase(BaseInputFile):
                 raw_age_bins = list(df[age_key])
 
         if age_key is None:
-            raise ValueError(f"Failed to find 'Age_Bin' (or similar) column in the csv dataset. Cannot process.")
+            raise ValueError("Failed to find 'Age_Bin' (or similar) column in the csv dataset. Cannot process.")
 
         num_age_bins = len(raw_age_bins)
         age_bins = list()
@@ -746,24 +745,22 @@ class DemographicsBase(BaseInputFile):
         num_pop_groups = [num_age_bins, num_years]
         pop_groups = [age_bins, rel_years]
 
-        distrib = MortalityDistribution(
-                result_values=rates,
-                axis_names=["age", "year"],
-                axis_scale_factors=[365, 1],
-                axis_units="N/A",
-                num_distribution_axes=len(num_pop_groups),
-                num_population_groups=num_pop_groups,
-                population_groups=pop_groups,
-                result_scale_factor=2.74e-06,
-                result_units="annual deaths per 1000 individuals"
-        )
+        distrib = MortalityDistribution(result_values=rates,
+                                        axis_names=["age", "year"],
+                                        axis_scale_factors=[365, 1],
+                                        axis_units="N/A",
+                                        num_distribution_axes=len(num_pop_groups),
+                                        num_population_groups=num_pop_groups,
+                                        population_groups=pop_groups,
+                                        result_scale_factor=2.74e-06,
+                                        result_units="annual deaths per 1000 individuals")
 
         if not node_ids:
             self.raw["Defaults"]["IndividualAttributes"]["MortalityDistributionMale"] = distrib.to_dict()
             self.raw["Defaults"]["IndividualAttributes"]["MortalityDistributionFemale"] = distrib.to_dict()
         else:
             if len(self.nodes) == 1 and len(node_ids) > 1:
-                raise ValueError(f"User specified several node ids for single node demographics setup.")
+                raise ValueError("User specified several node ids for single node demographics setup.")
             for node_id in node_ids:
                 self.get_node_by_id(node_id=node_id)._set_mortality_male_complex_distribution(distrib)
                 self.get_node_by_id(node_id=node_id)._set_mortality_female_complex_distribution(distrib)
@@ -801,12 +798,10 @@ class DemographicsBase(BaseInputFile):
                       'objects and passed to the Demographics object during the constructor call. They can be modified '
                       'afterward, if needed.',
                       DeprecationWarning, stacklevel=2)
-        self.raw['Defaults']['NodeAttributes'] = {
-                    "Altitude": 0,
-                    "Airport": 1,  # why are these still needed?
-                    "Region": 1,
-                    "Seaport": 1
-        }
+        self.raw['Defaults']['NodeAttributes'] = {"Altitude": 0,
+                                                  "Airport": 1,  # why are these still needed?
+                                                  "Region": 1,
+                                                  "Seaport": 1}
         if birth:
             self.SetBirthRate(YearlyRate(math.log(1.03567)))
 
@@ -889,8 +884,7 @@ class DemographicsBase(BaseInputFile):
                       'set_age_distribution()', DeprecationWarning, stacklevel=2)
 
         if not description:
-            description = f"Setting initial age distribution like Sub Saharan Africa, drawing from exponential " \
-                          f"distribution."
+            description = "Setting initial age distribution like Sub Saharan Africa, drawing from exponential distribution."
 
         self.SetInitialAgeExponential(description=description)  # use default rate
 
@@ -962,21 +956,19 @@ class DemographicsBase(BaseInputFile):
         population_groups = [age_bin_boundaries_in_years, year_bin_boundaries]
 
         mort_distr_male = MortalityDistribution(axis_names=axis_names,
-                                                                     axis_scale_factors=axis_scale_factors,
-                                                                     num_population_groups=num_population_groups,
-                                                                     population_groups=population_groups,
-                                                                     # result_scale_factor=result_values * scale_factor
-                                                                     result_scale_factor=1.0,
-                                                                     result_values=male_mortality_rates)
+                                                axis_scale_factors=axis_scale_factors,
+                                                num_population_groups=num_population_groups,
+                                                population_groups=population_groups,
+                                                result_scale_factor=1.0,
+                                                result_values=male_mortality_rates)
         self.SetMortalityDistributionMale(mort_distr_male)
 
         mort_distr_female = MortalityDistribution(axis_names=axis_names,
-                                                                       axis_scale_factors=axis_scale_factors,
-                                                                       num_population_groups=num_population_groups,
-                                                                       population_groups=population_groups,
-                                                                       # result_scale_factor=result_values *scale_factor
-                                                                       result_scale_factor=1.0,
-                                                                       result_values=female_mortality_rates)
+                                                  axis_scale_factors=axis_scale_factors,
+                                                  num_population_groups=num_population_groups,
+                                                  population_groups=population_groups,
+                                                  result_scale_factor=1.0,
+                                                  result_values=female_mortality_rates)
         self.SetMortalityDistributionFemale(mort_distr_female)
 
         if self.implicits is not None:
@@ -1027,10 +1019,10 @@ class DemographicsBase(BaseInputFile):
         if end_rate < 0:
             raise ValueError("end_rate can't be negative.")
         for i in range(years_region1):
-            rate = start_rate + (inflection_rate-start_rate)*(i/years_region1)
+            rate = start_rate + (inflection_rate - start_rate) * (i / years_region1)
             rates.append(rate)
         for i in range(years_region2):
-            rate = inflection_rate + (end_rate-inflection_rate)*(i/years_region2)
+            rate = inflection_rate + (end_rate - inflection_rate) * (i / years_region2)
             rates.append(rate)
         # OK, now we put this into the nasty complex fertility structure
         dist = DT.get_fert_dist_from_rates(rates)
@@ -1043,7 +1035,7 @@ class DemographicsBase(BaseInputFile):
             self.SetDefaultFromTemplate(full_dict, DT._set_fertility_age_year)
         else:
             if len(self.nodes) == 1 and len(node_ids) > 1:
-                raise ValueError(f"User specified several node ids for single node demographics setup.")
+                raise ValueError("User specified several node ids for single node demographics setup.")
             for node_id in node_ids:
                 self.get_node_by_id(node_id=node_id)._set_fertility_complex_distribution(dist)
             if self.implicits is not None:
@@ -1051,14 +1043,14 @@ class DemographicsBase(BaseInputFile):
         return rates
 
     def infer_natural_mortality(self,
-            file_male,
-            file_female,
-            interval_fit: List[Union[int, float]] = None,
-            which_point='mid',
-            predict_horizon=2050,
-            csv_out=False,
-            n=0,  # I don't know what this means
-            results_scale_factor=1.0/365.0) -> [Dict, Dict]:
+                                file_male,
+                                file_female,
+                                interval_fit: List[Union[int, float]] = None,
+                                which_point='mid',
+                                predict_horizon=2050,
+                                csv_out=False,
+                                n=0,  # I don't know what this means
+                                results_scale_factor=1.0 / 365.0) -> [Dict, Dict]:
         """
         Calculate and set the expected natural mortality by age, sex, and year from data, predicting what it would
         have been without disease (HIV-only).
@@ -1135,7 +1127,6 @@ class DemographicsBase(BaseInputFile):
         age_list = list(set(df_mort.index.get_level_values('Age')))
 
         df_list = []
-        df_list_future = []
         for sex in sex_list:
             for age in age_list:
                 tmp_data = df_mort.loc[(sex, age, slice(None)), :]

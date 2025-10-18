@@ -19,7 +19,6 @@ def plotOneFromDisk():
     with open(sys.argv[1]) as ref_sim:
         ref_data = json.loads(ref_sim.read())
 
-    num_chans = ref_data["Header"]["Channels"]
     idx = 0
     for chan_title in sorted(ref_data["Channels"]):
         try:
@@ -27,7 +26,7 @@ def plotOneFromDisk():
             subplot.plot(ref_data["Channels"][chan_title]["Data"], "r-")
             plt.title(chan_title)
         except Exception as ex:
-            print( f"{ex}, idx = {idx}" )
+            print(f"{ex}, idx = {idx}")
         if idx == 4 * 5:
             break
 
@@ -56,10 +55,6 @@ def plotCompareFromDisk(
 
     if label == "unspecified":
         label = sys.argv[1]
-    figure = plt.figure(
-        label.split("/")[-1]
-    )  # label includes the full (relative) path to the scenario, take just the final directory
-    F = pylab.gcf()
 
     ref_tstep = 1
     if "Simulation_Timestep" in ref_data["Header"]:
@@ -108,7 +103,6 @@ def plotCompareFromDisk(
             label + " reference(red)=" + reference + "  \n test(blue)=" + comparison
         )
     plt.subplots_adjust(bottom=0.05)
-    mng = plt.get_current_fig_manager()
 
     if savefig:
         path_dir = "."  # dumb but might want to change

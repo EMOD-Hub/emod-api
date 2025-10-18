@@ -7,6 +7,7 @@ import emod_api.schema_to_class as s2c
 
 from typing import Union
 
+
 def _set_defaults_for_schema_group(dc_param,
                                    schema_section,
                                    schema):
@@ -110,7 +111,7 @@ def load_default_config_as_rod(config) -> s2c.ReadOnlyDict:
 
 
 def get_config_from_default_and_params(config_path: Union[str, os.PathLike, None] = None,
-                                       set_fn = None,
+                                       set_fn=None,
                                        config: s2c.ReadOnlyDict = None,
                                        verbose: bool = False) -> s2c.ReadOnlyDict:
     """

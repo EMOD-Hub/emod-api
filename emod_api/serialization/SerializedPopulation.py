@@ -1,12 +1,12 @@
 """Class to load and manipulate a saved population."""
-import json
 import collections
 import difflib
-import copy
 import emod_api.serialization.dtkFileTools as dft
 
+from typing import Union
 
 COUNTER = 0
+
 
 class SerializedPopulation:
     """Opens the passed file and reads in all the nodes.
@@ -16,10 +16,9 @@ class SerializedPopulation:
 
     Examples:
         Create an instance of SerializedPopulation::
-
             import emod_api.serialization.SerializedPopulation as SerPop
             ser_pop = SerPop.SerializedPopulation('state-00001.dtk')
-        
+
      """
 
     def __init__(self, file: str):
@@ -31,34 +30,29 @@ class SerializedPopulation:
     @property
     def nodes(self):
         """All nodes.
-        
+
         Examples:
             Delete number_of_ind individuals from node 0::
-                       
                 node = ser_pop.nodes[0]
                 del node.individualHumans[0:number_of_ind]
-            
+
             Only keep individuals with a certain condition::
-            
                 node.individualHumans = [ind for ind in node.individualHumans if keep_fct(ind)]
-            
+
             Change susceptibility of an individual::
-            
                 print(node.individualHumans[0].susceptibility)
                 new_susceptibility = {"age": 101.01, "mod_acquire": 0}
                 node.individualHumans[0].susceptibility.update(new_susceptibility)
-            
+
             Copy individual[0] from node 0, change properties and add individual as new individual::
-            
                 import copy
                 individual_properties={"m_age": 1234}
                 individual = copy.deepcopy(node.individualHumans[0])
                 individual["suid"] = ser_pop.get_next_individual_suid(0)
                 individual.update(individual_properties)
                 ser_pop.nodes[0].individualHumans.append(individual)
-                
+
             Infect an individual with an infection copied from another individual::
-                
                 infection = node["individualHumans"][0]["infections"][0]
                 infection["suid"] = self.get_next_infection_suid()
                 node["individualHumans"][1]["infections"].append(infection)
@@ -75,7 +69,7 @@ class SerializedPopulation:
     def write(self, output_file: str = "my_sp_file.dtk"):
         """Write the population to a file.
 
-        Args:     
+        Args:
             output_file: output file
         """
         self.flush()
@@ -123,13 +117,13 @@ class SerializedPopulation:
         return dict(suid)
 
 
-### Some useful functions ###
+# Some useful functions
 def find(name: str,
-         handle: Union[str, Iterable],
+         handle: Union[str, collections.Iterable],
          currentlevel: str = "dtk.nodes"):
     """Recursively searches for a paramters that matches or is close to name and prints out where to find it in the file.
 
-    Args:     
+    Args:
         name: the paramter you are looking for e.g. "age", "gender".
         handle: some iterable data structure, can be a list of
                 nodes, a node, list of individuals, etc
@@ -146,7 +140,6 @@ def find(name: str,
             2000   Found in:  dtk.nodes.m_vectorpopulations[0].EggQueues[0].age
             2001   Found in:  dtk.nodes.m_vectorpopulations[0].EggQueues[1].age
             ...
- 
     """
     global COUNTER
     if isinstance(handle, str) and difflib.get_close_matches(name, [handle], cutoff=0.6):
@@ -178,19 +171,17 @@ def find(name: str,
             find(name, handle[key], level)  # check if string is key for a dict
 
 
-def get_parameters(handle: Union[str, Iterable],
+def get_parameters(handle: Union[str, collections.Iterable],
                    currentlevel: str = "dtk.nodes"):
     """Return a set of all parameters in the serialized population file. Helpful to get an overview about what is in the serialized population file.
 
     Args:
         handle: some iterable data structure, can be a list of
-                nodes, a node, list of individuals, etc     
+                nodes, a node, list of individuals, etc
         currentlevel: just a string to print out where the found item
                 is located e.g. "dtk.nodes" or "dtk.node.individuals
-                
     Examples:
         Print all parameters in serialized population file::
-        
             for n in sorted(SerPop.get_parameters(node)):
                 print(n)
     """
@@ -211,9 +202,3 @@ def get_parameters(handle: Union[str, Iterable],
             param.update(get_parameters(handle[d], level))
 
     return param
-
-
-
-
-
-

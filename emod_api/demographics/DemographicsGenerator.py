@@ -1,11 +1,9 @@
-import csv
 import json
 from datetime import datetime
 from enum import Enum
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Literal
 
 import pandas as pd
-import pdb
 
 from emod_api.dtk_tools.demographics.DemographicsGeneratorConcern import (
     DemographicsGeneratorConcern,
@@ -31,6 +29,7 @@ CUSTOM_RESOLUTION = "custom"
 DEFAULT_RESOLUTION = 30
 VALID_RESOLUTIONS = {30: 30, 250: 250, CUSTOM_RESOLUTION: 30}
 
+
 class InvalidResolution(BaseException):
     """
     Custom Exception
@@ -47,6 +46,7 @@ class DemographicsType(Enum):
     def __str__(self):
         return str(self.value)
 
+
 def arcsec_to_deg(arcsec: float) -> float:
     """
     Arc second to degrees
@@ -57,6 +57,7 @@ def arcsec_to_deg(arcsec: float) -> float:
         arc second converted to degrees
     """
     return arcsec / 3600.0
+
 
 def validate_res_in_arcsec(res_in_arcsec):
     """
@@ -75,7 +76,7 @@ def validate_res_in_arcsec(res_in_arcsec):
     except KeyError:
         raise InvalidResolution(
             f"{res_in_arcsec} is not a valid arcsecond resolution."
-            f" Must be one of: {cls.VALID_RESOLUTIONS.keys()}"
+            f" Must be one of: {VALID_RESOLUTIONS.keys()}"
         )
 
 
@@ -94,7 +95,7 @@ class DemographicsGenerator:
     def __init__(self,
                  nodes,
                  concerns: Union[DemographicsGeneratorConcern, List[DemographicsGeneratorConcern], None] = None,
-                 res_in_arcsec = CUSTOM_RESOLUTION,
+                 res_in_arcsec=CUSTOM_RESOLUTION,
                  node_id_from_lat_long: bool = False):
         """
         Initialize the Demographics generator
@@ -106,8 +107,8 @@ class DemographicsGenerator:
                 after the Demographics object has been generated, but not saved
             res_in_arcsec: Simulation grid resolution
         """
-        print( "Creating DemographicsGenerator instance." )
-        #self.nodes = nodes
+        print("Creating DemographicsGenerator instance.")
+        # self.nodes = nodes
         #  currently only static is implemented in generate_nodes(self)
         self.demographics_type = (
             DemographicsType.STATIC
@@ -121,7 +122,6 @@ class DemographicsGenerator:
 
         # demographics data dictionary (working DTK demographics file when dumped as json)
         self.demographics = None
-
 
     def set_resolution(self,
                        res_in_arcsec: Literal[30, 250, CUSTOM_RESOLUTION]):
@@ -153,34 +153,35 @@ class DemographicsGenerator:
 
         The process for generating nodes starts with looping through the loaded demographics nodes. For each node,
         we:
-        1. First determine the node's id. If the node has a forced id set, we use that. If we are 
-        using a custom resolution, we use the index(ie 1, 2, 3...). Lastly, we build the node id 
+        1. First determine the node's id. If the node has a forced id set, we use that. If we are
+        using a custom resolution, we use the index(ie 1, 2, 3...). Lastly, we build the node id
         from the lat and lon id of the node
 
-        2. We then start to populate the node_attributes and individual attributes for the current 
-        node. The node_attributes will have data loaded from the initial nodes fed into 
+        2. We then start to populate the node_attributes and individual attributes for the current
+        node. The node_attributes will have data loaded from the initial nodes fed into
         DemographicsGenerator. The individual attributes start off as an empty dict.
 
-        3. We next determine the birthrate for the node. If the node attributes contains a Country 
-        element, we first lookup the birthrate from the World Pop data. We then build a 
-        MortalityDistribution configuration with country specific configuration elements and add 
-        that to the individual attributes. If there is no Country element in the node attributes, 
-        we set the birth rate to the default_birth_rate. This value was set in initialization of the 
+        3. We next determine the birthrate for the node. If the node attributes contains a Country
+        element, we first lookup the birthrate from the World Pop data. We then build a
+        MortalityDistribution configuration with country specific configuration elements and add
+        that to the individual attributes. If there is no Country element in the node attributes,
+        we set the birth rate to the default_birth_rate. This value was set in initialization of the
         DemographicsGenerator to the birth rate of the specified country from the world pop data
 
-        4. We then calculate the per_node_birth_rate using get_per_node_birth_rate and then set the 
+        4. We then calculate the per_node_birth_rate using get_per_node_birth_rate and then set the
         birth rate on the node attributes
 
-        5. We then calculate the equilibrium_age_distribution and use that to create the 
+        5. We then calculate the equilibrium_age_distribution and use that to create the
         AgeDistribution in individual_attributes
 
         6. We then add each new demographic node to a list to end returned at the end of the function
 
         """
 
-        print( "Generating demographics nodes." )
+        print("Generating demographics nodes.")
         nodes = [] # a list of dictionaries ('NodeID', "NodeAttributes', 'I...A...') we return
-        def generate_node_id( i, node ):
+
+        def generate_node_id(i, node):
             node_id = None
             if node.forced_id:
                 node_id = node.forced_id
@@ -193,9 +194,9 @@ class DemographicsGenerator:
             return node_id
 
         for i, node in enumerate(node_list):
-            # if res_in_degrees is custom assume node_ids are generated for a household-like setup 
-            #and not based on lat/lon
-            node_id = generate_node_id( i, node )
+            # if res_in_degrees is custom assume node_ids are generated for a household-like setup
+            # and not based on lat/lon
+            node_id = generate_node_id(i, node)
 
             node_attributes = node.to_dict()
             individual_attributes = {}
@@ -207,8 +208,7 @@ class DemographicsGenerator:
                     defaults, node, node_attributes, individual_attributes
                 )
 
-
-            print( f"Adding node {node_id}." )
+            print(f"Adding node {node_id}.")
             nodes.append(
                 {
                     "NodeID": node_id,
@@ -283,7 +283,7 @@ class DemographicsGenerator:
         """
         return all demographics file components in a single dictionary; a valid DTK demographics file when dumped as json
         """
-        print( "Generating demographics dictionary from nodes and defaults." )
+        print("Generating demographics dictionary from nodes and defaults.")
         if self.concerns:
             self.concerns.update_defaults(defaults)
         nodes = self.generate_nodes(defaults)
@@ -295,8 +295,9 @@ class DemographicsGenerator:
 
         return self.demographics
 
+
 # MOVE TO demographics/DemographicsInputDataParsers.py
-def from_dataframe(df: DataFrame,
+def from_dataframe(df: pd.DataFrame,
                    demographics_filename: Optional[str] = None,
                    concerns: Union[DemographicsGeneratorConcern, List[DemographicsGeneratorConcern], None] = None,
                    res_in_arcsec: Literal[30, 250, CUSTOM_RESOLUTION] = CUSTOM_RESOLUTION,
@@ -337,7 +338,7 @@ def from_dataframe(df: DataFrame,
     Returns:
         demographics file as a dictionary
     """
-    print( "from_dataframe: Reading data." )
+    print("from_dataframe: Reading data.")
     warn_no_pop = False
     validate_res_in_arcsec(res_in_arcsec)
     res_in_deg = arcsec_to_deg(VALID_RESOLUTIONS[res_in_arcsec])
@@ -363,7 +364,7 @@ def from_dataframe(df: DataFrame,
         df[population_column_name] = df[population_column_name].astype(int)
 
     if not node_id_from_lat_long and not nodeid_column_name:
-        logger.warning(f"NodeID column not specified. Reverting to csv  index + 1")
+        logger.warning("NodeID column not specified. Reverting to csv  index + 1")
         df["node_label"] = df.index + 1
     if node_id_from_lat_long and "node_label" not in df.columns.values:
         df["node_label"] = df.apply(
@@ -406,36 +407,34 @@ def from_dataframe(df: DataFrame,
                 row[population_column_name],
                 forced_id=row[node_label],
                 extra_attributes=extra_attrs,
-                #name=int(node_ID_from_lat_long(lat, lon, res)),
             )
         )
 
     # node_list now exists -- what about defaults?
 
     # Option 1 to write
-    df = Demographics( nodes=node_list )
-    df.generate_file( demographics_filename+"_DF" )
+    df = Demographics(nodes=node_list)
+    df.generate_file(demographics_filename + "_DF")
 
     # Option 2 to write
     if demographics_filename: # why would this be left unset? use case?
         # this is kind of ugly; we're inside a state class function, and creating
         # instance of the class just so we can call generate_demographics on it.
-        # pretty sure we can do this all with static everything which kind of 
+        # pretty sure we can do this all with static everything which kind of
         # eliminates need for class, just do as module variables.
-        demo = DemographicsGenerator(
-            node_list,
-            concerns=concerns,
-            res_in_arcsec=res_in_arcsec,
-            node_id_from_lat_long=node_id_from_lat_long,
-        )
+        demo = DemographicsGenerator(node_list,
+                                     concerns=concerns,
+                                     res_in_arcsec=res_in_arcsec,
+                                     node_id_from_lat_long=node_id_from_lat_long)
         demographics = demo.generate_demographics()
 
-        print( f"Writing {demographics_filename}." )
+        print(f"Writing {demographics_filename}.")
         with open(demographics_filename, "w+") as demo_f:
             json.dump(demographics, demo_f, indent=4, sort_keys=True)
     else:
-        print( "demographics_filename was not defined. Not written." )
+        print("demographics_filename was not defined. Not written.")
     return demographics
+
 
 # MOVE TO demographics/DemographicsInputDataParsers.py
 def from_file(population_input_file: str,
@@ -479,23 +478,22 @@ def from_file(population_input_file: str,
     Returns:
         demographics file as a dictionary
     """
-    print( "from_gridfile: Reading data." )
+    print("from_gridfile: Reading data.")
     df = pd.read_csv(population_input_file)
-    return from_dataframe(
-        df,
-        demographics_filename=demographics_filename,
-        concerns=concerns,
-        res_in_arcsec=res_in_arcsec,
-        node_id_from_lat_long=node_id_from_lat_long,
-        default_population=default_population,
-        load_other_columns_as_attributes=load_other_columns_as_attributes,
-        include_columns=include_columns,
-        exclude_columns=exclude_columns,
-        nodeid_column_name=nodeid_column_name,
-        latitude_column_name=latitude_column_name,
-        longitude_column_name=longitude_column_name,
-        population_column_name=population_column_name,
-    )
+    return from_dataframe(df,
+                          demographics_filename=demographics_filename,
+                          concerns=concerns,
+                          res_in_arcsec=res_in_arcsec,
+                          node_id_from_lat_long=node_id_from_lat_long,
+                          default_population=default_population,
+                          load_other_columns_as_attributes=load_other_columns_as_attributes,
+                          include_columns=include_columns,
+                          exclude_columns=exclude_columns,
+                          nodeid_column_name=nodeid_column_name,
+                          latitude_column_name=latitude_column_name,
+                          longitude_column_name=longitude_column_name,
+                          population_column_name=population_column_name)
+
 
 """
 from_gridfile

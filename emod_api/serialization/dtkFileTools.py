@@ -41,7 +41,7 @@ class DtkHeader(support.SerialObject):
     # noinspection PyDefaultArgument
     def __init__(self, dictionary=None):
         if dictionary is None:
-            dictionary={
+            dictionary = {
                 'author': 'unknown',
                 'bytecount': 0,
                 'chunkcount': 0,
@@ -108,7 +108,7 @@ class DtkFile(object):
             try:
                 contents = self.__parent__.contents[index]
                 item = json.loads(contents, object_hook=support.SerialObject)
-            except:
+            except Exception:
                 raise UserWarning("Could not parse JSON in chunk {0}".format(index))
             return item
 
@@ -136,12 +136,6 @@ class DtkFile(object):
     @property
     def header(self):
         return self.__header__
-
-    # "Required" header entries
-    @property
-    def version(self):
-        v = self.__header__.version
-        return v
 
     @property
     def compressed(self):
@@ -267,12 +261,12 @@ class DtkFileV2(DtkFile):
                 index += 1
 
         def __getitem__(self, index):
-            item = self.__parent__.objects[index+1]
+            item = self.__parent__.objects[index + 1]
             return item.node
 
         def __setitem__(self, index, value):
             # Version 2 actually saves the entry from simulation.nodes (C++) which is a map of suid to node.
-            self.__parent__.objects[index+1] = {'suid': {'id': value.suid.id}, 'node': value}
+            self.__parent__.objects[index + 1] = {'suid': {'id': value.suid.id}, 'node': value}
             return
 
         def __len__(self):
@@ -322,11 +316,11 @@ class DtkFileV3(DtkFile):
                 index += 1
 
         def __getitem__(self, index):
-            item = self.__parent__.objects[index+1]
+            item = self.__parent__.objects[index + 1]
             return item
 
         def __setitem__(self, index, value):
-            self.__parent__.objects[index+1] = value
+            self.__parent__.objects[index + 1] = value
             return
 
         def __len__(self):

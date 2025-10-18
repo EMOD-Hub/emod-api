@@ -62,8 +62,8 @@ def get_schema():
 
 def add(event, name=None, first=False):
     """
-    Add a complete campaign event to the campaign builder. The new event is assumed to be a Python dict, and a 
-    valid event. The new event is not validated here. 
+    Add a complete campaign event to the campaign builder. The new event is assumed to be a Python dict, and a
+    valid event. The new event is not validated here.
     Set the first flag to True if this is the first event in a campaign because it functions as an
     accumulator and in some situations like sweeps it might have been used recently.
     """
@@ -91,7 +91,7 @@ def get_trigger_list():
         try:
             trigger_list = get_schema()["idmTypes"]["idmAbstractType:EventCoordinator"]["BroadcastCoordinatorEvent"][
                 "Broadcast_Event"]["enum"]
-        except Exception as ex:
+        except Exception:
             trigger_list = get_schema()["idmTypes"]["idmType:IncidenceCounter"]["Trigger_Condition_List"]["Built-in"]
     return trigger_list
 

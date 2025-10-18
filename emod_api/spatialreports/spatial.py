@@ -51,11 +51,9 @@ class SpatialReport(object):
     "Filtered" reports will have start > 0 and/or reporting interval > 1.
     """
 
-    def __init__(self, filename: str = None, node_ids: List[int] = None, data: np.array=None, start:int = 0, interval:int = 1):
+    def __init__(self, filename: str = None, node_ids: List[int] = None, data: np.array = None, start: int = 0, interval: int = 1):
 
         """
-        Note:
-            
         Args:
             filename: file from which to read data
             node_ids: list of node ids, must be integer values
@@ -157,8 +155,8 @@ class SpatialReport(object):
             elif file_size == filtered_size:
                 self._start = int(np.fromfile(file, dtype=np.float32, count=1)[0])
                 self._interval = int(np.fromfile(file, dtype=np.float32, count=1)[0])
-                assert(self.start >= 0)
-                assert(self.interval >= 1)
+                assert self.start >= 0
+                assert self.interval >= 1
             else:
                 raise RuntimeError(f"Unexpected file size {file_size}, expected {simple_size} (standard spatial report) or {filtered_size} (filtered spatial report.")
 

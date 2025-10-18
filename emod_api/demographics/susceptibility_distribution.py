@@ -1,6 +1,7 @@
 from typing import List, Dict
 
-from emod_api.demographics.demographic_exceptions import *
+import emod_api.demographics.demographic_exceptions as demog_ex
+
 from emod_api.demographics.Updateable import Updateable
 from emod_api.utils import check_dimensionality
 
@@ -130,9 +131,8 @@ class SusceptibilityDistribution(Updateable):
             for key, expected_value in expected_values.items():
                 value = distribution_dict[key]
                 if value != expected_value:
-                    message = cls._validation_messages['fixed_value_check'][source_is_dict] % \
-                              (key, value, expected_value)
-                    raise InvalidFixedValueException(message)
+                    message = cls._validation_messages['fixed_value_check'][source_is_dict] % (key, value, expected_value)
+                    raise demog_ex.InvalidFixedValueException(message)
 
         # ensure the ages and distribution values are both 1-d iterables of the same length
         ages = distribution_dict['DistributionValues']
@@ -141,32 +141,32 @@ class SusceptibilityDistribution(Updateable):
         is_1d = check_dimensionality(data=ages, dimensionality=1)
         if not is_1d:
             message = cls._validation_messages['data_dimensionality_check_ages'][source_is_dict]
-            raise InvalidDataDimensionality(message)
+            raise demog_ex.InvalidDataDimensionality(message)
         is_1d = check_dimensionality(data=susceptible_values, dimensionality=1)
         if not is_1d:
             message = cls._validation_messages['data_dimensionality_check_susceptibility'][source_is_dict]
-            raise InvalidDataDimensionality(message)
+            raise demog_ex.InvalidDataDimensionality(message)
 
         if len(ages) != len(susceptible_values):
             message = cls._validation_messages['age_and_susceptibility_length_check'][source_is_dict]
-            raise InvalidDataDimensionLength(message)
+            raise demog_ex.InvalidDataDimensionLength(message)
 
         # ensure the age and susceptibility value lists are ascending and in reasonable ranges
         # record in days for dict-relevant messages, years for obj-relevant messages
         factor = 1 if source_is_dict is True else 1 / 365.0
-        out_of_range = [f"{index}:{age * factor}" for index, age in enumerate(ages) if (age < 0*365) or (age > 200*365)]
+        out_of_range = [f"{index}:{age * factor}" for index, age in enumerate(ages) if (age < 0 * 365) or (age > 200 * 365)]
         if len(out_of_range) > 0:
             oor_str = ', '.join(out_of_range)
             message = cls._validation_messages['age_range_check'][source_is_dict] % oor_str
-            raise AgeOutOfRangeException(message)
+            raise demog_ex.AgeOutOfRangeException(message)
         out_of_range = [f"{index}:{value}" for index, value in enumerate(susceptible_values)
                         if (value < 0) or (value > 1)]
         if len(out_of_range) > 0:
             oor_str = ', '.join(out_of_range)
             message = cls._validation_messages['susceptibility_range_check'][source_is_dict] % oor_str
-            raise DistributionOutOfRangeException(message)
+            raise demog_ex.DistributionOutOfRangeException(message)
 
         for i in range(1, len(ages)):
-            if ages[i] - ages[i-1] <= 0:
+            if ages[i] - ages[i - 1] <= 0:
                 message = cls._validation_messages['age_monotonicity_check'][source_is_dict] % (i, ages[i])
-                raise NonMonotonicAgeException(message)
+                raise demog_ex.NonMonotonicAgeException(message)

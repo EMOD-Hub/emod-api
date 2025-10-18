@@ -1,16 +1,11 @@
 import copy
 import numpy as np
 import math
-import scipy.sparse        as sp
+import scipy.sparse as sp
 import scipy.sparse.linalg as la
 
-from collections import defaultdict
-from pathlib import Path
-
-from emod_api.demographics.age_distribution_old import AgeDistributionOld as AgeDistribution
 from emod_api.demographics.fertility_distribution_old import FertilityDistributionOld as FertilityDistribution
 from emod_api.demographics.mortality_distribution_old import MortalityDistributionOld as MortalityDistribution
-from emod_api.demographics.PropertiesAndAttributes import IndividualAttributes, NodeAttributes
 
 
 import warnings
@@ -22,12 +17,12 @@ class DemographicsTemplatesConstants:
     """Mortality_Rates_Mod30_5yrs_Xval: Mod 30 values closest to the 5 yr age boundaries based on when EMOD actually updates individual mortality rates.
                                         The distribution is constant for about 5 years (e.g. values at 0.6 days and 1829.5 days) and linearly interpolated between the 5 yr boundaries. """
     Mortality_Rates_Mod30_5yrs_Xval = [0.6, 1829.5, 1829.6, 3659.5, 3659.6, 5489.5,
-               5489.6, 7289.5, 7289.6, 9119.5, 9119.6, 10949.5,
-               10949.6, 12779.5, 12779.6, 14609.5, 14609.6, 16439.5,
-               16439.6, 18239.5, 18239.6, 20069.5, 20069.6, 21899.5,
-               21899.6, 23729.5, 23729.6, 25559.5, 25559.6, 27389.5,
-               27389.6, 29189.5, 29189.6, 31019.5, 31019.6, 32849.5,
-               32849.6, 34679.5, 34679.6, 36509.5, 36509.6, 38339.5]
+                                       5489.6, 7289.5, 7289.6, 9119.5, 9119.6, 10949.5,
+                                       10949.6, 12779.5, 12779.6, 14609.5, 14609.6, 16439.5,
+                                       16439.6, 18239.5, 18239.6, 20069.5, 20069.6, 21899.5,
+                                       21899.6, 23729.5, 23729.6, 25559.5, 25559.6, 27389.5,
+                                       27389.6, 29189.5, 29189.6, 31019.5, 31019.6, 32849.5,
+                                       32849.6, 34679.5, 34679.6, 36509.5, 36509.6, 38339.5]
 
 
 class CrudeRate:  # would like to derive from float
@@ -45,7 +40,7 @@ class YearlyRate(CrudeRate):  # would like to derive from float
         self._time_units = 365
         self._people_units = 1
         if type(init_rate) is CrudeRate:
-            self._rate = init_rate._rate/1000.
+            self._rate = init_rate._rate / 1000.
         else:
             self._rate = init_rate
 
@@ -186,9 +181,9 @@ def _set_immune_variation_type_pyrogenic_threshold(config):
 
 
 """
-This submodule contains a bunch of json blobs that are valid pieces of a demographics json file.
-They serve as presets or templates to help build up a demographics.json without having to know 
-the json. This doesn't represent a full solution from dev team pov but the encapsulation and 
+This submodule contains a bunch of json blobs that are valid pieces of a demographics json file
+They serve as presets or templates to help build up a demographics.json without having to know
+the json. This doesn't represent a full solution from dev team pov but the encapsulation and
 abstraction of this API does at least provide a good step in the right direction.
 """
 
@@ -203,25 +198,25 @@ def NoRisk():
             "RiskDistribution2": 0}
 
 
-def FullRisk( demog, description="" ):
+def FullRisk(demog, description=""):
     """
     FullRisk puts everyone at 100% risk.
     """
     if not description:
-        description = f"Setting full risk using default values"
+        description = "Setting full risk using default values"
 
     setting = {"RiskDist_Description": "Full risk",
-            "RiskDistributionFlag": 0, # 0 = CONSTANT
-            "RiskDistribution1": 1,
-            "RiskDistribution2": 0,
-            "RiskDistribution_Description": description}
-    demog.SetDefaultFromTemplate( setting, _set_enable_demog_risk  )
+               "RiskDistributionFlag": 0, # 0 = CONSTANT
+               "RiskDistribution1": 1,
+               "RiskDistribution2": 0,
+               "RiskDistribution_Description": description}
+    demog.SetDefaultFromTemplate(setting, _set_enable_demog_risk)
 
 
 def InitRiskUniform(demog,
                     min_lim: float = 0,
                     max_lim: float = 1,
-                    description: str = "" ):
+                    description: str = ""):
     """
     InitRiskUniform puts everyone at somewhere between 0% risk and 100% risk, drawn uniformly.
 
@@ -238,17 +233,17 @@ def InitRiskUniform(demog,
     if not description:
         description = f"Risk is drawn from a uniform distribution, min_lim={min_lim} and max_lim={max_lim}"
 
-    if min_lim<0:
-        raise ValueError( f"min_lim value of {min_lim} is less than 0. Not valid." )
+    if min_lim < 0:
+        raise ValueError(f"min_lim value of {min_lim} is less than 0. Not valid.")
     setting = {"RiskDist_Description": "Uniformly distributed risk",
                "RiskDistributionFlag": 1,
                "RiskDistribution1": min_lim,
                "RiskDistribution2": max_lim,
                "RiskDistribution_Description": description}
-    demog.SetDefaultFromTemplate( setting, _set_enable_demog_risk  )
+    demog.SetDefaultFromTemplate(setting, _set_enable_demog_risk)
 
 
-def InitRiskLogNormal( demog, mean=0.0, sigma=1.0 ):
+def InitRiskLogNormal(demog, mean=0.0, sigma=1.0):
     """
     InitRiskLogNormal puts everyone at somewhere between 0% risk and 100% risk, drawn from LogNormal.
 
@@ -262,19 +257,19 @@ def InitRiskLogNormal( demog, mean=0.0, sigma=1.0 ):
 
     """
     setting = {"RiskDist_Description": "LogNormal distributed risk",
-            "RiskDistributionFlag": 5, # lognormal
-            "RiskDistribution1": mean,
-            "RiskDistribution2": sigma }
-    demog.SetDefaultFromTemplate( setting, _set_enable_demog_risk )
+               "RiskDistributionFlag": 5, # lognormal
+               "RiskDistribution1": mean,
+               "RiskDistribution2": sigma}
+    demog.SetDefaultFromTemplate(setting, _set_enable_demog_risk)
 
 
-def InitRiskExponential( demog,
-                         mean: float = 1.0 ):
+def InitRiskExponential(demog,
+                        mean: float = 1.0):
     """
     InitRiskExponential puts everyone at somewhere between 0% risk and 100% risk, drawn from Exponential.
 
     Args:
-        mean: Mean of exponential distribution. 
+        mean: Mean of exponential distribution.
 
     Returns:
 
@@ -282,17 +277,17 @@ def InitRiskExponential( demog,
 
     """
     setting = {"RiskDist_Description": "Exponentially distributed risk",
-            "RiskDistributionFlag": 3, # exponential
-            "RiskDistribution1": mean,
-            "RiskDistribution2": 0 }
-    demog.SetDefaultFromTemplate( setting, _set_enable_demog_risk )
+               "RiskDistributionFlag": 3, # exponential
+               "RiskDistribution1": mean,
+               "RiskDistribution2": 0}
+    demog.SetDefaultFromTemplate(setting, _set_enable_demog_risk)
 
 
-# 
+#
 # Initial Prevalence
 # config: Enable_Initial_Prevalence=1
 #
-def NoInitialPrevalence( demog ):
+def NoInitialPrevalence(demog):
     """
     NoInitialPrevalence disables initial prevalence; outbreak seeding must be done from an Outbreak intervention (or serialized population).
 
@@ -306,13 +301,12 @@ def NoInitialPrevalence( demog ):
     """
 
     setting = {"PrevalenceDist_Description": "No initial prevalence",
-               "InitialPrevalence": 0,
-              }
+               "InitialPrevalence": 0}
     # why not just disable it at config?
-    demog.SetDefaultFromTemplate( setting )
+    demog.SetDefaultFromTemplate(setting)
 
 
-def InitPrevUniform( demog, low_prev, high_prev, description="" ):
+def InitPrevUniform(demog, low_prev, high_prev, description=""):
     # old
     if not description:
         description = f"Drawing prevalence from uniform distribution, low_prev={low_prev} and high_prev={high_prev}"
@@ -323,52 +317,45 @@ def InitPrevUniform( demog, low_prev, high_prev, description="" ):
                "PrevalenceDistribution2": high_prev,
                "PrevalenceDistribution_Description": description}
     # new
-    #setting.update( { "InitialPrevalence": prevalence } )
-    demog.SetDefaultFromTemplate( setting, _set_init_prev )
+    # setting.update( { "InitialPrevalence": prevalence } )
+    demog.SetDefaultFromTemplate(setting, _set_init_prev)
 
-# 
+#
 # Initial Susceptibility (1-Immunity)
 #
 
 
-def InitSusceptConstant( demog ):
+def InitSusceptConstant(demog):
     # set config.Susceptibility_... SIMPLE
     setting = {"SusceptibilityDistributionFlag": 0,
-            "SusceptibilityDistribution1": 1,
-            "SusceptibilityDistribution2": 0 }
-    demog.SetDefaultFromTemplate( setting, _set_suscept_simple )
+               "SusceptibilityDistribution1": 1,
+               "SusceptibilityDistribution2": 0}
+    demog.SetDefaultFromTemplate(setting, _set_suscept_simple)
 
 
-def EveryoneInitiallySusceptible( demog, setting=1.0 ):
+def EveryoneInitiallySusceptible(demog, setting=1.0):
     # set config.Susceptibility_Initialization_Distribution_Type=COMPLEX
-    suscDist = {
-        "SusceptibilityDist_Description": f"Everyone is initially susceptible with probability {setting}",
-        "SusceptibilityDistribution": {
-            "DistributionValues": [0, 36500],
-            "ResultScaleFactor": 1,
-            "ResultValues": [setting, setting]
-        }
-    }
-    demog.SetDefaultFromTemplate( suscDist, _set_suscept_complex )
+    suscDist = {"SusceptibilityDist_Description": f"Everyone is initially susceptible with probability {setting}",
+                "SusceptibilityDistribution": {"DistributionValues": [0, 36500],
+                                               "ResultScaleFactor": 1,
+                                               "ResultValues": [setting, setting]}}
+    demog.SetDefaultFromTemplate(suscDist, _set_suscept_complex)
 
 
-def StepFunctionSusceptibility( demog, protected_setting=0.0, threshold_age=365*5.0 ):
+def StepFunctionSusceptibility(demog, protected_setting=0.0, threshold_age=365 * 5.0):
     # set config.Susceptibility_Initialization_Distribution_Type=COMPLEX
-    suscDist = {
-        "SusceptibilityDist_Description": "Youngers are somewhat protected",
-        "SusceptibilityDistribution": {
-            "DistributionValues": [0, threshold_age, threshold_age, 36500],
-            "ResultScaleFactor": 1,
-            "ResultValues": [protected_setting, protected_setting, 1.0, 1.0]
-        }
-    }
-    demog.SetDefaultFromTemplate( suscDist, _set_suscept_complex )
+    suscDist = {"SusceptibilityDist_Description": "Youngers are somewhat protected",
+
+                "SusceptibilityDistribution": {"DistributionValues": [0, threshold_age, threshold_age, 36500],
+                                               "ResultScaleFactor": 1,
+                                               "ResultValues": [protected_setting, protected_setting, 1.0, 1.0]}}
+    demog.SetDefaultFromTemplate(suscDist, _set_suscept_complex)
 
 
-def SimpleSusceptibilityDistribution( demog,
-                                      meanAgeAtInfection: float=2.5): 
+def SimpleSusceptibilityDistribution(demog,
+                                     meanAgeAtInfection: float = 2.5):
     """
-    Rough initialization to reduce burn-in and prevent huge outbreaks at sim start.  
+    Rough initialization to reduce burn-in and prevent huge outbreaks at sim start
     For ages 0 through 99 the susceptibility distribution is set to an exponential distribution with an average age at infection.
     The minimum susceptibility is 2.5% at old ages.
 
@@ -384,34 +371,26 @@ def SimpleSusceptibilityDistribution( demog,
     # This function is first to be switched over to be reversed.
     # Calling code in emodpy will call this and pass the demographics instance then we
     # call SetDefaultFromTemplate on the demog object so we can also pass the setter function
-    suscDist = {
-        "SusceptibilityDist_Description": f"Rough initialization to reduce burn-in and prevent huge outbreaks at "
-                                          f"sim start.  Exponential distribution, Average age at infection "
-                                          f"~{meanAgeAtInfection} years, minimum susceptibility is 2.5% at old ages",
-        "SusceptibilityDistribution": {
-            "DistributionValues":  [i * 365 for i in range(100)],
-            "ResultScaleFactor": 1,
-            "ResultValues":  [1.0, 1.0] + [0.025 + 0.975 * math.exp(-(i - 1) / (meanAgeAtInfection / math.log(2)))
-                                           for i in range(2, 100, 1)]
-        }
-    }
-    demog.SetDefaultFromTemplate( suscDist, _set_suscept_complex )
+    res_vals = [1.0, 1.0] + [0.025 + 0.975 * math.exp(-(i - 1) / (meanAgeAtInfection / math.log(2))) for i in range(2, 100, 1)]
+    desc = "Rough initialization to reduce burn-in and prevent huge outbreaks at sim start. "
+    desc += f"Exponential distribution, Average age at infection ~{meanAgeAtInfection} years, minimum susceptibility is 2.5% at old ages"
+    suscDist = {"SusceptibilityDist_Description": desc,
+                "SusceptibilityDistribution": {"DistributionValues": [i * 365 for i in range(100)],
+                                               "ResultScaleFactor": 1,
+                                               "ResultValues": res_vals}}
+    demog.SetDefaultFromTemplate(suscDist, _set_suscept_complex)
 
 
-def DefaultSusceptibilityDistribution( demog ): 
+def DefaultSusceptibilityDistribution(demog):
     # set config.Susceptibility_Initialization_Distribution_Type=COMPLEX
-    suscDist = {
-        "SusceptibilityDist_Description": "Rough initialization to reduce burn-in and prevent huge outbreaks at sim "
-                                          "start.  Exponential distribution, Average age at infection ~3.5 years,"
-                                          "minimum susceptibility is 2.5% at old ages",
-        "SusceptibilityDistribution": {
-            "DistributionValues": [i * 365 for i in range(100)],
-            "ResultScaleFactor": 1,
-            "ResultValues":  [1.0, 1.0] + [0.025 + 0.975 * math.exp(-(i - 1) / (2.5 / math.log(2)))
-                                           for i in range(2, 100, 1)]
-        }
-    }
-    demog.SetDefaultFromTemplate( suscDist, _set_suscept_complex )
+    res_vals = [1.0, 1.0] + [0.025 + 0.975 * math.exp(-(i - 1) / (2.5 / math.log(2))) for i in range(2, 100, 1)]
+    desc = "Rough initialization to reduce burn-in and prevent huge outbreaks at sim start. "
+    desc += "Exponential distribution, Average age at infection ~3.5 years, minimum susceptibility is 2.5% at old ages"
+    suscDist = {"SusceptibilityDist_Description": desc,
+                "SusceptibilityDistribution": {"DistributionValues": [i * 365 for i in range(100)],
+                                               "ResultScaleFactor": 1,
+                                               "ResultValues": res_vals}}
+    demog.SetDefaultFromTemplate(suscDist, _set_suscept_complex)
 
 
 #
@@ -432,29 +411,18 @@ def MortalityRateByAge(demog,
     """
     # Note that the first input axis is sex (or gender). There are two values, but the rates are applied
     # equally for both here. The second input axis is age bin, and that is much more configurable.
-    mort_dist = {
-        "MortalityDistribution": {
-        "AxisNames": ["gender", "age"],
-        "AxisUnits": ["male=0,female=1", "years"],
-        "AxisScaleFactors": [1, 365],
-        "PopulationGroups": [
-            [0, 1],
-            age_bins
-        ],
-        "ResultScaleFactor": 1,
-        "ResultUnits": "daily probability of dying",
-        "ResultValues": [
-            mort_rates,
-            mort_rates
-        ]
-    }
-    }
-    demog.SetDefaultFromTemplate( mort_dist, _set_mortality_age_gender )
+    mort_dist = {"MortalityDistribution": {"AxisNames": ["gender", "age"],
+                                           "AxisUnits": ["male=0,female=1", "years"],
+                                           "AxisScaleFactors": [1, 365],
+                                           "PopulationGroups": [[0, 1], age_bins],
+                                           "ResultScaleFactor": 1,
+                                           "ResultUnits": "daily probability of dying",
+                                           "ResultValues": [mort_rates, mort_rates]}}
+    demog.SetDefaultFromTemplate(mort_dist, _set_mortality_age_gender)
 
 
 def _ConstantMortality(mortality_rate: float):
     if type(mortality_rate) is float:
-        #temp = -1 * (math.log(1 - mortality_rate) / 365)
         temp = -1 * (math.log(1 - mortality_rate))
         new_mortality_rate = [[temp], [temp]]
     else:  # assume list
@@ -464,40 +432,35 @@ def _ConstantMortality(mortality_rate: float):
                 new_mortality_rate[v][i] = -1 * (math.log(1 - mortality_rate[v][i]) / 365)
 
     default_mortality = MortalityDistribution(num_population_axes=2,
-                                                                   axis_names=["gender", "age"],
-                                                                   axis_units=["male=0,female=1", "years"],
-                                                                   axis_scale_factors=[1, 365],
-                                                                   population_groups=[[0, 1], [0]],
-                                                                   result_scale_factor=1,
-                                                                   result_units="daily probability of dying",
-                                                                   result_values=[new_mortality_rate[0],
-                                                                                  new_mortality_rate[1]])
+                                              axis_names=["gender", "age"],
+                                              axis_units=["male=0,female=1", "years"],
+                                              axis_scale_factors=[1, 365],
+                                              population_groups=[[0, 1], [0]],
+                                              result_scale_factor=1,
+                                              result_units="daily probability of dying",
+                                              result_values=[new_mortality_rate[0], new_mortality_rate[1]])
     return default_mortality
 
 
 def MortalityStructureNigeriaDHS(demog):
-    morts = [ 0,0.0019158015385118965,0.0019158015385118965,0.0001717560763629944, 0.0001717560763629944, 4.9704718676046866e-05,4.9704718676046866e-05,5.534972988163744e-06,5.534972988163744e-06, 1.0006476080515192e-05,1.0006476080515192e-05,0.0003153728749953899,0.0003153728749953899,0.99]
-    mort_dist = {
-        "MortalityDistribution": {
-        "AxisNames": ["gender","age"],
-        "AxisUnits": ["male=0,female=1","years"],
-        "AxisScaleFactors": [1,365],
-        "PopulationGroups": [
-            [0,1],
-            [0,0.0001,0.08082191780821918,0.08092191780821918,1,1.0001,5,5.0001,15,15.0001,50,50.0001,90,90.0001]
-        ],
-        "ResultScaleFactor":1,
-        "ResultUnits": "daily probability of dying",
-        "ResultValues": [morts, morts]
-        }
-    }
-    demog.SetDefaultFromTemplate( mort_dist, _set_mortality_age_gender )
+    morts = [0, 0.0019158015385118965, 0.0019158015385118965, 0.0001717560763629944, 0.0001717560763629944, 4.9704718676046866e-05,
+             4.9704718676046866e-05, 5.534972988163744e-06, 5.534972988163744e-06, 1.0006476080515192e-05, 1.0006476080515192e-05,
+             0.0003153728749953899, 0.0003153728749953899, 0.99]
+    mort_ages = [0, 0.0001, 0.08082191780821918, 0.08092191780821918, 1, 1.0001, 5, 5.0001, 15, 15.0001, 50, 50.0001, 90, 90.0001]
+    mort_dist = {"MortalityDistribution": {"AxisNames": ["gender", "age"],
+                                           "AxisUnits": ["male=0,female=1", "years"],
+                                           "AxisScaleFactors": [1, 365],
+                                           "PopulationGroups": [[0, 1], mort_ages],
+                                           "ResultScaleFactor": 1,
+                                           "ResultUnits": "daily probability of dying",
+                                           "ResultValues": [morts, morts]}}
+    demog.SetDefaultFromTemplate(mort_dist, _set_mortality_age_gender)
 
 
 #
 # Fertilty
 #
-def get_fert_dist_from_rates( rates: list[float] ):
+def get_fert_dist_from_rates(rates: list[float]):
     """
     Create dictionary with DTK-compatible distributions from input vectors of fertility (crude) rates.
 
@@ -505,31 +468,25 @@ def get_fert_dist_from_rates( rates: list[float] ):
         rates: Array/vector of crude rates for whole population, for a range of years.
 
     """
-    fert_dist = {
-        "FertilityDistribution": {
-            "AxisNames": ["age","year"],
-            "AxisUnits": ["years","simulation_year"],
-            "AxisScaleFactors": [365,1],
-            "PopulationGroups": [
-                [0,125],
-                [x for x in range(len(rates))]
-            ],
-            "ResultScaleFactor": 2.73972602739726e-03,
-            "ResultUnits": "annual births per 1000 individuals",
-            "ResultValues": [ rates, rates ]
-        }
-    }
-    return FertilityDistribution().from_dict( fertility_distribution=fert_dist["FertilityDistribution"] )
+    fert_dist = {"FertilityDistribution": {"AxisNames": ["age", "year"],
+                                           "AxisUnits": ["years", "simulation_year"],
+                                           "AxisScaleFactors": [365, 1],
+                                           "PopulationGroups": [[0, 125],
+                                                                [x for x in range(len(rates))]],
+                                           "ResultScaleFactor": 2.73972602739726e-03,
+                                           "ResultUnits": "annual births per 1000 individuals",
+                                           "ResultValues": [rates, rates]}}
+    return FertilityDistribution().from_dict(fertility_distribution=fert_dist["FertilityDistribution"])
 
 
 #
 # Age Structure
 #
-def InitAgeUniform( demog ):
-    setting = { "AgeDistributionFlag": 1,
-                "AgeDistribution1": 0,
-                "AgeDistribution2": 18250 }
-    demog.SetDefaultFromTemplate( setting, _set_age_simple )
+def InitAgeUniform(demog):
+    setting = {"AgeDistributionFlag": 1,
+               "AgeDistribution1": 0,
+               "AgeDistribution2": 18250}
+    demog.SetDefaultFromTemplate(setting, _set_age_simple)
 
 
 def _computeAgeDist(bval, mvecX, mvecY, fVec, max_yr=90):
@@ -589,20 +546,18 @@ def _computeAgeDist(bval, mvecX, mvecY, fVec, max_yr=90):
     return gR.tolist()[0], avecX[:-1].tolist(), avecY.tolist()
 
 
-def AgeStructureUNWPP( demog ):
-    setting = {
-            "AgeDistribution": {
-                "ResultUnits": "years",
-                "ResultScaleFactor": 365,
-                "ResultValues": [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90],
-                "DistributionValues": [0, 0.164, 0.3077, 0.4317, 0.5381, 0.6289, 0.7066, 0.7721, 0.8256, 0.8690, 0.9036,
-                                       0.9316, 0.9537, 0.9708, 0.9833, 0.9918, 0.9968, 0.9991, 1.0]
-                }
-            }
-    demog.SetDefaultFromTemplate( setting, _set_age_complex )
+def AgeStructureUNWPP(demog):
+    res_val = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90]
+    dist_val = [0, 0.164, 0.3077, 0.4317, 0.5381, 0.6289, 0.7066, 0.7721, 0.8256, 0.8690,
+                0.9036, 0.9316, 0.9537, 0.9708, 0.9833, 0.9918, 0.9968, 0.9991, 1.0]
+    setting = {"AgeDistribution": {"ResultUnits": "years",
+                                   "ResultScaleFactor": 365,
+                                   "ResultValues": res_val,
+                                   "DistributionValues": dist_val}}
+    demog.SetDefaultFromTemplate(setting, _set_age_complex)
 
 
-def _EquilibriumAgeDistFromBirthAndMortRates(birth_rate=YearlyRate(40/1000.), mort_rate=YearlyRate(20/1000.)):
+def _EquilibriumAgeDistFromBirthAndMortRates(birth_rate=YearlyRate(40 / 1000.), mort_rate=YearlyRate(20 / 1000.)):
     """
     Set age distribution based on birth and death rates.
 
@@ -616,21 +571,18 @@ def _EquilibriumAgeDistFromBirthAndMortRates(birth_rate=YearlyRate(40/1000.), mo
     """
     BirthRate = math.log(1 + birth_rate.get_dtk_rate())
     MortRate = -1 * math.log(1 - mort_rate.get_dtk_rate())
-    
+
     # It is important for the age distribution computation that the age-spacing be very fine; I've used 30 days here.
     # With coarse spacing, the computation in practice doesn't work as well.
     ageDist = _computeAgeDist(BirthRate, [i * 30 for i in range(1200)], 1200 * [MortRate], 12 * [1.0])
 
     # The final demographics file, though, can use coarser binning interpolated from the finely-spaced computed distribution.
-    EMODAgeBins = list(range(16)) + [20+5*i for i in range(14)]
-    EMODAgeDist = np.interp(EMODAgeBins, [i/365 for i in ageDist[2]], ageDist[1]).tolist()
+    EMODAgeBins = list(range(16)) + [20 + 5 * i for i in range(14)]
+    EMODAgeDist = np.interp(EMODAgeBins, [i / 365 for i in ageDist[2]], ageDist[1]).tolist()
     EMODAgeBins.extend([90])
     EMODAgeDist.extend([1.0])
-    setting = { "AgeDistribution": {
-            "ResultUnits": "years",
-            "ResultScaleFactor": 365,
-            "ResultValues": EMODAgeBins,
-            "DistributionValues": EMODAgeDist
-            }
-        }
+    setting = {"AgeDistribution": {"ResultUnits": "years",
+                                   "ResultScaleFactor": 365,
+                                   "ResultValues": EMODAgeBins,
+                                   "DistributionValues": EMODAgeDist}}
     return setting

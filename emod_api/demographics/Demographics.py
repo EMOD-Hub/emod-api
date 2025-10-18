@@ -30,7 +30,7 @@ def from_template_node(lat=0,
                        name="Erewhon",
                        forced_id=1):
     """
-    Create a single-node :py:class:`Demographics` instance from a few parameters.    
+    Create a single-node :py:class:`Demographics` instance from a few parameters.
     """
     new_nodes = [Node(lat, lon, pop, forced_id=forced_id, name=name)]
     return Demographics(nodes=new_nodes)
@@ -67,8 +67,8 @@ def get_node_pops_from_params(tot_pop,
                               num_nodes,
                               frac_rural) -> list:
     """
-    Get a list of node populations from the params used to create a sparsely 
-    parameterized multi-node :py:class:`Demographics` instance. The first population 
+    Get a list of node populations from the params used to create a sparsely
+    parameterized multi-node :py:class:`Demographics` instance. The first population
     in the list is the "urban" population and remaning populations are roughly drawn from a
     log-uniform distribution.
 
@@ -100,11 +100,11 @@ def get_node_pops_from_params(tot_pop,
 def from_params(tot_pop: int = 1000000,
                 num_nodes: int = 100,
                 frac_rural: float = 0.3,
-                id_ref: str = "from_params", 
+                id_ref: str = "from_params",
                 random_2d_grid: bool = False):
     """
     Create an EMOD-compatible :py:class:`Demographics` object with the population and numbe of nodes specified.
- 
+
     Args:
         tot_pop: The total population.
         num_nodes: Number of nodes. Can be defined as a two-dimensional grid  of nodes [longitude, latitude].
@@ -118,9 +118,9 @@ def from_params(tot_pop: int = 1000000,
         (Demographics): New Demographics object
     """
     if frac_rural > 1.0:
-        raise ValueError(f"frac_rural can't be greater than 1.0")
+        raise ValueError("frac_rural can't be greater than 1.0")
     if frac_rural < 0.0:
-        raise ValueError(f"frac_rural can't be less than 0")
+        raise ValueError("frac_rural can't be less than 0")
     if frac_rural == 0.0:
         frac_rural = 1e-09
 
@@ -155,13 +155,13 @@ def from_params(tot_pop: int = 1000000,
 # The node ID encodes both lat and long at a specified pixel resolution, and I've maintained this
 # convention even when running on spatial setups that are not non-uniform grids.
 def _node_id_from_lat_lon_res(lat: float, lon: float, res: float = 30 / 3600) -> int:
-    node_id = int((np.floor((lon+180)/res)*(2**16)).astype(np.uint) + (np.floor((lat+90)/res)+1).astype(np.uint))
+    node_id = int((np.floor((lon + 180) / res) * (2 ** 16)).astype(np.uint) + (np.floor((lat + 90) / res) + 1).astype(np.uint))
     return node_id
 
 
 def from_csv(input_file,
-             res = 30/3600,
-             id_ref = "from_csv"):
+             res=30 / 3600,
+             id_ref="from_csv"):
     """
     Create an EMOD-compatible :py:class:`Demographics` instance from a csv population-by-node file.
 
@@ -185,7 +185,7 @@ def from_csv(input_file,
     out_nodes = []
     for index, row in node_info.iterrows():
         if 'under5_pop' in row:
-            pop = int(6*row['under5_pop'])
+            pop = int(6 * row['under5_pop'])
             if pop < 25000:
                 continue
         else:
@@ -213,7 +213,7 @@ def from_csv(input_file,
             place_name = str(row['loc'])
         else:
             place_name = None
-        meta = {} 
+        meta = {}
         """
         meta = {'dot_name': (row['ADM0_NAME']+':'+row['ADM1_NAME']+':'+row['ADM2_NAME']),
                 'GUID': row['GUID'],
@@ -230,17 +230,17 @@ def from_csv(input_file,
 
 # This will be the long-term API for this function.
 def from_pop_raster_csv(pop_filename_in,
-                        res = 1/120,
-                        id_ref = "from_raster",
-                        pop_filename_out = "spatial_gridded_pop_dir",
-                        site = "No_Site"):
+                        res=1 / 120,
+                        id_ref="from_raster",
+                        pop_filename_out="spatial_gridded_pop_dir",
+                        site="No_Site"):
     """
         Take a csv of a population-counts raster and build a grid for use with EMOD simulations.
-        Grid size is specified by grid resolution in arcs or in kilometers. The population counts 
+        Grid size is specified by grid resolution in arcs or in kilometers. The population counts
         from the raster csv are then assigned to their nearest grid center and a new intermediate
         grid file is generated with latitude, longitude and population. This file is then fed to
         from_csv to generate a demographics object.
-    
+
     Args:
         pop_filename_in (str): The filename of the population-counts raster in CSV format.
         res (float, optional): The grid resolution in arcs or kilometers. Default is 1/120.
@@ -248,7 +248,7 @@ def from_pop_raster_csv(pop_filename_in,
         pop_filename_out (str, optional): The output filename for the intermediate grid file.
             Default is "spatial_gridded_pop_dir".
         site (str, optional): The site name or identifier. Default is "No_Site".
-    
+
     Returns:
         (Demographics): New Demographics object based on the grid file.
 
@@ -261,10 +261,10 @@ def from_pop_raster_csv(pop_filename_in,
 
 
 def from_pop_csv(pop_filename_in,
-                 res = 1/120,
-                 id_ref = "from_raster",
-                 pop_filename_out = "spatial_gridded_pop_dir",
-                 site = "No_Site"):
+                 res=1 / 120,
+                 id_ref="from_raster",
+                 pop_filename_out="spatial_gridded_pop_dir",
+                 site="No_Site"):
     """
         Deprecated. Please use from_pop_raster_csv.
     """
