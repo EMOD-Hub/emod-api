@@ -49,8 +49,8 @@ lint = [
 ]
 packaging = [
     "build",
-    "bump2version",
     "twine",
+    "bump2version",
 ]
 test = [
     "emod-common",

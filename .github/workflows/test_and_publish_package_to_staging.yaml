@@ -14,7 +14,7 @@ on:
 jobs:
   run-tests:
     name: Run tests
-    uses: ./.github/workflows/run_tests.yml
+    uses: ./.github/workflows/run-tests.yml
 
   staging-build-package:
     name: Push to staging
