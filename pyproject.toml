@@ -55,6 +55,7 @@ packaging = [
 test = [
     "emod-common",
     "emod-generic",
+    "emod-hiv",
     "emod-malaria",
 ]
 
