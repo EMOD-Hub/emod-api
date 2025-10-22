@@ -66,7 +66,6 @@ class ConfigTest(unittest.TestCase):
         pass
 
     def test_3_default_from_schema(self):
-        s2c.schema_cache = None
         self.output_file = "default_config.json"
         delete_existing_file(self.output_file)
         schema_name = manifest.generic_schema_path
@@ -522,7 +521,6 @@ class ConfigTest(unittest.TestCase):
 
     def test_8_idtmType_schema(self):
         # TODO: Need to update this to more recent schema (doesn't include all types in newest schema)
-        s2c.schema_cache = None
         schema_path = manifest.malaria_schema_path
         mytypes = [
             "idmType:Action",
