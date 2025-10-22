@@ -188,7 +188,7 @@ def clear_schema_cache():
     return None
 
 
-def get_class_with_defaults(classname, schema_path=None, schema_json=None, show_warnings=False):
+def get_class_with_defaults(classname, schema_path=None, schema_json=None):
     """
     Return the default parameter values for a datatype defined in schema.
 
@@ -378,9 +378,6 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None, show_
                             ret_json[ns_key] = []
                         else:
                             raise ValueError(f"'type' not found in schema_blob[{ns_key}].")
-                    else:
-                        if show_warnings:
-                            print(f"WARNING: Not setting default for NodeSet key {ns_key}.")
                 except Exception as ex:
                     raise ValueError(f"ERROR: Exception caught while processing {ns_key} in NodeSet family."
                                      f"Exception: {ex}")
