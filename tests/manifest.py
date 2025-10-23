@@ -7,8 +7,8 @@ if not os.path.isdir(output_folder):
     os.mkdir(output_folder)
 
 config_folder = os.path.join(current_directory, 'data', 'config')
-if not os.path.isdir(demo_folder):
-    os.mkdir(demo_folder)
+if not os.path.isdir(config_folder):
+    os.mkdir(config_folder)
 
 demo_folder = os.path.join(current_directory, 'data', 'demographics')
 if not os.path.isdir(demo_folder):
