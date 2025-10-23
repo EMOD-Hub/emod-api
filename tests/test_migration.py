@@ -5,19 +5,21 @@ from contextlib import contextmanager
 from datetime import datetime
 import json
 import numpy as np
-import os
 import math
 from os import close, environ
 from pathlib import Path
 from platform import system
 from tempfile import mkstemp
 import unittest
-from sys import platform
 from emod_api.migration.migration import Migration, from_file, from_params, from_demog_and_param_gravity, to_csv, examine_file, from_csv
 import pandas as pd
 import io
 from contextlib import redirect_stdout
-import manifest
+
+try:
+    import manifest  # works for jenkins
+except ImportError:
+    from . import manifest  # works for local running
 
 CWD = Path(manifest.current_directory)
 

@@ -36,16 +36,16 @@ class EmodapiDemographicsImportTest(unittest.TestCase):
 
     def test_demog_demog_import(self):
         self.expected_items = [
-            'Demographics',
-            'Node',
-            'from_csv',
+            'from_template_node',
+            'from_node_csv',
+            'from_raster_csv',
             'from_file',
             'from_params',
             'get_node_ids_from_file',
             'get_node_pops_from_params',
             '_node_id_from_lat_lon_res'
         ]
-        import emod_api.demographics.Demographics as eaddf
+        from emod_api.demographics.demographics import Demographics as eaddf
         self.verify_expected_items_present(namespace=eaddf)
         pass
 

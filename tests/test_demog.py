@@ -1,9 +1,9 @@
 import os
 import json
 import unittest
-import emod_api.demographics.Demographics as Demographics
 import emod_api.demographics.Node as Node
 import emod_api.demographics.DemographicsTemplates as DT
+from emod_api.demographics.demographics import Demographics
 from emod_api.demographics.demographics_overlay import DemographicsOverlay
 from emod_api.demographics.age_distribution_old import AgeDistributionOld as AgeDistribution
 from emod_api.demographics.mortality_distribution_old import MortalityDistributionOld as MortalityDistribution
@@ -13,6 +13,7 @@ try:
     import manifest  # works for jenkins
 except ImportError:
     from . import manifest  # works for local running
+
 import math
 from datetime import date
 import getpass
@@ -24,7 +25,6 @@ from emod_api.demographics.demographic_exceptions import *
 import emod_api.demographics.PreDefinedDistributions as Distributions
 import pprint
 
-
 class DemogTest(unittest.TestCase):
     def setUp(self) -> None:
         print(f"\n{self._testMethodName} started...")
@@ -35,14 +35,14 @@ class DemogTest(unittest.TestCase):
         venus = Node.Node(lat=0, lon=0, pop=100, name='Venus', forced_id=2)
         planet = Node.Node(lat=0, lon=0, pop=100, forced_id=99)  # not 0
         nodes = [mars, venus]
-        self.assertRaises(InvalidNodeIdException, Demographics.Demographics, nodes=nodes, default_node=planet)
+        self.assertRaises(InvalidNodeIdException, Demographics, nodes=nodes, default_node=planet)
 
     def test_verify_non_default_node_objs_must_have_ids_gt_0(self):
         mars = Node.Node(lat=0, lon=0, pop=100, name='Mars', forced_id=1)
         venus = Node.Node(lat=0, lon=0, pop=100, name='Venus', forced_id=0)  # not integer > 0
         planet = Node.Node(lat=0, lon=0, pop=100, forced_id=0)
         nodes = [mars, venus]
-        self.assertRaises(InvalidNodeIdException, Demographics.Demographics, nodes=nodes, default_node=planet)
+        self.assertRaises(InvalidNodeIdException, Demographics, nodes=nodes, default_node=planet)
 
     def test_get_node_by_name(self):
         from emod_api.demographics.demographics_base import DemographicsBase
@@ -51,7 +51,7 @@ class DemogTest(unittest.TestCase):
         venus = Node.Node(lat=0, lon=0, pop=100, name='Venus', forced_id=2)
         planet = Node.Node(lat=0, lon=0, pop=100, forced_id=0)
         nodes = [mars, venus]
-        demographics = Demographics.Demographics(nodes=nodes, default_node=planet)
+        demographics = Demographics(nodes=nodes, default_node=planet)
 
         # a non default node
         node = demographics.get_node_by_name(node_name=mars.name)
@@ -74,7 +74,7 @@ class DemogTest(unittest.TestCase):
         venus = Node.Node(lat=0, lon=0, pop=100, name='Venus', forced_id=2)
         planet = Node.Node(lat=0, lon=0, pop=100, forced_id=0)
         nodes = [mars, venus]
-        demographics = Demographics.Demographics(nodes=nodes, default_node=planet)
+        demographics = Demographics(nodes=nodes, default_node=planet)
 
         # just getting some nodes, also checking explicit default node request, too.
         nodes = demographics.get_nodes_by_name(node_names=['Mars', 'default_node'])
@@ -102,11 +102,11 @@ class DemogTest(unittest.TestCase):
         planet = Node.Node(lat=0, lon=0, pop=100, forced_id=0)
         nodes = [mars, venus]
         self.assertRaises(DemographicsBase.DuplicateNodeIdException,
-                          Demographics.Demographics, nodes=nodes, default_node=planet)
+                          Demographics, nodes=nodes, default_node=planet)
 
         # ensure json-dumping of demographics catches duplicates, too
         venus.forced_id = 2  # make it valid
-        demographics = Demographics.Demographics(nodes=[mars, venus], default_node=planet)
+        demographics = Demographics(nodes=[mars, venus], default_node=planet)
         demographics.nodes[0].forced_id = demographics.nodes[1].forced_id  # make it invalid
         self.assertRaises(DemographicsBase.DuplicateNodeIdException, demographics.to_dict)  # check
 
@@ -118,7 +118,7 @@ class DemogTest(unittest.TestCase):
         planet = Node.Node(lat=0, lon=0, pop=100, forced_id=0)
         nodes = [mars, venus]
         self.assertRaises(DemographicsBase.DuplicateNodeNameException,
-                          Demographics.Demographics, nodes=nodes, default_node=planet)
+                          Demographics, nodes=nodes, default_node=planet)
 
         # mixing it up a bit to ensure that the default node is included in the error reporting. As well as
         # ensuring that one gets duplicate errors even when requesting a non-duplicated node.
@@ -127,11 +127,11 @@ class DemogTest(unittest.TestCase):
         planet = Node.Node(lat=0, lon=0, pop=100, forced_id=0)  # gets an implicit name 'default_node'
         nodes = [mars, venus]
         self.assertRaises(DemographicsBase.DuplicateNodeNameException,
-                          Demographics.Demographics, nodes=nodes, default_node=planet)
+                          Demographics, nodes=nodes, default_node=planet)
 
         # ensure json-dumping of demographics catches duplicates, too
         venus.name = 'Venus'  # make it valid
-        demographics = Demographics.Demographics(nodes=[mars, venus], default_node=planet)
+        demographics = Demographics(nodes=[mars, venus], default_node=planet)
         demographics.nodes[0].name = demographics.nodes[1].name  # make it invalid
         self.assertRaises(DemographicsBase.DuplicateNodeNameException, demographics.to_dict)  # check
 
@@ -178,7 +178,7 @@ class DemogTest(unittest.TestCase):
         name = 'test_node'
         forced_id = 1
         the_nodes = [Node.Node(lat, lon, pop, name=name, area=area, forced_id=forced_id)]
-        demog = Demographics.Demographics(nodes=the_nodes)
+        demog = Demographics(nodes=the_nodes)
         print(f"Writing out file: {out_filename}.")
         demog.generate_file(out_filename)
         self.assertTrue(os.path.isfile(out_filename), msg=f'{out_filename} is not generated.')
@@ -393,7 +393,7 @@ class DemogTest(unittest.TestCase):
         id_ref = "from_csv_test"
 
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'demog_in.csv')
-        demog = Demographics.from_csv(input_file, res=2/3600, id_ref=id_ref)
+        demog = Demographics.from_node_csv(input_file, res=2/3600, id_ref=id_ref)
         self.assertEqual(demog.idref, id_ref)
         demog.SetDefaultProperties()
         demog.generate_file(out_filename)
@@ -432,7 +432,7 @@ class DemogTest(unittest.TestCase):
         csv_df['loc'] = locations
         # self.assertFalse(any([name != "Seattle" for name in csv_df['loc']]))
         csv_df.to_csv("demographics_places_from_csv.csv")
-        demog = Demographics.from_csv("demographics_places_from_csv.csv", res=2/3600)
+        demog = Demographics.from_node_csv("demographics_places_from_csv.csv", res=2/3600)
         nodes = demog.nodes
         for index, node in enumerate(nodes):
             self.assertEqual(node.name, locations[index], msg=f"Bad node found: {node} on line {index+2}")
@@ -448,14 +448,14 @@ class DemogTest(unittest.TestCase):
         # We set the resolution too coarse for the data, so we should have a duplicate node_id (generated by
         # lat/lon/resolution values)
         self.assertRaises(DemographicsBase.DuplicateNodeIdException,
-                          Demographics.from_csv, input_file, res=25 / 3600, id_ref=id_ref)
+                          Demographics.from_node_csv, input_file, res=25 / 3600, id_ref=id_ref)
 
     def test_from_csv_2(self):
         out_filename = os.path.join(self.out_folder, "demographics_from_csv_2.json")
         manifest.delete_existing_file(out_filename)
 
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'nodes.csv')
-        demog = Demographics.from_csv(input_file, res=25 / 3600)
+        demog = Demographics.from_node_csv(input_file, res=25 / 3600)
         demog.SetDefaultProperties()
         demog.generate_file(out_filename)
         sorted_nodes = Demographics.get_node_ids_from_file(out_filename)
@@ -497,14 +497,14 @@ class DemogTest(unittest.TestCase):
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'demog_in_faulty.csv')
 
         with self.assertRaises(ValueError):
-            Demographics.from_csv(input_file, res=25 / 3600)
+            Demographics.from_node_csv(input_file, res=25 / 3600)
 
     def test_from_pop_raster_csv(self):
         out_filename = os.path.join(self.out_folder, "demographics_from_pop_raster_csv.json")
         manifest.delete_existing_file(out_filename)
 
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'nodes.csv')
-        demog = Demographics.from_pop_raster_csv(input_file)
+        demog = Demographics.from_raster_csv(input_file)
 
         demog.SetDefaultProperties()
         demog.generate_file(out_filename)
@@ -536,7 +536,7 @@ class DemogTest(unittest.TestCase):
 
     def test_from_csv_birthrate(self):
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'nodes_with_birthrate.csv')
-        demog = Demographics.from_csv(input_file)
+        demog = Demographics.from_node_csv(input_file)
         data = pd.read_csv(input_file)
         node_ids = list(data["node_id"])
         for node_id in node_ids:
@@ -545,7 +545,7 @@ class DemogTest(unittest.TestCase):
 
         bad_input = os.path.join(manifest.current_directory, 'data', 'demographics', 'bad_nodes_with_birthrate.csv')
         with self.assertRaises(ValueError):
-            Demographics.from_csv(bad_input)
+            Demographics.from_node_csv(bad_input)
 
     # now verify that if there is a duplicate node_id in the csv file we catch it.
     def test_from_csv_birthrate_duplicate_node_id(self):
@@ -553,7 +553,7 @@ class DemogTest(unittest.TestCase):
 
         input_file = os.path.join(manifest.current_directory,
                                   'data', 'demographics', 'nodes_with_birthrate_duplicate_node_id.csv')
-        self.assertRaises(DemographicsBase.DuplicateNodeIdException, Demographics.from_csv, input_file=input_file)
+        self.assertRaises(DemographicsBase.DuplicateNodeIdException, Demographics.from_node_csv, input_file=input_file)
 
     # now verify that if there is a duplicate node_name in the csv file we catch it.
     def test_from_csv_birthrate_duplicate_node_name(self):
@@ -561,7 +561,7 @@ class DemogTest(unittest.TestCase):
 
         input_file = os.path.join(manifest.current_directory,
                                   'data', 'demographics', 'nodes_with_birthrate_duplicate_node_name.csv')
-        self.assertRaises(DemographicsBase.DuplicateNodeNameException, Demographics.from_csv, input_file=input_file)
+        self.assertRaises(DemographicsBase.DuplicateNodeNameException, Demographics.from_node_csv, input_file=input_file)
 
     def test_from_params(self):
         out_filename = os.path.join(self.out_folder, "demographics_from_params.json")
@@ -667,7 +667,7 @@ class DemogTest(unittest.TestCase):
                 'lat': [21, 22, 23, 24]}
         csv_file = pathlib.Path("test_overlay_population.csv")
         pd.DataFrame.from_dict(temp).to_csv(csv_file)
-        demo = Demographics.from_csv(csv_file)
+        demo = Demographics.from_node_csv(csv_file)
 
         airport_dont_override = 123
         demo.nodes[1].node_attributes.airport = airport_dont_override  # Change one item, it should not change after override
@@ -731,7 +731,7 @@ class DemogTest(unittest.TestCase):
                 'lat': [21, 22, 23, 24]}
         csv_file = pathlib.Path("test_overlay_population.csv")
         pd.DataFrame.from_dict(temp).to_csv(csv_file)
-        demo = Demographics.from_csv(csv_file)
+        demo = Demographics.from_node_csv(csv_file)
         csv_file.unlink()
 
         overlay_nodes = []  # list of all overlay nodes
@@ -770,7 +770,7 @@ class DemogTest(unittest.TestCase):
                 'lat': [21, 22, 23]}
         csv_file = pathlib.Path("test_overlay_population.csv")
         pd.DataFrame.from_dict(temp).to_csv(csv_file)
-        demo = Demographics.from_csv(csv_file)
+        demo = Demographics.from_node_csv(csv_file)
         csv_file.unlink()
 
         initial_distribution = [0.1, 0.3, 0.6]
@@ -816,7 +816,7 @@ class DemogTest(unittest.TestCase):
                 'lat': [21, 22, 23]}
         csv_file = pathlib.Path("test_overlay_population.csv")
         pd.DataFrame.from_dict(temp).to_csv(csv_file)
-        demo = Demographics.from_csv(csv_file)
+        demo = Demographics.from_node_csv(csv_file)
         csv_file.unlink()
 
         initial_distribution = [0, 0.3, 0.7]
@@ -855,7 +855,7 @@ class DemogTest(unittest.TestCase):
                 'lat': [21, 22, 23]}
         csv_file = pathlib.Path("test_overlay_population.csv")
         pd.DataFrame.from_dict(temp).to_csv(csv_file)
-        demo = Demographics.from_csv(csv_file)
+        demo = Demographics.from_node_csv(csv_file)
         csv_file.unlink()
 
         node = demo.nodes[0]
@@ -884,7 +884,7 @@ class DemogTest(unittest.TestCase):
         node_attributes_2 = NodeAttributes(name="test_demo2")
         nodes = [Node.Node(1, 0, 1001, node_attributes=node_attributes_1, forced_id=1),
                  Node.Node(0, 1, 1002, node_attributes=node_attributes_2, forced_id=2)]
-        demog = Demographics.Demographics(nodes=nodes)
+        demog = Demographics(nodes=nodes)
         demog.SetDefaultProperties()
 
         overlay_nodes = []
@@ -935,7 +935,7 @@ class DemogTest(unittest.TestCase):
                                                                  age_distribution2=3650)
         nodes = [Node.Node(0, 0, 0, individual_attributes=individual_attributes_1, forced_id=1),
                  Node.Node(0, 0, 0, individual_attributes=individual_attributes_2, forced_id=2)]
-        demog = Demographics.Demographics(nodes=nodes)
+        demog = Demographics(nodes=nodes)
         demog.SetDefaultProperties()
 
         overlay_nodes = []
@@ -972,7 +972,7 @@ class DemogTest(unittest.TestCase):
 
         nodes = [Node.Node(0, 0, 0, individual_attributes=individual_attributes_1, forced_id=1),
                  Node.Node(0, 0, 0, individual_attributes=individual_attributes_2, forced_id=2)]
-        demog = Demographics.Demographics(nodes=nodes)
+        demog = Demographics(nodes=nodes)
 
         overlay_nodes = []
         mortality_dist_f_new = MortalityDistribution(result_values=[[111], [222]])
@@ -1123,7 +1123,7 @@ class DemogTest(unittest.TestCase):
 
     def test_mortality_rate_with_node_ids(self):
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'nodes.csv')
-        demog = Demographics.from_csv(input_file)
+        demog = Demographics.from_node_csv(input_file)
         mortality_rate = 0.1234 # CrudeRate
         node_ids = [97, 99]
         demog.SetMortalityRate(mortality_rate, node_ids)
@@ -1480,7 +1480,7 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
         # Should be able to do all the basic steps without raising any error.
         
         input_file = os.path.join( manifest.demo_folder, 'nodes.csv')  
-        demog = Demographics.from_pop_raster_csv(input_file)
+        demog = Demographics.from_raster_csv(input_file)
         demog.SetDefaultProperties()
         demog.SetMortalityOverTimeFromData(base_year=1991, data_csv=manifest.mortality_data_age_year_csv)
         
@@ -1503,7 +1503,7 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
         manifest.delete_existing_file(out_filename)
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'nodes.csv')
         
-        demog = Demographics.from_pop_raster_csv(input_file)    # BUG 548: "from_pop_raster_csv"  generates only 1  Geo Node
+        demog = Demographics.from_raster_csv(input_file)    # BUG 548: "from_pop_raster_csv"  generates only 1  Geo Node
         geo_nodes = []
         for i in range(0, len(demog.to_dict()['Nodes'])):
             geo_nodes.append(demog.to_dict()['Nodes'][i]['NodeID'])  
@@ -1528,7 +1528,7 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
         
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'demog_in_subset.csv')
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref=id_ref)
+        demog = Demographics.from_node_csv(input_file, res=25/3600, id_ref=id_ref)
         
         demog.SetDefaultProperties()
         demog.generate_file(out_filename)
@@ -1551,7 +1551,7 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
         manifest.delete_existing_file(out_filename)
         manifest.delete_existing_file(out_updated_filename)
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'demog_in_subset.csv')
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref="from_csv_test")
+        demog = Demographics.from_node_csv(input_file, res=25/3600, id_ref="from_csv_test")
         
         demog.SetDefaultProperties()
         demog.generate_file(out_filename)
@@ -1586,7 +1586,7 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
         
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'demog_in_subset.csv')
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref=id_ref)
+        demog = Demographics.from_node_csv(input_file, res=25/3600, id_ref=id_ref)
         demog.generate_file(out_filename)
         
         demog.SetMortalityOverTimeFromData(base_year=1950, data_csv=manifest.mortality_data_age_year_csv) 
@@ -1608,7 +1608,7 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
         manifest.delete_existing_file(out_updated_filename)
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'demog_in_subset.csv')
 
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref="from_test_csv")
+        demog = Demographics.from_node_csv(input_file, res=25/3600, id_ref="from_test_csv")
         demog.generate_file(out_filename)
         demog.SetMortalityOverTimeFromData(base_year=1951, data_csv=manifest.mortality_data_age_year_csv, node_ids=[1838427584, 1829187024, 1835806165]) 
         demog.generate_file(out_updated_filename)
@@ -1637,7 +1637,7 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
 
         manifest.delete_existing_file(out_filename)
         manifest.delete_existing_file(out_updated_filename)
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref="from_csv_test")
+        demog = Demographics.from_node_csv(input_file, res=25/3600, id_ref="from_csv_test")
         demog.generate_file(out_filename)
         
         list_of_all_node_ids = []
@@ -1713,7 +1713,7 @@ class DemographicsComprehensiveTests_Fertility(unittest.TestCase):
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'demog_in_subset.csv')
         out_updated_filename = out_filename.replace('_demographics_from_csv', '_updated_demographics_from_csv')
 
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref="from_csv_test")
+        demog = Demographics.from_node_csv(input_file, res=25/3600, id_ref="from_csv_test")
         demog.generate_file(out_filename)
         
         list_of_all_node_ids = []
@@ -1747,7 +1747,7 @@ class DemographicsComprehensiveTests_Fertility(unittest.TestCase):
 
         manifest.delete_existing_file(out_filename)
         manifest.delete_existing_file(out_updated_filename)
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref="from_csv_test")
+        demog = Demographics.from_node_csv(input_file, res=25/3600, id_ref="from_csv_test")
         demog.generate_file(out_filename)
         
         list_of_all_node_ids = []
@@ -2017,7 +2017,7 @@ class DemographicsComprehensiveTests_Migration(unittest.TestCase):
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'demog_in_subset.csv')
         manifest.delete_existing_file(out_filename)
 
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref="from_csv_test")
+        demog = Demographics.from_node_csv(input_file, res=25/3600, id_ref="from_csv_test")
         demog.generate_file(out_filename)
         
         list_of_all_node_ids = []
@@ -2050,7 +2050,7 @@ class DemographicsComprehensiveTests_Migration(unittest.TestCase):
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'demog_in_subset.csv')
         manifest.delete_existing_file(out_filename)
 
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref="from_csv_test")
+        demog = Demographics.from_node_csv(input_file, res=25/3600, id_ref="from_csv_test")
         demog.generate_file(out_filename)
         
         list_of_all_node_ids = []
@@ -2080,7 +2080,7 @@ class DemographicsComprehensiveTests_Migration(unittest.TestCase):
 
         # Case 1 - no arguments
         with self.assertRaises(Exception):
-            demog = Demographics.from_csv(input_file, res=25/3600, id_ref="from_csv_test")
+            demog = Demographics.from_node_csv(input_file, res=25/3600, id_ref="from_csv_test")
             demog.SetOneWayMigration()
 
         # Case 2: valid rates_path file name, invalid contents
@@ -2092,7 +2092,7 @@ class DemographicsComprehensiveTests_Migration(unittest.TestCase):
             writer = csv.writer(f)
             writer.writerow("x")  # Invalid data will be passed to the SetOneWayMigration function therefore it should raise an exception.
             f.close()
-            demog = Demographics.from_csv(input_file, res=25/3600, id_ref="from_csv_test")
+            demog = Demographics.from_node_csv(input_file, res=25/3600, id_ref="from_csv_test")
             demog.SetOneWayMigration(rates_path = fname)
 
     def test_01_OneWayMigration_onenode(self):
@@ -2112,7 +2112,7 @@ class DemographicsComprehensiveTests_Migration(unittest.TestCase):
             rf.writelines(lines)
             rf.close()
 
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref="from_csv_test")
+        demog = Demographics.from_node_csv(input_file, res=25/3600, id_ref="from_csv_test")
         demog.SetOneWayMigration(rates_path = rates_file)
 
     def test_02_OneWayMigration_manynodes(self):
@@ -2129,7 +2129,7 @@ class DemographicsComprehensiveTests_Migration(unittest.TestCase):
         bin_file_contents = os.path.join(self.out_folder, self._testMethodName + "_generated_bin_file_unpacked.csv")
 
         # Demographics object
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref="from_csv_test")
+        demog = Demographics.from_node_csv(input_file, res=25/3600, id_ref="from_csv_test")
         list_of_all_node_ids = []
         for i in range(0, len(demog.to_dict()['Nodes'])): list_of_all_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
         if os.path.isfile(rates_file): os.remove(rates_file)
@@ -2212,7 +2212,7 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'demog_in_subset.csv')
         
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref=id_ref)
+        demog = Demographics.from_node_csv(input_file, res=25/3600, id_ref=id_ref)
         demog.generate_file(out_filename)
 
         demog.SetSimpleVitalDynamics()   # function invoke
@@ -2232,7 +2232,7 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'demog_in_subset.csv')
         
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref=id_ref)
+        demog = Demographics.from_node_csv(input_file, res=25/3600, id_ref=id_ref)
         list_of_node_ids = []
         for i in range(0, 3): list_of_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
 
@@ -2257,7 +2257,7 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'demog_in_subset.csv')
         
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref=id_ref)
+        demog = Demographics.from_node_csv(input_file, res=25/3600, id_ref=id_ref)
         list_of_node_ids = []
         for i in range(0, 3): list_of_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
 
@@ -2284,7 +2284,7 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'demog_in_subset.csv')
         
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref=id_ref)
+        demog = Demographics.from_node_csv(input_file, res=25/3600, id_ref=id_ref)
         list_of_node_ids = []
         for i in range(0, 3): list_of_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
         demog.generate_file(out_filename)
@@ -2351,7 +2351,7 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'demog_in_subset.csv')
         
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref=id_ref)
+        demog = Demographics.from_node_csv(input_file, res=25/3600, id_ref=id_ref)
         demog.generate_file(out_filename)
 
         demog.SetEquilibriumVitalDynamics()   # function under test
@@ -2371,7 +2371,7 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'demog_in_subset.csv')
         
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref=id_ref)
+        demog = Demographics.from_node_csv(input_file, res=25/3600, id_ref=id_ref)
         list_of_node_ids = []
         for i in range(0, 3): list_of_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
 
@@ -2396,7 +2396,7 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'demog_in_subset.csv')
         
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref=id_ref)
+        demog = Demographics.from_node_csv(input_file, res=25/3600, id_ref=id_ref)
         list_of_node_ids = []
         for i in range(0, 3): list_of_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
 
@@ -2425,7 +2425,7 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'demog_in_subset.csv')
         
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref=id_ref)
+        demog = Demographics.from_node_csv(input_file, res=25/3600, id_ref=id_ref)
         demog.generate_file(out_filename)
 
         demog.SetEquilibriumVitalDynamics(crude_birth_rate=DT.CrudeRate(50))   # First call 
@@ -2453,7 +2453,7 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'demog_in_subset.csv')
         
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref=id_ref)
+        demog = Demographics.from_node_csv(input_file, res=25/3600, id_ref=id_ref)
         list_of_node_ids = []
         for i in range(0, 3): list_of_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
         demog.generate_file(out_filename)
@@ -2491,7 +2491,7 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
         
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.current_directory, 'data', 'demographics', 'demog_some_nodes.csv')
-        demog = Demographics.from_csv(input_file, res=35/3600, id_ref=id_ref)
+        demog = Demographics.from_node_csv(input_file, res=35/3600, id_ref=id_ref)
         demog.generate_file(out_filename)
         
         demog.SetEquilibriumVitalDynamicsFromWorldBank(wb_births_df=_wb_births_df, country=_country, year=_year)  # FUT
@@ -2551,7 +2551,3 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
     
 if __name__ == '__main__':
     unittest.main()
-
-
-
-

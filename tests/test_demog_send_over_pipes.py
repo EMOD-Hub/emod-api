@@ -1,19 +1,10 @@
 import os, sys
 import json
 import unittest
-import emod_api.demographics.Demographics as Demog
-import emod_api.demographics.Node as Node
-import emod_api.demographics.DemographicsTemplates as DT
-# import manifest 
-from datetime import date
-import pandas as pd
-import numpy as np
-from emod_api.demographics.PropertiesAndAttributes import IndividualAttributes, IndividualProperty, IndividualProperties, NodeAttributes
+from emod_api.demographics.demographics import Demographics
 import emod_api.demographics.PreDefinedDistributions as Distributions
 import tempfile
-from multiprocessing import Process, Pipe
 import copy
-import platform
 thisplatform = sys.platform
 
 class DemographicsTestMisc(unittest.TestCase):
@@ -30,7 +21,7 @@ class DemographicsTestMisc(unittest.TestCase):
         print ('called once before any tests in class')
         # Large demographics object.
         print( "Creating big complex demographics." )
-        cls.large_demog =Demog.from_params(tot_pop=10000000, num_nodes=10000)
+        cls.large_demog =Demographics.from_params(tot_pop=10000000, num_nodes=10000)
         age_distribution = Distributions.AgeDistribution_SEAsia 
         mort_distribution = Distributions.SEAsia_Diag
         for node_id in range(10000):
@@ -58,7 +49,7 @@ class DemographicsTestMisc(unittest.TestCase):
         # Creating short demog file.  
         print(f"Creating demographic expected object for {self._testMethodName}")
         short_expected_demog = ""
-        short_expected_demog =Demog.from_params(tot_pop=10000000, num_nodes=444)
+        short_expected_demog =Demographics.from_params(tot_pop=10000000, num_nodes=444)
         
         # short Expected dictionary
         self.short_expected = short_expected_demog.to_dict()
@@ -131,7 +122,7 @@ class DemographicsTestMisc(unittest.TestCase):
             # print(">--<"*10)
             # print(expected)
             #self.maxDiff = None
-            self.assertDictEqual(expected, actual, "\n Demog.send() - using pipes - FAILED - Demographic dict objects are different")
+            self.assertDictEqual(expected, actual, "\n Demographics.send() - using pipes - FAILED - Demographic dict objects are different")
             
         elif processid == 0:
             print("Child process id:", processid)  # Should be zero
@@ -182,7 +173,7 @@ class DemographicsTestMisc(unittest.TestCase):
             # print(expected)
 
             # VALIDATION:
-            self.assertDictEqual(expected, actual, "\n Demog.send() - using Named Pipes (os.mkfifo) - FAILED - Demographic dict objects are different")
+            self.assertDictEqual(expected, actual, "\n Demographics.send() - using Named Pipes (os.mkfifo) - FAILED - Demographic dict objects are different")
             print("\tDone with validation...")
             fifo_reader.close()
             print("Parent (reader) closing")

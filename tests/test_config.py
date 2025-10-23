@@ -5,7 +5,11 @@ import json
 from emod_api.config import default_from_schema_no_validation as dfs
 from emod_api.config import from_overrides
 import emod_api.schema_to_class as s2c
-import manifest
+
+try:
+    import manifest  # works for jenkins
+except ImportError:
+    from . import manifest  # works for local running
 
 
 def delete_existing_file(file):

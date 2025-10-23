@@ -13,7 +13,7 @@ import csv
 
 # for from_params()
 import scipy.spatial.distance as spspd
-from emod_api.demographics import Demographics as Demog
+from emod_api.demographics.demographics import Demographics
 
 # for from_demog_and_param_gravity()
 from geographiclib.geodesic import Geodesic
@@ -694,7 +694,7 @@ def from_params(demographics_file_path=None,
     nlocs[8 * num_nodes:9 * num_nodes, :] += [0.5, -0.86603]
     distgrid = spspd.squareform(spspd.pdist(nlocs))
     nborlist = np.argsort(distgrid, axis=1)
-    npops = Demog.get_node_pops_from_params(pop, num_nodes, frac_rural)
+    npops = Demographics.get_node_pops_from_params(pop, num_nodes, frac_rural)
 
     migration = Migration()
     migration.IdReference = id_ref
@@ -718,7 +718,7 @@ def from_params(demographics_file_path=None,
 
 
 def from_demog_and_param_gravity(demographics_file_path, gravity_params, id_ref, migration_type=Migration.LOCAL):
-    demog = Demog.from_file(demographics_file_path)
+    demog = Demographics.from_file(demographics_file_path)
     return _from_demog_and_param_gravity(demog, gravity_params, id_ref, migration_type)
 
 

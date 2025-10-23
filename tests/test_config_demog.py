@@ -1,10 +1,13 @@
 import unittest
-import emod_api.demographics.Demographics as Demographics
-import json
+from emod_api.demographics.demographics import Demographics
 import emod_api.demographics.PreDefinedDistributions as Distributions
 
 from emod_api.config import default_from_schema_no_validation as dfs
-import manifest
+
+try:
+    import manifest  # works for jenkins
+except ImportError:
+    from . import manifest  # works for local running
 
 class DemoConfigTest(unittest.TestCase):
     def setUp(self) -> None:

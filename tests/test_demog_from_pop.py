@@ -1,5 +1,5 @@
 import sys
-import emod_api.demographics.Demographics as Dem
+from emod_api.demographics.demographics import Demographics
 import os
 import unittest
 import pandas as pd
@@ -9,7 +9,10 @@ import numpy as np
 from datetime import date
 import getpass
 
-import manifest
+try:
+    import manifest  # works for jenkins
+except ImportError:
+    from . import manifest  # works for local running
 
 data_directory = os.path.join(manifest.current_directory, 'data')
 demo_folder = os.path.join(data_directory, 'demographics')
@@ -63,7 +66,7 @@ class DemogFromPop(unittest.TestCase):
         # Leaving a berth of 10 for rounding, may need to check later
         self.assertTrue(abs(grid_pop['pop'].sum() - inputdata['pop'].sum()) < 10)
 
-        demog = Dem.from_pop_raster_csv(input_path, pop_filename_out=os.path.join(data_directory, "spatial_gridded_pop_dir"))
+        demog = Demographics.from_raster_csv(input_path, pop_filename_out=os.path.join(data_directory, "spatial_gridded_pop_dir"))
         self.assertTrue(os.path.isfile(self.no_site_grid_csv_filename), msg=f"No_Site_grid.csv is not generated.")
 
 

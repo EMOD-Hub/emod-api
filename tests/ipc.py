@@ -72,7 +72,7 @@ def send_over_named_pipe2():
         json.dump( json.loads(data), json_file )
 
 def send_demog_over_named_pipe2( number=1 ):
-    import emod_api.demographics.Demographics as Demog
+    import emod_api.demographics.demographics as Demog
     import emod_api.demographics.PreDefinedDistributions as Distributions
 
     print( "Creating big complex demographics." )
@@ -109,7 +109,7 @@ def send_demog_over_named_pipe2( number=1 ):
 
 def send_demog_over_named_pipe():
     # Archive, ignore
-    import emod_api.demographics.Demographics as Demog
+    import emod_api.demographics.demographics as Demog
     import emod_api.demographics.PreDefinedDistributions as Distributions
 
     import tempfile

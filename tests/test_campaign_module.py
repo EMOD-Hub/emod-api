@@ -6,7 +6,10 @@ from emod_api import schema_to_class as s2c
 
 current_directory = os.path.dirname(os.path.realpath(__file__))
 
-import manifest
+try:
+    import manifest  # works for jenkins
+except ImportError:
+    from . import manifest  # works for local running
 
 
 def generate_sample_campaign_event(my_campaign, schema_path):

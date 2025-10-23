@@ -21,7 +21,6 @@ from emod_api.demographics.Node import Node
 from emod_api.demographics.age_distribution_old import AgeDistributionOld as AgeDistribution
 from emod_api.demographics.demographic_exceptions import InvalidNodeIdException
 from emod_api.demographics.mortality_distribution_old import MortalityDistributionOld as MortalityDistribution
-from emod_api.migration import migration
 
 
 class DemographicsBase(BaseInputFile):
@@ -428,6 +427,8 @@ class DemographicsBase(BaseInputFile):
             id_ref: Text string that appears in the migration file itself; needs to match corresponding demographics
                 file.
         """
+        from emod_api.migration import migration
+
         if gravity_factor < 0:
             raise ValueError("gravity factor can't be negative.")
 
@@ -461,6 +462,7 @@ class DemographicsBase(BaseInputFile):
             id_ref: Text string that appears in the migration file itself; needs to match corresponding demographics
                 file.
         """
+        from emod_api.migration import migration
 
         mig = migration.from_csv(pathlib.Path(rates_path), id_ref=id_ref, mig_type=migration.Migration.REGIONAL)
         migration_file_path = tempfile.NamedTemporaryFile().name + ".bin"

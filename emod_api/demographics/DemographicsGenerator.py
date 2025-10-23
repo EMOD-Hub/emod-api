@@ -10,7 +10,7 @@ from emod_api.dtk_tools.demographics.DemographicsGeneratorConcern import (
     DemographicsGeneratorConcernChain,
 )
 from emod_api.demographics.Node import Node, nodeid_from_lat_lon
-from emod_api.demographics.Demographics import Demographics
+from emod_api.demographics.demographics import Demographics
 from emod_api.dtk_tools.support.General import init_logging
 
 logger = init_logging("DemographicsGenerator")
