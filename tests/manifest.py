@@ -18,6 +18,10 @@ campaign_folder = os.path.join(current_directory, 'data', 'campaign')
 if not os.path.isdir(campaign_folder):
     os.mkdir(campaign_folder)
 
+migration_folder = os.path.join(current_directory, 'data', 'migration')
+if not os.path.isdir(migration_folder):
+    os.mkdir(migration_folder)
+
 
 def delete_existing_file(file):
     if os.path.isfile(file):
