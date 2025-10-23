@@ -1,7 +1,8 @@
 import unittest
 
-from emod_api.demographics.demographic_exceptions import *
 from emod_api.demographics.mortality_distribution import MortalityDistribution
+
+import emod_api.demographics.demographic_exceptions as demog_ex
 
 
 class TestMortalityDistribution(unittest.TestCase):
@@ -60,47 +61,47 @@ class TestMortalityDistribution(unittest.TestCase):
 
     def test_constructor_validation_age_dimension_of_data(self):
         ages = [0, 10, 20, 50]  # no longer matches self.rates dimensionality
-        self.assertRaises(InvalidDataDimensionDim0Exception,
+        self.assertRaises(demog_ex.InvalidDataDimensionDim0Exception,
                           MortalityDistribution,
                           ages_years=ages, calendar_years=self.explicit_times, mortality_rate_matrix=self.rates)
 
     def test_constructor_validation_time_dimension_of_data(self):
         times = [1950, 1970]  # no longer matches self.rates dimensionality
-        self.assertRaises(InvalidDataDimensionDim1Exception,
+        self.assertRaises(demog_ex.InvalidDataDimensionDim1Exception,
                           MortalityDistribution,
                           ages_years=self.ages, calendar_years=times, mortality_rate_matrix=self.rates)
 
     def test_constructor_validation_age_range(self):
         ages = [-1, 10, 20, 50, 100]  # invalid age, -1 year
-        self.assertRaises(AgeOutOfRangeException,
+        self.assertRaises(demog_ex.AgeOutOfRangeException,
                           MortalityDistribution,
                           ages_years=ages, calendar_years=self.explicit_times, mortality_rate_matrix=self.rates)
 
         ages = [0, 10, 20, 50, 2000]  # invalid age, 2000 years
-        self.assertRaises(AgeOutOfRangeException,
+        self.assertRaises(demog_ex.AgeOutOfRangeException,
                           MortalityDistribution,
                           ages_years=ages, calendar_years=self.explicit_times, mortality_rate_matrix=self.rates)
 
     def test_constructor_validation_time_range(self):
         times = [1, 1970, 1990]  # invalid calendar year, 1
-        self.assertRaises(TimeOutOfRangeException,
+        self.assertRaises(demog_ex.TimeOutOfRangeException,
                           MortalityDistribution,
                           ages_years=self.ages, calendar_years=times, mortality_rate_matrix=self.rates)
 
         times = [1, 1970, 3000]  # invalid calendar year, 3000
-        self.assertRaises(TimeOutOfRangeException,
+        self.assertRaises(demog_ex.TimeOutOfRangeException,
                           MortalityDistribution,
                           ages_years=self.ages, calendar_years=times, mortality_rate_matrix=self.rates)
 
     def test_constructor_validation_age_ascending(self):
         ages = [0, 10, 50, 20, 100]  # non-monotonically-increasing age
-        self.assertRaises(NonMonotonicAgeException,
+        self.assertRaises(demog_ex.NonMonotonicAgeException,
                           MortalityDistribution,
                           ages_years=ages, calendar_years=self.explicit_times, mortality_rate_matrix=self.rates)
 
     def test_constructor_validation_time_ascending(self):
         times = [1950, 1990, 1970]  # non-monotonically-increasing time/calendar year
-        self.assertRaises(NonMonotonicTimeException,
+        self.assertRaises(demog_ex.NonMonotonicTimeException,
                           MortalityDistribution,
                           ages_years=self.ages, calendar_years=times, mortality_rate_matrix=self.rates)
 
@@ -109,65 +110,65 @@ class TestMortalityDistribution(unittest.TestCase):
 
     def test_from_dict_validation_invalid_axis_names(self):
         self.mortality_dict['AxisNames'] = ['not', 'valid']
-        self.assertRaises(InvalidFixedValueException,
+        self.assertRaises(demog_ex.InvalidFixedValueException,
                           MortalityDistribution.from_dict, distribution_dict=self.mortality_dict)
 
     def test_from_dict_validation_invalid_axis_scale_factors(self):
         self.mortality_dict['AxisScaleFactors'] = [-1, -1]
-        self.assertRaises(InvalidFixedValueException,
+        self.assertRaises(demog_ex.InvalidFixedValueException,
                           MortalityDistribution.from_dict, distribution_dict=self.mortality_dict)
 
     def test_from_dict_validation_invalid_result_scale_factor(self):
         self.mortality_dict['ResultScaleFactor'] = 12345.6789
-        self.assertRaises(InvalidFixedValueException,
+        self.assertRaises(demog_ex.InvalidFixedValueException,
                           MortalityDistribution.from_dict, distribution_dict=self.mortality_dict)
 
     def test_from_dict_validation_invalid_result_units(self):
         self.mortality_dict['ResultUnits'] = 'This is a test of the emergency broadcast system. This is only a test.'
-        self.assertRaises(InvalidFixedValueException,
+        self.assertRaises(demog_ex.InvalidFixedValueException,
                           MortalityDistribution.from_dict, distribution_dict=self.mortality_dict)
 
     def test_from_dict_invalid_population_group_length(self):
         self.mortality_dict['PopulationGroups'] = [1, 2, 3, 4, 5, 6, 8, 9, 10]
-        self.assertRaises(InvalidPopulationGroupLengthException,
+        self.assertRaises(demog_ex.InvalidPopulationGroupLengthException,
                           MortalityDistribution.from_dict, distribution_dict=self.mortality_dict)
 
     def test_from_dict_validation_age_dimension_of_data(self):
         self.mortality_dict['PopulationGroups'][0] = [0, 10, 20, 50]  # no longer matches mortality rate dimensionality
-        self.assertRaises(InvalidDataDimensionDim0Exception,
+        self.assertRaises(demog_ex.InvalidDataDimensionDim0Exception,
                           MortalityDistribution.from_dict, distribution_dict=self.mortality_dict)
 
     def test_from_dict_validation_time_dimension_of_data(self):
         self.mortality_dict['PopulationGroups'][1] = [1950, 1970]  # no longer matches mortality rate dimensionality
-        self.assertRaises(InvalidDataDimensionDim1Exception,
+        self.assertRaises(demog_ex.InvalidDataDimensionDim1Exception,
                           MortalityDistribution.from_dict, distribution_dict=self.mortality_dict)
 
     def test_from_dict_validation_age_range(self):
         self.mortality_dict['PopulationGroups'][0][0] = -1  # invalid age -1
-        self.assertRaises(AgeOutOfRangeException,
+        self.assertRaises(demog_ex.AgeOutOfRangeException,
                           MortalityDistribution.from_dict, distribution_dict=self.mortality_dict)
 
         self.mortality_dict['PopulationGroups'][0][0] = 123456789  # invalid age
-        self.assertRaises(AgeOutOfRangeException,
+        self.assertRaises(demog_ex.AgeOutOfRangeException,
                           MortalityDistribution.from_dict, distribution_dict=self.mortality_dict)
 
     def test_from_dict_validation_time_range(self):
         self.mortality_dict['PopulationGroups'][1][0] = 1  # invalid time, calendar year 1
-        self.assertRaises(TimeOutOfRangeException,
+        self.assertRaises(demog_ex.TimeOutOfRangeException,
                           MortalityDistribution.from_dict, distribution_dict=self.mortality_dict)
 
         self.mortality_dict['PopulationGroups'][1][-1] = 3000  # invalid time, calendar year 3000
-        self.assertRaises(TimeOutOfRangeException,
+        self.assertRaises(demog_ex.TimeOutOfRangeException,
                           MortalityDistribution.from_dict, distribution_dict=self.mortality_dict)
 
     def test_from_dict_validation_age_ascending(self):
         self.mortality_dict['PopulationGroups'][0][-1] = 1  # not ascending now
-        self.assertRaises(NonMonotonicAgeException,
+        self.assertRaises(demog_ex.NonMonotonicAgeException,
                           MortalityDistribution.from_dict, distribution_dict=self.mortality_dict)
 
     def test_from_dict_validation_time_ascending(self):
         self.mortality_dict['PopulationGroups'][1][-1] = 1910  # not ascending now
-        self.assertRaises(NonMonotonicTimeException,
+        self.assertRaises(demog_ex.NonMonotonicTimeException,
                           MortalityDistribution.from_dict, distribution_dict=self.mortality_dict)
 
     def test_from_dict_and_to_dict_are_inverses(self):
@@ -179,7 +180,7 @@ class TestMortalityDistribution(unittest.TestCase):
         # This test is ONLY valid via building from the constructor directly, as from_dict() should never allow
         # a 1-d rate matrix, because the json/dict structure DOES NOT support 1d data for mortality.
         self.assertRaises(
-            InvalidDataDimensionality,
+            demog_ex.InvalidDataDimensionality,
             MortalityDistribution,
             ages_years=self.ages,
             calendar_years=self.explicit_times,
@@ -189,20 +190,16 @@ class TestMortalityDistribution(unittest.TestCase):
     def test_from_dict_validation_1d_rates_from_dict_should_fail(self):
         self.mortality_dict['ResultValues'] = [1, 2, 3]  # 1-d is never allowed in dict/json representation
         self.assertRaises(
-            InvalidDataDimensionality,
+            demog_ex.InvalidDataDimensionality,
             MortalityDistribution.from_dict,
             distribution_dict=self.mortality_dict
         )
 
     def test_from_dict_validation_0d_rates_should_fail(self):
         self.assertRaises(
-            InvalidDataDimensionality,
+            demog_ex.InvalidDataDimensionality,
             MortalityDistribution,
             ages_years=self.ages,
             calendar_years=self.explicit_times,
             mortality_rate_matrix=0.5  # 0-dimensional!
         )
-
-
-if __name__ == '__main__':
-    unittest.main()

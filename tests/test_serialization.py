@@ -82,7 +82,7 @@ class TestReadVersionOne(unittest.TestCase):
     @unittest.skipIf(support.SNAPPY_SUPPORT, "If Snappy support, test should not raise a UserWarning")
     def test_reading_compressed_file_exception(self):
         with self.assertRaises(UserWarning):
-            dtk = dft.read(os.path.join(manifest.serialization_folder, "version1.dtk"))
+            dft.read(os.path.join(manifest.serialization_folder, "version1.dtk"))
         return
 
     def test_round_trip(self):
@@ -1143,7 +1143,7 @@ class TestReadVersion5(TestReadVersionFour, TestReadWrite):
             }
         }
         header5 = dft.DtkFileV5().header
-        test_date = time.strptime(header5['date'])  # throws ValueError if date format is wrong
+        time.strptime(header5['date'])  # throws ValueError if date format is wrong
         del header5["date"]
         self.assertEqual(header5.version, 5)
         self.assertDictEqual(header5, reference_header5)

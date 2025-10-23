@@ -3,18 +3,12 @@ import sys
 import json
 import unittest
 import emod_api.demographics.Demographics as Demog
-import emod_api.demographics.Node as Node
-import emod_api.demographics.DemographicsTemplates as DT
-from datetime import date
-import pandas as pd
-import numpy as np
-from emod_api.demographics.PropertiesAndAttributes import IndividualAttributes, IndividualProperty, IndividualProperties, NodeAttributes
 import emod_api.demographics.PreDefinedDistributions as Distributions
 import tempfile
-from multiprocessing import Process, Pipe
 import copy
-import platform
+
 thisplatform = sys.platform
+
 
 class DemographicsTestMisc(unittest.TestCase):
     large_demog =""
@@ -161,11 +155,9 @@ class DemographicsTestMisc(unittest.TestCase):
 
         elif process_id==0:
             print("Child process id:", process_id)  # Should be zero
-            
             print ("\tChild writing")
             # tmpfile = named pipe.
-            mydemog.send(tmpfile, return_from_forked_sender=True)    #  calling the Feature Under Test 
+            mydemog.send(tmpfile, return_from_forked_sender=True)  #  calling the Feature Under Test
             sys.stdout.flush()
-            print ("Child (sender / writter) removing")
-            os.remove( tmpfile )
-
+            print("Child (sender / writter) removing")
+            os.remove(tmpfile)

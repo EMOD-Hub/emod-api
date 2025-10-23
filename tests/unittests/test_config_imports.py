@@ -1,5 +1,6 @@
 import unittest
 
+
 class EmodapiConfigImportTest(unittest.TestCase):
     def setUp(self) -> None:
         self.expected_items = None
@@ -33,4 +34,3 @@ class EmodapiConfigImportTest(unittest.TestCase):
         import emod_api.config.default_from_schema as eacdfs
         self.verify_expected_items_present(eacdfs)
         pass
-    

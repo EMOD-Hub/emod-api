@@ -1,5 +1,6 @@
 import unittest
 
+
 class EmodapiDemographicsImportTest(unittest.TestCase):
     def setUp(self) -> None:
         self.expected_items = None
@@ -74,5 +75,3 @@ class EmodapiDemographicsImportTest(unittest.TestCase):
         import emod_api.demographics.DemographicsTemplates as eaddt
         self.verify_expected_items_present(namespace=eaddt)
         pass
-
-    

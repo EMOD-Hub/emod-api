@@ -109,51 +109,43 @@ class IndividualPropertiesTest(unittest.TestCase):
                         msg=str(context.exception))
         with self.assertRaises(ValueError) as context:
             transmission_matrix1 = [[0.2, 0.4, 1.0], [0.2, 0.4, 1.0], [0.2, 0.4]]
-            IndividualProperty(property=property, values=[0, 23, 44, -1],
-                                                              transitions=transmission_matrix1)
+            IndividualProperty(property=property, values=[0, 23, 44, -1], transitions=transmission_matrix1)
         self.assertTrue("Transitions must be a list of dictionaries. Please see the documentation for correct"
                         in str(context.exception),
                         msg=str(context.exception))
         with self.assertRaises(IndividualProperties.DuplicateIndividualPropertyException) as context:
-            my_ip = IndividualProperty(property=property, values=values,
-                                                              initial_distribution=initial_distribution)
+            my_ip = IndividualProperty(property=property, values=values, initial_distribution=initial_distribution)
             self.ips.add(my_ip)
             self.ips.add(my_ip)
         self.assertTrue("Property Cat already present in IndividualProperties" in str(context.exception),
                         msg=str(context.exception))
         with self.assertRaises(ValueError) as context:
-            IndividualProperty(property="Age_Bin", values=values,
-                                                              initial_distribution=initial_distribution)
+            IndividualProperty(property="Age_Bin", values=values, initial_distribution=initial_distribution)
         self.assertTrue("For property 'Age_Bin' values must be a list of floats representing age bin edges in yea"
                         in str(context.exception),
                         msg=str(context.exception))
         with self.assertRaises(ValueError) as context:
-            IndividualProperty(property="Age_Bin", values=initial_distribution,
-                                                              initial_distribution=initial_distribution)
+            IndividualProperty(property="Age_Bin", values=initial_distribution, initial_distribution=initial_distribution)
         self.assertTrue("For property 'Age_Bin', first value must be 0 and last value must be -1" in str(context.exception),
                         msg=str(context.exception))
         with self.assertRaises(ValueError) as context:
-            IndividualProperty(property="Age_Bin", values=[0, 23, 44, 88],
-                                                              initial_distribution=initial_distribution)
+            IndividualProperty(property="Age_Bin", values=[0, 23, 44, 88], initial_distribution=initial_distribution)
         self.assertTrue("For property 'Age_Bin', first value must be 0 and last value must be -1" in str(context.exception),
                         msg=str(context.exception))
         with self.assertRaises(ValueError) as context:
-            IndividualProperty(property="Age_Bin", values=[0, 23, -1],
-                                                              transmission_matrix=transmission_matrix)
+            IndividualProperty(property="Age_Bin", values=[0, 23, -1], transmission_matrix=transmission_matrix)
         self.assertTrue("For property 'Age_Bin', transmission_matrix must match number of age buckets, which  is number"
                         in str(context.exception),
                         msg=str(context.exception))
         with self.assertRaises(ValueError) as context:
             IndividualProperty(property=property, values=["1", "2", "3"],
-                                                              transmission_matrix=transmission_matrix,
-                                                              transmission_route="Hello")
+                               transmission_matrix=transmission_matrix, transmission_route="Hello")
         self.assertTrue("Invalid transmission route: Hello. Valid routes are 'Contact' and 'Environmental'"
                         in str(context.exception),
                         msg=str(context.exception))
         with self.assertRaises(ValueError) as context:
             transmission_matrix1 = [[0.2, 0.4, 1.0], [0.2, 0.4, 1.0], [0.2, 0.4]]
-            IndividualProperty(property="Age_Bin", values=[0, 23, 44, -1],
-                                                              transmission_matrix=transmission_matrix1)
+            IndividualProperty(property="Age_Bin", values=[0, 23, 44, -1], transmission_matrix=transmission_matrix1)
         self.assertTrue("For property 'Age_Bin', each row of transmission_matrix must match number of age buckets"
                         in str(context.exception),
                         msg=str(context.exception))

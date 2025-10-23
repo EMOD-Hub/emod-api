@@ -1,10 +1,10 @@
 import unittest
 import emod_api.demographics.Demographics as Demographics
-import json
 import emod_api.demographics.PreDefinedDistributions as Distributions
 
 from emod_api.config import default_from_schema_no_validation as dfs
 import manifest
+
 
 class DemoConfigTest(unittest.TestCase):
     def setUp(self) -> None:
@@ -12,14 +12,12 @@ class DemoConfigTest(unittest.TestCase):
         self.reset_config()
 
     def get_config_as_object(self):
-        config_file = "default_config_test_config_demog.json"
         schema_name = manifest.generic_schema_path
         config_obj = dfs.get_default_config_from_schema(schema_name, as_rod=True)
         return config_obj
 
     def reset_config(self):
         self.config = self.get_config_as_object()
-
 
     # Tests that if overdispersion is set, Enable_Infection_Rate_Overdispersion is True
     def test_age_dependent_transmission_config(self):
@@ -28,7 +26,7 @@ class DemoConfigTest(unittest.TestCase):
             demog.SetDefaultProperties()
             if index:
                 demog.SetOverdispersion(0.75)
-            self.assertEqual(len(demog.implicits), 5+index)
+            self.assertEqual(len(demog.implicits), 5 + index)
             demog.implicits[-1](self.config)
             if not index:
                 self.assertEqual(self.config.parameters.Enable_Infection_Rate_Overdispersion, 0)
@@ -37,7 +35,7 @@ class DemoConfigTest(unittest.TestCase):
 
     def test_set_birth_rate_config(self):
         demog = Demographics.from_template_node()
-        self.config.parameters.Enable_Birth = 0 # since it is 1 by default
+        self.config.parameters.Enable_Birth = 0  # since it is 1 by default
         demog.SetBirthRate(0.7)
         self.assertEqual(len(demog.implicits), 2)
         demog.implicits[-1](self.config)

@@ -15,7 +15,7 @@ class NodeTest(unittest.TestCase):
         self.assertFalse(individual_properties)
 
     def test_individual_properties_length_1(self):
-        individual_property = IndividualProperty(property='deliciousness',initial_distribution=[0.1, 0.9], values=["a", "b"])
+        individual_property = IndividualProperty(property='deliciousness', initial_distribution=[0.1, 0.9], values=["a", "b"])
         individual_properties = IndividualProperties(individual_property)
 
         self.assertEqual(len(individual_properties), 1)

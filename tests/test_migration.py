@@ -1,5 +1,3 @@
-#! /usr/bin/env python3
-
 from collections import namedtuple
 from contextlib import contextmanager
 from datetime import datetime
@@ -12,7 +10,6 @@ from pathlib import Path
 from platform import system
 from tempfile import mkstemp
 import unittest
-from sys import platform
 from emod_api.migration.migration import Migration, from_file, from_params, from_demog_and_param_gravity, to_csv, examine_file, from_csv
 import pandas as pd
 import io
@@ -365,7 +362,7 @@ class MigrationTests(unittest.TestCase):
     def test_nodes_property(self):
         """Nodes property should return sorted list of all node IDs."""
         migration = self._three_square()
-        self.assertListEqual(migration.Nodes, list(range(1,10)))
+        self.assertListEqual(migration.Nodes, list(range(1, 10)))
         return
 
     def test_age_dependent_indexing_raises(self):
@@ -515,13 +512,12 @@ class MigrationTests(unittest.TestCase):
 
     def test_to_csv(self):
         filename = os.path.join(manifest.migration_folder, "Seattle_30arcsec_local_migration.bin")
-        output = os.path.join(manifest.output_folder, "seattle_csv.csv")
 
         f = io.StringIO()
         with redirect_stdout(f):
             to_csv(filename)
         out = f.getvalue()
-        
+
         data = io.StringIO(out)
         data_frame = pd.read_csv(data, sep=",")
         self.assertEqual(len(data_frame), 515)
@@ -534,13 +530,13 @@ class MigrationTests(unittest.TestCase):
         output = os.path.join(manifest.output_folder, "seattle_csv.csv")
 
         expected_output = ["Author:", "DatavalueCount:", "DateCreated:", "GenderDataType:", "IdReference:",
-                            "InterpolationType:", "MigrationType:", "NodeCount:","NodeOffsets:", "Tool:","Nodes:"]
+                           "InterpolationType:", "MigrationType:", "NodeCount:", "NodeOffsets:", "Tool:", "Nodes:"]
 
         f = io.StringIO()
         with redirect_stdout(f):
             examine_file(filename)
         output = f.getvalue()
-        
+
         for expected in expected_output:
             self.assertTrue(expected in output)
 
@@ -566,21 +562,21 @@ class MigrationTests(unittest.TestCase):
         # Create SIZExSIZE grid migration data
         SIZE = 5
         migration = Migration()
-        for source in range(0, SIZE*SIZE):
+        for source in range(0, SIZE * SIZE):
             source_x = source % SIZE
             source_y = source // SIZE
-            for destination in range(0, SIZE*SIZE):
+            for destination in range(0, SIZE * SIZE):
                 if destination == source:
                     continue
                 destination_x = destination % SIZE
                 destination_y = destination // SIZE
                 distance = abs(destination_x - source_x) + abs(destination_y - source_y)   # Manhattan distance
                 rate = 0.1 / distance
-                migration[source+1][destination+1] = rate   # IDs go from 1..(SIZE*SIZE)
+                migration[source + 1][destination + 1] = rate   # IDs go from 1..(SIZE*SIZE)
 
         # Ensure setup
         for node in migration.Nodes:
-            self.assertTrue(len(migration[node]) == (SIZE*SIZE-1))  # Nodes have no entry for self
+            self.assertTrue(len(migration[node]) == (SIZE * SIZE - 1))  # Nodes have no entry for self
 
         LIMIT = 3
         with self._temp_filename() as (filename, metafile):
@@ -709,12 +705,10 @@ class MigrationTests(unittest.TestCase):
 
         return
 
-
     # miscellaneous
     def test_from_params(self):
-
         migration = from_params(pop=1e6, num_nodes=80, mig_factor=1.0, frac_rural=0.2,
-                                   id_ref="from_params_test", migration_type=Migration.REGIONAL)
+                                id_ref="from_params_test", migration_type=Migration.REGIONAL)
         self.assertEqual(migration.NodeCount, 80)
         self.assertEqual(migration.DatavalueCount, 30)
         self.assertEqual(migration.IdReference, "from_params_test")
@@ -752,11 +746,11 @@ class MigrationTests(unittest.TestCase):
             return deg * (math.pi / 180)
 
         def verify_distance(migration_rate_list, node_locations):
-            for l in migration_rate_list[1:-1]:
-                l = l.split(',')
-                distance = 1 / float(l[-1])
-                src = int(l[0])
-                des = int(l[1])
+            for rate_val in migration_rate_list[1:-1]:
+                rate_val = rate_val.split(',')
+                distance = 1 / float(rate_val[-1])
+                src = int(rate_val[0])
+                des = int(rate_val[1])
                 lat1, lon1 = node_locations[src - 1]
                 lat2, lon2 = node_locations[des - 1]
                 calculated_distance = get_distance(lat1, lon1, lat2, lon2)

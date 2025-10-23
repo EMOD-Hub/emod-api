@@ -11,8 +11,6 @@ import pandas as pd
 import json
 import manifest
 
-WORKING_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
-
 
 class TestHeader(unittest.TestCase):
 
@@ -336,43 +334,34 @@ class TestChannels(unittest.TestCase):
 
     def test_asDataframe(self):
 
-        gotPandas = False
-        try:
-            import pandas as pd
+        chart = ChannelReport(os.path.join(manifest.reports_folder, "InsetChart.json"))
+        df = chart.as_dataframe()
 
-            gotPandas = True
-        except:
-            pass
+        self.assertEqual(len(df.columns), 16)
+        self.assertAlmostEqual(df.Infected[10], 0.000001222560626957, 16)
+        self.assertEqual(df["Statistical Population"][364], 7544187)
 
-        if gotPandas:
-            chart = ChannelReport(os.path.join(manifest.reports_folder, "InsetChart.json"))
-            df = chart.as_dataframe()
-
-            self.assertEqual(len(df.columns), 16)
-            self.assertAlmostEqual(df.Infected[10], 0.000001222560626957, 16)
-            self.assertEqual(df["Statistical Population"][364], 7544187)
-
-            self.assertSetEqual(
-                set(df.columns),
-                {
-                    "Births",
-                    "Campaign Cost",
-                    "Daily (Human) Infection Rate",
-                    "Disease Deaths",
-                    "Exposed Population",
-                    "Human Infectious Reservoir",
-                    "Infected",
-                    "Infectious Population",
-                    "Log Prevalence",
-                    "New Infections",
-                    "Newly Symptomatic",
-                    "Recovered Population",
-                    "Statistical Population",
-                    "Susceptible Population",
-                    "Symptomatic Population",
-                    "Waning Population",
-                },
-            )
+        self.assertSetEqual(
+            set(df.columns),
+            {
+                "Births",
+                "Campaign Cost",
+                "Daily (Human) Infection Rate",
+                "Disease Deaths",
+                "Exposed Population",
+                "Human Infectious Reservoir",
+                "Infected",
+                "Infectious Population",
+                "Log Prevalence",
+                "New Infections",
+                "Newly Symptomatic",
+                "Recovered Population",
+                "Statistical Population",
+                "Susceptible Population",
+                "Symptomatic Population",
+                "Waning Population",
+            },
+        )
 
         return
 
@@ -464,7 +453,8 @@ class TestChannels(unittest.TestCase):
         )
 
         return
-    
+
+
 class TestInsetJson(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -481,9 +471,10 @@ class TestInsetJson(unittest.TestCase):
 
         with open(json_path) as jc:
             json_dict = json.load(jc)
-        
+
         for channel in json_dict["Channels"]:
             self.assertIn(channel, csv_df.columns, f"Column {channel} was not found in the csv at {csv_path}")
+
 
 class TestPropReport(unittest.TestCase):
     @classmethod

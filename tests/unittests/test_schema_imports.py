@@ -1,5 +1,6 @@
 import unittest
 
+
 class EmodapiSchemaImportTest(unittest.TestCase):
     def setUp(self) -> None:
         self.expected_items = None
@@ -24,5 +25,3 @@ class EmodapiSchemaImportTest(unittest.TestCase):
         import emod_api.schema_to_class as eas2c
         self.verify_expected_items_present(namespace=eas2c)
         pass
-
-

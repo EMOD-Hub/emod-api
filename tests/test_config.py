@@ -353,7 +353,7 @@ class ConfigTest(unittest.TestCase):
             config.parameters.Minimum_End_Time = 100
             config.parameters.Simulation_Duration = 10
             return config
-        config_file = "default_config.json" # this is a hard coded value
+        config_file = "default_config.json"  # this is a hard coded value
         self.output_filename = "output_config_from_default_and_params_11.json"
         self.output_file = os.path.join(self.output_folder, self.output_filename)
         manifest.delete_existing_file(self.output_file)
@@ -509,25 +509,25 @@ class ConfigTest(unittest.TestCase):
             "idmType:AgeRange",
             "idmType:AlleleComboProbabilityConfig",
             "idmType:AlleleDriven",
-            "idmType:GeneToTraitModifierConfig", 
-            "idmType:IncidenceCounter", 
-            "idmType:IncidenceCounterSurveillance", 
-            "idmType:Insecticide", 
+            "idmType:GeneToTraitModifierConfig",
+            "idmType:IncidenceCounter",
+            "idmType:IncidenceCounterSurveillance",
+            "idmType:Insecticide",
             "idmType:InsecticideWaningEffect_RK",
             "idmType:InsecticideWaningEffect_RBK",
             "idmType:InsecticideWaningEffect_K",
-            "idmType:InterpolatedValueMap", 
-            # "idmType:LarvalHabitatMultiplier", # removed by DtkTrunk #4413
+            "idmType:InterpolatedValueMap",
+            # "idmType:LarvalHabitatMultiplier",  # removed by DtkTrunk #4413
             "idmType:LarvalHabitatMultiplierSpec",
             "idmType:NodeIdAndCoverage",
             # "idmType:NodeListConfig", # Produces error
-            "idmType:NodePropertyRestrictions", 
+            "idmType:NodePropertyRestrictions",
             "idmType:PropertyRestrictions",
-            "idmType:RVG_AlleleCombo", 
-            "idmType:Responder", 
-            "idmType:ResponderSurveillance", 
+            "idmType:RVG_AlleleCombo",
+            "idmType:Responder",
+            "idmType:ResponderSurveillance",
             "idmType:TargetedDistribution",
-            "idmType:VectorGene", 
+            "idmType:VectorGene",
             "idmType:VectorGeneDriver",
             "idmType:VectorSpeciesParameters",
             "idmType:WaningConfigList",
@@ -539,7 +539,7 @@ class ConfigTest(unittest.TestCase):
             schema_json = json.load(fid01)
 
         for idmtype in mytypes:
-            type_dict = s2c.get_class_with_defaults( idmtype, schema_json=schema_json ) # checking for error
+            s2c.get_class_with_defaults(idmtype, schema_json=schema_json)  # checking for error
 
     def compare_config_with_po(self, config, po, default):
         for key, value in config.items():
