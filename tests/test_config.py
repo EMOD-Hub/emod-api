@@ -8,19 +8,6 @@ import emod_api.schema_to_class as s2c
 import manifest
 
 
-def delete_existing_file(file):
-    if os.path.isfile(file):
-        print(f'\tremove existing {file}.')
-        os.remove(file)
-
-
-def create_folder(folder_path):
-    if folder_path:
-        if not os.path.isdir(folder_path):
-            print(f"\t{folder_path} doesn't exist, creating {folder_path}.")
-            os.mkdir(folder_path)
-
-
 def get_param_from_po(po_filename):
     with open(po_filename, 'r') as po_file:
         po_json = json.load(po_file)
@@ -55,19 +42,19 @@ current_directory = os.path.dirname(os.path.realpath(__file__))
 
 
 class ConfigTest(unittest.TestCase):
-    output_folder = os.path.join(current_directory, 'data', 'config')
+    output_folder = manifest.output_folder
     output_filename = None
 
     def setUp(self) -> None:
         print(f"\n{self._testMethodName} started...")
-        create_folder(self.output_folder)
+        manifest.create_folder(self.output_folder)
 
     def tearDown(self) -> None:
         pass
 
     def test_3_default_from_schema(self):
         self.output_file = "default_config.json"
-        delete_existing_file(self.output_file)
+        manifest.delete_existing_file(self.output_file)
         schema_name = manifest.generic_schema_path
         dfs.get_default_config_from_schema(schema_name, output_filename=self.output_file)  # schema -> default_config.json
         self.assertTrue(os.path.isfile(self.output_file), msg=f"f{self.output_file} doesn't exist.")
@@ -106,7 +93,7 @@ class ConfigTest(unittest.TestCase):
             self.assertTrue(found_key, msg=f'{key} is not in {schema_file}.')
 
     def test_4_default_as_rod(self):
-        config_file = os.path.join(self.output_folder, "input_default_config.json")
+        config_file = os.path.join(manifest.config_folder, "input_default_config.json")
         config_rod = dfs.load_default_config_as_rod(config_file)
         self.assertTrue(isinstance(config_rod, s2c.ReadOnlyDict))
         with open(config_file, 'r') as config_ori_file:
@@ -130,7 +117,7 @@ class ConfigTest(unittest.TestCase):
         dfs.get_default_config_from_schema(schema_name, output_filename=config_file)  # schema -> default_config.json
         self.output_filename = "output_config_from_default_and_params_1.json"
         self.output_file = os.path.join(self.output_folder, self.output_filename)
-        delete_existing_file(self.output_file)
+        manifest.delete_existing_file(self.output_file)
         dfs.write_config_from_default_and_params(config_file, set_param_fn, self.output_file)
         self.assertTrue(os.path.isfile(self.output_file), msg=f"f{self.output_file} doesn't exist.")
 
@@ -160,7 +147,7 @@ class ConfigTest(unittest.TestCase):
         dfs.get_default_config_from_schema(schema_name, output_filename=config_file)  # schema -> default_config.json
         self.output_filename = "output_config_from_default_and_params_2.json"
         self.output_file = os.path.join(self.output_folder, self.output_filename)
-        delete_existing_file(self.output_file)
+        manifest.delete_existing_file(self.output_file)
         dfs.write_config_from_default_and_params(config_file, set_param_fn, self.output_file)
         self.assertTrue(os.path.isfile(self.output_file), msg=f"f{self.output_file} doesn't exist.")
 
@@ -187,7 +174,7 @@ class ConfigTest(unittest.TestCase):
         dfs.get_default_config_from_schema(schema_name, output_filename=config_file)  # schema -> default_config.json
         self.output_filename = "output_config_from_default_and_params_3.json"
         self.output_file = os.path.join(self.output_folder, self.output_filename)
-        delete_existing_file(self.output_file)
+        manifest.delete_existing_file(self.output_file)
         dfs.write_config_from_default_and_params(config_file, set_param_fn, self.output_file)
         self.assertTrue(os.path.isfile(self.output_file), msg=f"f{self.output_file} doesn't exist.")
 
@@ -213,7 +200,7 @@ class ConfigTest(unittest.TestCase):
         dfs.get_default_config_from_schema(schema_name, output_filename=config_file)  # schema -> default_config.json
         self.output_filename = "output_config_from_default_and_params_4.json"
         self.output_file = os.path.join(self.output_folder, self.output_filename)
-        delete_existing_file(self.output_file)
+        manifest.delete_existing_file(self.output_file)
         dfs.write_config_from_default_and_params(config_file, set_param_fn, self.output_file)
         self.assertTrue(os.path.isfile(self.output_file), msg=f"f{self.output_file} doesn't exist.")
 
@@ -247,7 +234,7 @@ class ConfigTest(unittest.TestCase):
         dfs.get_default_config_from_schema(schema_name, output_filename=config_file)  # schema -> default_config.json
         self.output_filename = "output_config_from_default_and_params_5.json"
         self.output_file = os.path.join(self.output_folder, self.output_filename)
-        delete_existing_file(self.output_file)
+        manifest.delete_existing_file(self.output_file)
         with self.assertRaises(Exception) as context:
             dfs.write_config_from_default_and_params(config_file, set_param_fn, self.output_file)
 
@@ -267,7 +254,7 @@ class ConfigTest(unittest.TestCase):
         dfs.get_default_config_from_schema(schema_name, output_filename=config_file)  # schema -> default_config.json
         self.output_filename = "output_config_from_default_and_params_6.json"
         self.output_file = os.path.join(self.output_folder, self.output_filename)
-        delete_existing_file(self.output_file)
+        manifest.delete_existing_file(self.output_file)
         with self.assertRaises(Exception) as context:
             dfs.write_config_from_default_and_params(config_file, set_param_fn, self.output_file)
 
@@ -287,7 +274,7 @@ class ConfigTest(unittest.TestCase):
         dfs.get_default_config_from_schema(schema_name, output_filename=config_file)  # schema -> default_config.json
         self.output_filename = "output_config_from_default_and_params_7.json"
         self.output_file = os.path.join(self.output_folder, self.output_filename)
-        delete_existing_file(self.output_file)
+        manifest.delete_existing_file(self.output_file)
         with self.assertRaises(Exception) as context:
             dfs.write_config_from_default_and_params(config_file, set_param_fn, self.output_file)
 
@@ -307,7 +294,7 @@ class ConfigTest(unittest.TestCase):
         dfs.get_default_config_from_schema(schema_name, output_filename=config_file)  # schema -> default_config.json
         self.output_filename = "output_config_from_default_and_params_8.json"
         self.output_file = os.path.join(self.output_folder, self.output_filename)
-        delete_existing_file(self.output_file)
+        manifest.delete_existing_file(self.output_file)
         with self.assertRaises(Exception) as context:
             dfs.write_config_from_default_and_params(config_file, set_param_fn, self.output_file)
 
@@ -330,7 +317,7 @@ class ConfigTest(unittest.TestCase):
         dfs.get_default_config_from_schema(schema_name, output_filename=config_file)  # schema -> default_config.json
         self.output_filename = "output_config_from_default_and_params_9.json"
         self.output_file = os.path.join(self.output_folder, self.output_filename)
-        delete_existing_file(self.output_file)
+        manifest.delete_existing_file(self.output_file)
         with self.assertRaises(Exception) as context:
             dfs.write_config_from_default_and_params(config_file, set_param_fn, self.output_file)
 
@@ -352,7 +339,7 @@ class ConfigTest(unittest.TestCase):
         dfs.get_default_config_from_schema(schema_name, output_filename=config_file)  # schema -> default_config.json
         self.output_filename = "output_config_from_default_and_params_10.json"
         self.output_file = os.path.join(self.output_folder, self.output_filename)
-        delete_existing_file(self.output_file)
+        manifest.delete_existing_file(self.output_file)
         with self.assertRaises(Exception) as context:
             dfs.write_config_from_default_and_params(config_file, set_param_fn, self.output_file)
 
@@ -373,7 +360,7 @@ class ConfigTest(unittest.TestCase):
         config_file = "default_config.json" # this is a hard coded value
         self.output_filename = "output_config_from_default_and_params_11.json"
         self.output_file = os.path.join(self.output_folder, self.output_filename)
-        delete_existing_file(self.output_file)
+        manifest.delete_existing_file(self.output_file)
         with self.assertRaises(ValueError) as context:
             dfs.write_config_from_default_and_params(config_file, set_param_fn, self.output_file)
 
@@ -395,7 +382,7 @@ class ConfigTest(unittest.TestCase):
         dfs.get_default_config_from_schema(schema_name, output_filename=config_file)  # schema -> default_config.json
         self.output_filename = "output_config_from_default_and_params_12.json"
         self.output_file = os.path.join(self.output_folder, self.output_filename)
-        delete_existing_file(self.output_file)
+        manifest.delete_existing_file(self.output_file)
         dfs.write_config_from_default_and_params(config_file, set_param_fn, self.output_file)
         self.assertTrue(os.path.isfile(self.output_file), msg=f"f{self.output_file} doesn't exist.")
 
@@ -417,7 +404,7 @@ class ConfigTest(unittest.TestCase):
         dfs.get_default_config_from_schema(schema_name, output_filename=config_file)  # schema -> default_config.json
         self.output_filename = "output_config_from_default_and_params_13.json"
         self.output_file = os.path.join(self.output_folder, self.output_filename)
-        delete_existing_file(self.output_file)
+        manifest.delete_existing_file(self.output_file)
         dfs.write_config_from_default_and_params(config_file, None, self.output_file)
         self.assertTrue(os.path.isfile(self.output_file), msg=f"f{self.output_file} doesn't exist.")
 
@@ -438,7 +425,7 @@ class ConfigTest(unittest.TestCase):
         dfs.get_default_config_from_schema(schema_name, output_filename=config_file)  # schema -> default_config.json
         self.output_filename = "output_config_from_default_and_params_14.json"
         self.output_file = os.path.join(self.output_folder, self.output_filename)
-        delete_existing_file(self.output_file)
+        manifest.delete_existing_file(self.output_file)
         dfs.write_config_from_default_and_params(config_file, set_param_fn, self.output_file)
         self.assertTrue(os.path.isfile(self.output_file), msg=f"f{self.output_file} doesn't exist.")
 
@@ -471,7 +458,7 @@ class ConfigTest(unittest.TestCase):
 
         self.output_filename = "output_malaria_config_2.json"
         self.output_file = os.path.join(self.output_folder, self.output_filename)
-        delete_existing_file(self.output_file)
+        manifest.delete_existing_file(self.output_file)
         schema_name = manifest.common_schema_path
 
         config_file = "default_config.json"
@@ -488,25 +475,25 @@ class ConfigTest(unittest.TestCase):
 
         with self.assertRaises(Exception) as context:
             dfs.write_config_from_default_and_params(config_file, set_param_fn, self.output_file)
-            delete_existing_file(self.output_file)
+            manifest.delete_existing_file(self.output_file)
 
-        delete_existing_file(config_file)
+        manifest.delete_existing_file(config_file)
         self.assertTrue('Simulation_Type' in str(context.exception),
                         msg=f'got exception: {context.exception}.')
 
     def test_6_config_from_nested_po(self):
         self.output_filename = "output_config_from_nested_po.json"
         po_filename = 'input_nested_param_overrides.json'
-        self.config_from_po_test(self.output_folder, po_filename)
+        self.config_from_po_test(manifest.config_folder, po_filename)
 
     def test_7_config_from_po(self):
         self.output_filename = "output_config_from_po.json"
         po_filename = 'input_param_overrides.json'
-        self.config_from_po_test(self.output_folder, po_filename)
+        self.config_from_po_test(manifest.config_folder, po_filename)
 
     def config_from_po_test(self, folder, po_filename):
         self.output_file = os.path.join(folder, self.output_filename)
-        delete_existing_file(self.output_file)
+        manifest.delete_existing_file(self.output_file)
         from_overrides.flattenConfig(configjson_path=os.path.join(folder, po_filename),
                                      new_config_name=self.output_filename)
         self.assertTrue(os.path.isfile(self.output_file), msg=f"f{self.output_file} doesn't exist.")
@@ -592,8 +579,6 @@ class ReadOnlyDictTest(unittest.TestCase):
         with self.assertRaises(KeyError) as context:
             coordinator.Non_Existing_Parameter = None
         self.assertTrue("'Non_Existing_Parameter' not found in this object." in str(context.exception))
-
-
 
 
 if __name__ == '__main__':

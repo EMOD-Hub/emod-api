@@ -9,10 +9,7 @@ from emod_api.demographics.age_distribution_old import AgeDistributionOld as Age
 from emod_api.demographics.mortality_distribution_old import MortalityDistributionOld as MortalityDistribution
 from emod_api.demographics.susceptibility_distribution_old import SusceptibilityDistributionOld as SusceptibilityDistribution
 
-try:
-    import manifest  # works for jenkins
-except ImportError:
-    from . import manifest  # works for local running
+import manifest
 import math
 from datetime import date
 import getpass
@@ -28,7 +25,7 @@ import pprint
 class DemogTest(unittest.TestCase):
     def setUp(self) -> None:
         print(f"\n{self._testMethodName} started...")
-        self.out_folder = manifest.demo_folder
+        self.out_folder = manifest.output_folder
 
     def test_verify_default_node_obj_must_have_id_0(self):
         mars = Node.Node(lat=0, lon=0, pop=100, name='Mars', forced_id=1)
@@ -344,13 +341,13 @@ class DemogTest(unittest.TestCase):
         self.pass_through_test(input_filename, output_filename)
 
     def test_generate_from_file_compatibility_Prashanth_single_node(self):
-        input_filename = os.path.join(self.out_folder, "single_node_demographics.json")
+        input_filename = os.path.join(manifest.demo_folder, "single_node_demographics.json")
         output_filename = os.path.join(self.out_folder, "single_node_demographics_comparison.json")
 
         self.pass_through_test(input_filename, output_filename)
 
     def test_generate_from_file_compatibility_Prashanth_4_nodes(self):
-        input_filename = os.path.join(self.out_folder, "Namawala_four_node_demographics_for_Thomas.json")
+        input_filename = os.path.join(manifest.demo_folder, "Namawala_four_node_demographics_for_Thomas.json")
         output_filename = os.path.join(self.out_folder, "Namawala_four_node_demographics_for_Thomas_comparison.json")
 
         self.pass_through_test(input_filename, output_filename)
@@ -1007,8 +1004,8 @@ class DemogTest(unittest.TestCase):
 
     def test_infer_natural_mortality(self):
         demog = Demographics.from_template_node(lat=0, lon=0, pop=100000, name=1, forced_id=1)
-        male_input_file = os.path.join(self.out_folder, "Malawi_male_mortality.csv")
-        female_input_file = os.path.join(self.out_folder, "Malawi_female_mortality.csv")
+        male_input_file = os.path.join(manifest.demo_folder, "Malawi_male_mortality.csv")
+        female_input_file = os.path.join(manifest.demo_folder, "Malawi_female_mortality.csv")
         predict_horizon = 2060
         results_scale_factor = 1.0 / 340.0
         female_distribution, male_distribution = demog.infer_natural_mortality(file_male=male_input_file,
@@ -1059,8 +1056,8 @@ class DemogTest(unittest.TestCase):
             self.assertEqual(len(f_y), n_female_year_groups)
 
         # Check result values consistency with reference files
-        male_reference = pd.read_csv(os.path.join(self.out_folder, "MaleTrue"))
-        female_reference = pd.read_csv(os.path.join(self.out_folder, "FemaleTrue"))
+        male_reference = pd.read_csv(os.path.join(manifest.demo_folder, "MaleTrue"))
+        female_reference = pd.read_csv(os.path.join(manifest.demo_folder, "FemaleTrue"))
         for i in range(n_male_age_groups):
             for j in range(n_male_year_groups):
                 male_mortality_rate = male_distribution['ResultValues'][i][j]
@@ -1416,7 +1413,7 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
     
     def setUp(self) -> None:
         print(f"\n{self._testMethodName} started...")
-        self.out_folder = manifest.demo_folder
+        self.out_folder = manifest.output_folder
             
     def test_setmortalityovertimefromdata_eh_filename(self):
         # SetMortalityOverTimeFromData
@@ -2140,7 +2137,7 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
     
     def setUp(self) -> None:
         print(f"\n{self._testMethodName} started...")
-        self.out_folder = manifest.demo_folder
+        self.out_folder = manifest.output_folder
 
     def validate_node(self, test_node):
         self.assertGreater(len(test_node['AgeDistribution']['DistributionValues']), 0)  

@@ -62,7 +62,7 @@ class DemographicsTestMisc(unittest.TestCase):
         
         # short Expected dictionary
         self.short_expected = short_expected_demog.to_dict()
-        
+
     @unittest.skipIf(thisplatform.startswith("win"), "Not valid on Windows")
     def test_linux_send_over_file(self):
         # FUNCTIONAL TEST CASE: Call Send method using a valid File Name
@@ -93,6 +93,7 @@ class DemographicsTestMisc(unittest.TestCase):
         self.assertDictEqual(expected, actual, "Demographic dict objects are different")
         print("...Validation Done...")
         os.remove( tmpfile )
+
     @unittest.skipIf(thisplatform.startswith("win"), "Not valid on Windows")
     def test_linux_send_over_pipe_basic(self):
         # FUNCTIONAL TEST CASE: Call to Send method using a valid Pipe Number
