@@ -1669,10 +1669,6 @@ class DemographicsComprehensiveTests_Fertility(unittest.TestCase):
         print(f"\n{self._testMethodName} started...")
         self.out_folder = manifest.demo_folder
 
-        package = "matplotlib"
-        try:    __import__(package)
-        except ImportError:  pip.main(['install', package])     
-
     def test_setfertilityovertimefromparams_eh_filename(self):
         # SetFertilityOverTimeFromParams
         # Test Type:   Error Handling
@@ -1720,16 +1716,8 @@ class DemographicsComprehensiveTests_Fertility(unittest.TestCase):
         for i in range(0, len(demog.to_dict()['Nodes'])): list_of_all_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
         demog = Demographics.from_template_node()
         demog.SetDefaultProperties()
-        #------------------------
-        import matplotlib.pyplot as plt
         fertility_data = demog.SetFertilityOverTimeFromParams(years_region1=110, years_region2=60, start_rate=16, inflection_rate=18.4, end_rate=17 )
         demog.generate_file(out_filename)
-        fig = plt.figure()
-        ax = fig.add_subplot()
-        ax.plot(range(0, len(fertility_data)), fertility_data, color = 'lightblue', linewidth = 2)
-        
-        plt.savefig(out_plot)
-        #------------------------
         demog.generate_file(out_updated_filename)
 
     def test_02_SetFertilityOverTimeFromParams(self):
@@ -1759,15 +1747,8 @@ class DemographicsComprehensiveTests_Fertility(unittest.TestCase):
         demog.SetDefaultProperties()
         demog.SetMortalityOverTimeFromData(base_year=1950, data_csv=manifest.mortality_data_age_year_csv, node_ids=last_node_list) 
 
-        #------------------------
-        import matplotlib.pyplot as plt
         fertility_data = demog.SetFertilityOverTimeFromParams(years_region1=110, years_region2=60, start_rate=16, inflection_rate=18.4, end_rate=17,  node_ids=list_of_all_node_ids[0:27]) 
         demog.generate_file(out_filename)
-        fig = plt.figure()
-        ax = fig.add_subplot()
-        ax.plot(range(0, len(fertility_data)), fertility_data, color = 'lightblue', linewidth = 2)
-        plt.savefig(out_plot)
-        #------------------------
         demog.generate_file(out_updated_filename)
 
         for i in range(0,27):
