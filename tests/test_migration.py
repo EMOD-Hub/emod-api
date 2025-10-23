@@ -792,9 +792,7 @@ class MigrationTests(unittest.TestCase):
         migration_local = from_demog_and_param_gravity(demographics_file, gravity_params=[1, 1, 1, -1],
                                                        id_ref=id_ref, migration_type=Migration.REGIONAL)
 
-        migration_local_file = Path(os.path.join(manifest.migration_folder, 'gravity_distance.bin'))
-        if migration_local_file.is_file():
-            migration_local_file.unlink()
+        migration_local_file = Path(os.path.join(manifest.output_folder, 'gravity_distance.bin'))
         migration_local.to_file(migration_local_file)
 
         f = io.StringIO()
@@ -811,9 +809,7 @@ class MigrationTests(unittest.TestCase):
                                                  id_ref='from_demog_and_param_gravity_test',
                                                  migration_type=Migration.LOCAL)
 
-        migration_file = Path(os.path.join(manifest.migration_folder, 'test_from_demog_and_param_gravity_with_reference.bin'))
-        if migration_file.is_file():
-            migration_file.unlink()
+        migration_file = Path(os.path.join(manifest.output_folder, 'test_from_demog_and_param_gravity_with_reference.bin'))
         migration.to_file(migration_file)
 
         reference_file = Path(os.path.join(manifest.migration_folder, 'migration_gravity_model_reference.bin'))
@@ -833,8 +829,9 @@ class MigrationTests(unittest.TestCase):
         pd.DataFrame.from_dict(temp).to_csv(csv_file, index=False)
 
         migration = from_csv(csv_file, id_ref="testing")
-        migration.to_file("test_migration.bin")
-        migration_from_bin = from_file("test_migration.bin")
+        migration_file = os.path.join(manifest.output_folder, "test_migration.bin")
+        migration.to_file(migration_file)
+        migration_from_bin = from_file(migration_file)
 
         for source, destination, rate in zip(temp['source'], temp['destination'], temp['rate']):
             self.assertEqual(migration[source][destination], rate)

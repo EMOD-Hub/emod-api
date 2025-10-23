@@ -1647,7 +1647,7 @@ class DemographicsComprehensiveTests_Fertility(unittest.TestCase):
     
     def setUp(self) -> None:
         print(f"\n{self._testMethodName} started...")
-        self.out_folder = manifest.demo_folder
+        self.out_folder = manifest.output_folder
 
     def test_setfertilityovertimefromparams_eh_filename(self):
         # SetFertilityOverTimeFromParams

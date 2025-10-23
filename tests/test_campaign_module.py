@@ -60,7 +60,7 @@ class TestCampaign(unittest.TestCase):
         self.assertNotIn("Test_Event", trigger_list)
 
     def test_save(self):
-        filename = os.path.join(manifest.campaign_folder, 'test_campaign.json')
+        filename = os.path.join(manifest.output_folder, 'test_campaign.json')
         self.campaign.set_schema(self.schema_path)
         sample_event = generate_sample_campaign_event(self.campaign, manifest.common_schema_path)
         self.campaign.add(sample_event)
