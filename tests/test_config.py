@@ -38,9 +38,6 @@ def get_lowest_level_po(po, new_po=None):
         raise ValueError('po must be a dictionary.')
 
 
-current_directory = os.path.dirname(os.path.realpath(__file__))
-
-
 class ConfigTest(unittest.TestCase):
     output_folder = manifest.output_folder
     output_filename = None

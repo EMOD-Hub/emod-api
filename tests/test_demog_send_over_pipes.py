@@ -40,15 +40,6 @@ class DemographicsTestMisc(unittest.TestCase):
         cls.large_expected = cls.large_demog.to_dict()
         print(f"Total of nodes: {cls.large_expected['Metadata']['NodeCount']} ... file size is aprox 54 MB")
 
-    def setUp(self) -> None:
-        print(f"\n{self._testMethodName} started...")
-        current_directory = os.path.dirname(os.path.realpath(__file__))
-        demo_folder = os.path.join(current_directory, 'data', 'demographics')
-        self.out_folder = demo_folder
-
-    def tearDown(self) -> None:
-        print(f"\n{self._testMethodName} ...DONE...")
-
     @unittest.skipIf(thisplatform.startswith("win"), "Not valid on Windows")
     def test_linux_send_over_file(self):
         # FUNCTIONAL TEST CASE: Call Send method using a valid File Name

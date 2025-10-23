@@ -3,9 +3,6 @@ import json
 import os
 from emod_api import campaign as api_campaign
 from emod_api import schema_to_class as s2c
-
-current_directory = os.path.dirname(os.path.realpath(__file__))
-
 import manifest
 
 
