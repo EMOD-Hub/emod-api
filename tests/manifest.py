@@ -26,6 +26,10 @@ reports_folder = os.path.join(current_directory, 'data', 'reports')
 if not os.path.isdir(reports_folder):
     os.mkdir(reports_folder)
 
+serialization_folder = os.path.join(current_directory, 'data', 'serialization')
+if not os.path.isdir(serialization_folder):
+    os.mkdir(serialization_folder)
+
 
 def delete_existing_file(file):
     if os.path.isfile(file):

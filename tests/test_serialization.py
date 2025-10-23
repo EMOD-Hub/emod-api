@@ -7,8 +7,7 @@ import os
 import tempfile
 import unittest
 import time
-
-WORKING_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
+import manifest
 
 
 class TestReadVersionOne(unittest.TestCase):
@@ -35,9 +34,7 @@ class TestReadVersionOne(unittest.TestCase):
 
         jason_text = '{"simulation":{"__class__":"SimulationPython","serializationMask":0,"nodes":[]}}'
 
-        dtk = dft.read(
-            os.path.join(WORKING_DIRECTORY, "data", "serialization", "simple.dtk")
-        )
+        dtk = dft.read(os.path.join(manifest.serialization_folder, "simple.dtk"))
         # noinspection SpellCheckingInspection
         self.assertEqual("clorton", dtk.author)
         self.assertEqual("notepad", dtk.tool)
@@ -56,9 +53,7 @@ class TestReadVersionOne(unittest.TestCase):
     @unittest.skipUnless(support.SNAPPY_SUPPORT, "No Snappy [de]compression support.")
     def test_reading_compressed_file(self):
 
-        dtk = dft.read(
-            os.path.join(WORKING_DIRECTORY, "data", "serialization", "version1.dtk")
-        )
+        dtk = dft.read(os.path.join(manifest.serialization_folder, "version1.dtk"))
         self.assertEqual("", dtk.author)
         self.assertEqual("", dtk.tool)
         self.assertEqual(True, dtk.compressed)
@@ -87,9 +82,7 @@ class TestReadVersionOne(unittest.TestCase):
     @unittest.skipIf(support.SNAPPY_SUPPORT, "If Snappy support, test should not raise a UserWarning")
     def test_reading_compressed_file_exception(self):
         with self.assertRaises(UserWarning):
-            dtk = dft.read(
-                os.path.join(WORKING_DIRECTORY, "data", "serialization", "version1.dtk")
-            )
+            dtk = dft.read(os.path.join(manifest.serialization_folder, "version1.dtk"))
         return
 
     def test_round_trip(self):
@@ -272,9 +265,7 @@ class TestReadVersionTwo(TestReadVersionOne):
         return
 
     def test_reading_file(self):
-        dtk = dft.read(
-            os.path.join(WORKING_DIRECTORY, "data", "serialization", "version2.dtk")
-        )
+        dtk = dft.read(os.path.join(manifest.serialization_folder, "version2.dtk"))
         self.assertEqual("", dtk.author)
         self.assertEqual("", dtk.tool)
         self.assertEqual(True, dtk.compressed)
@@ -482,9 +473,7 @@ class TestReadVersionThree(TestReadVersionTwo):
         return
 
     def test_reading_file(self):
-        dtk = dft.read(
-            os.path.join(WORKING_DIRECTORY, "data", "serialization", "version3.dtk")
-        )
+        dtk = dft.read(os.path.join(manifest.serialization_folder, "version3.dtk"))
         self.assertEqual("", dtk.author)
         self.assertEqual("", dtk.tool)
         self.assertEqual(True, dtk.compressed)
@@ -687,9 +676,7 @@ class TestReadVersionFour(TestReadVersionThree):
         return
 
     def test_reading_file(self):
-        dtk = dft.read(
-            os.path.join(WORKING_DIRECTORY, "data", "serialization", "version4.dtk")
-        )
+        dtk = dft.read(os.path.join(manifest.serialization_folder, "version4.dtk"))
         self.assertEqual("IDM", dtk.author)
         self.assertEqual("DTK", dtk.tool)
         self.assertEqual(True, dtk.compressed)
@@ -933,38 +920,22 @@ class TestReadWrite(unittest.TestCase):
 class TestReadingSadPath(unittest.TestCase):
     def test_reading_wrong_magic_number(self):
         with self.assertRaises(UserWarning):
-            dft.read(
-                os.path.join(
-                    WORKING_DIRECTORY, "data", "serialization", "bad-magic.dtk"
-                )
-            )
+            dft.read(os.path.join(manifest.serialization_folder, "bad-magic.dtk"))
         return
 
     def test_reading_negative_header_size(self):
         with self.assertRaises(UserWarning):
-            dft.read(
-                os.path.join(
-                    WORKING_DIRECTORY, "data", "serialization", "neg-hdr-size.dtk"
-                )
-            )
+            dft.read(os.path.join(manifest.serialization_folder, "neg-hdr-size.dtk"))
         return
 
     def test_reading_zero_header_size(self):
         with self.assertRaises(UserWarning):
-            dft.read(
-                os.path.join(
-                    WORKING_DIRECTORY, "data", "serialization", "zero-hdr-size.dtk"
-                )
-            )
+            dft.read(os.path.join(manifest.serialization_folder, "zero-hdr-size.dtk"))
         return
 
     def test_reading_invalid_header(self):
         with self.assertRaises(UserWarning):
-            dft.read(
-                os.path.join(
-                    WORKING_DIRECTORY, "data", "serialization", "bad-header.dtk"
-                )
-            )
+            dft.read(os.path.join(manifest.serialization_folder, "bad-header.dtk"))
         return
 
     # Missing version is considered version 1. Is this okay?
@@ -975,64 +946,38 @@ class TestReadingSadPath(unittest.TestCase):
 
     def test_reading_negative_version(self):
         with self.assertRaises(UserWarning):
-            dft.read(
-                os.path.join(
-                    WORKING_DIRECTORY, "data", "serialization", "neg-version.dtk"
-                )
-            )
+            dft.read(os.path.join(manifest.serialization_folder, "neg-version.dtk"))
         return
 
     def test_reading_zero_version(self):
         with self.assertRaises(UserWarning):
-            dft.read(
-                os.path.join(
-                    WORKING_DIRECTORY, "data", "serialization", "zero-version.dtk"
-                )
-            )
+            dft.read(os.path.join(manifest.serialization_folder, "zero-version.dtk"))
         return
 
     def test_reading_unknown_version(self):
         with self.assertRaises(UserWarning):
-            dft.read(
-                os.path.join(
-                    WORKING_DIRECTORY, "data", "serialization", "future-version.dtk"
-                )
-            )
+            dft.read(os.path.join(manifest.serialization_folder, "future-version.dtk"))
         return
 
     def test_reading_negative_chunk_size(self):
         with self.assertRaises(UserWarning):
-            dft.read(
-                os.path.join(
-                    WORKING_DIRECTORY, "data", "serialization", "neg-chunk-size.dtk"
-                )
-            )
+            dft.read(os.path.join(manifest.serialization_folder, "neg-chunk-size.dtk"))
         return
 
     def test_reading_zero_chunk_size(self):
         with self.assertRaises(UserWarning):
-            dft.read(
-                os.path.join(
-                    WORKING_DIRECTORY, "data", "serialization", "zero-chunk-size.dtk"
-                )
-            )
+            dft.read(os.path.join(manifest.serialization_folder, "zero-chunk-size.dtk"))
         return
 
     def test_reading_truncated_file(self):
         with self.assertRaises(UserWarning):
-            dft.read(
-                os.path.join(
-                    WORKING_DIRECTORY, "data", "serialization", "truncated.dtk"
-                )
-            )  # simulation and one node (truncated)
+            dft.read(os.path.join(manifest.serialization_folder, "truncated.dtk"))  # simulation and one node (truncated)
         return
 
     # Compression/data mismatch (false/LZ4)
     def test_engine_data_mismatch_a(self):
         with self.assertRaises(UserWarning):
-            dtk_file = dft.read(
-                os.path.join(WORKING_DIRECTORY, "data", "serialization", "none-lz4.dtk")
-            )  # hdr (NONE) vs. actual (LZ4)
+            dtk_file = dft.read(os.path.join(manifest.serialization_folder, "none-lz4.dtk"))  # hdr (NONE) vs. actual (LZ4)
             # Accessing the simulation field raises the exception
             print(dtk_file.simulation.individualHumanSuidGenerator.next_suid.id)
         return
@@ -1040,11 +985,7 @@ class TestReadingSadPath(unittest.TestCase):
     # Compression/data mismatch (false/SNAPPY)
     def test_engine_data_mismatch_b(self):
         with self.assertRaises(UserWarning):
-            dtk_file = dft.read(
-                os.path.join(
-                    WORKING_DIRECTORY, "data", "serialization", "none-snappy.dtk"
-                )
-            )  # hdr (NONE) vs. actual (SNAPPY)
+            dtk_file = dft.read(os.path.join(manifest.serialization_folder, "none-snappy.dtk"))  # hdr (NONE) vs. actual (SNAPPY)
             # Accessing the simulation field raises the exception
             print(dtk_file.simulation.individualHumanSuidGenerator.next_suid.id)
         return
@@ -1052,9 +993,7 @@ class TestReadingSadPath(unittest.TestCase):
     # Compression/data mismatch (true+LZ4/NONE)
     def test_engine_data_mismatch_c(self):
         with self.assertRaises(UserWarning):
-            dtk_file = dft.read(
-                os.path.join(WORKING_DIRECTORY, "data", "serialization", "lz4-none.dtk")
-            )  # hdr (LZ4) vs. actual (NONE)
+            dtk_file = dft.read(os.path.join(manifest.serialization_folder, "lz4-none.dtk"))  # hdr (LZ4) vs. actual (NONE)
             # Accessing the simulation field raises the exception
             print(dtk_file.simulation.individualHumanSuidGenerator.next_suid.id)
         return
@@ -1062,11 +1001,7 @@ class TestReadingSadPath(unittest.TestCase):
     # Compression/data mismatch (true+LZ4/SNAPPY)
     def test_engine_data_mismatch_d(self):
         with self.assertRaises(UserWarning):
-            dtk_file = dft.read(
-                os.path.join(
-                    WORKING_DIRECTORY, "data", "serialization", "lz4-snappy.dtk"
-                )
-            )  # hdr (LZ4) vs. actual (SNAPPY)
+            dtk_file = dft.read(os.path.join(manifest.serialization_folder, "lz4-snappy.dtk"))  # hdr (LZ4) vs. actual (SNAPPY)
             # Accessing the simulation field raises the exception
             print(dtk_file.simulation.individualHumanSuidGenerator.next_suid.id)
         return
@@ -1074,11 +1009,7 @@ class TestReadingSadPath(unittest.TestCase):
     # Compression/data mismatch (true+SNAPPY/NONE)
     def test_engine_data_mismatch_e(self):
         with self.assertRaises(UserWarning):
-            dtk_file = dft.read(
-                os.path.join(
-                    WORKING_DIRECTORY, "data", "serialization", "snappy-none.dtk"
-                )
-            )  # hdr (SNAPPY) vs. actual (NONE)
+            dtk_file = dft.read(os.path.join(manifest.serialization_folder, "snappy-none.dtk"))  # hdr (SNAPPY) vs. actual (NONE)
             # Accessing the simulation field raises the exception
             print(dtk_file.simulation.individualHumanSuidGenerator.next_suid.id)
         return
@@ -1086,11 +1017,7 @@ class TestReadingSadPath(unittest.TestCase):
     # Compression/data mismatch (true+SNAPPY/LZ4)
     def test_engine_data_mismatch_f(self):
         with self.assertRaises(UserWarning):
-            dtk_file = dft.read(
-                os.path.join(
-                    WORKING_DIRECTORY, "data", "serialization", "snappy-lz4.dtk"
-                )
-            )  # hdr (SNAPPY) vs. actual (LZ4)
+            dtk_file = dft.read(os.path.join(manifest.serialization_folder, "snappy-lz4.dtk"))  # hdr (SNAPPY) vs. actual (LZ4)
             # Accessing the simulation field raises the exception
             print(dtk_file.simulation.individualHumanSuidGenerator.next_suid.id)
         return
@@ -1098,11 +1025,7 @@ class TestReadingSadPath(unittest.TestCase):
     # Corrupted simulation chunk (uncompressed)
     def test_bad_sim_chunk_none(self):
         with self.assertRaises(UserWarning):
-            dtk_file = dft.read(
-                os.path.join(
-                    WORKING_DIRECTORY, "data", "serialization", "bad-sim-none.dtk"
-                )
-            )
+            dtk_file = dft.read(os.path.join(manifest.serialization_folder, "bad-sim-none.dtk"))
             # Accessing the simulation field raises the exception
             print(dtk_file.simulation.individualHumanSuidGenerator.next_suid.id)
         return
@@ -1110,11 +1033,7 @@ class TestReadingSadPath(unittest.TestCase):
     # Corrupted simulation chunk (lz4)
     def test_bad_sim_chunk_lz4(self):
         with self.assertRaises(UserWarning):
-            dtk_file = dft.read(
-                os.path.join(
-                    WORKING_DIRECTORY, "data", "serialization", "bad-sim-lz4.dtk"
-                )
-            )
+            dtk_file = dft.read(os.path.join(manifest.serialization_folder, "bad-sim-lz4.dtk"))
             # Accessing the simulation field raises the exception
             print(dtk_file.simulation.individualHumanSuidGenerator.next_suid.id)
         return
@@ -1122,11 +1041,7 @@ class TestReadingSadPath(unittest.TestCase):
     # Corrupted simulation chunk (snappy)
     def test_bad_sim_chunk_snappy(self):
         with self.assertRaises(UserWarning):
-            dtk_file = dft.read(
-                os.path.join(
-                    WORKING_DIRECTORY, "data", "serialization", "bad-sim-snappy.dtk"
-                )
-            )
+            dtk_file = dft.read(os.path.join(manifest.serialization_folder, "bad-sim-snappy.dtk"))
             # Accessing the simulation field raises the exception
             print(dtk_file.simulation.individualHumanSuidGenerator.next_suid.id)
         return
@@ -1134,11 +1049,7 @@ class TestReadingSadPath(unittest.TestCase):
     # Corrupted chunk (uncompressed)
     def test_bad_chunk_none(self):
         with self.assertRaises(UserWarning):
-            dtk_file = dft.read(
-                os.path.join(
-                    WORKING_DIRECTORY, "data", "serialization", "bad-chunk-none.dtk"
-                )
-            )
+            dtk_file = dft.read(os.path.join(manifest.serialization_folder, "bad-chunk-none.dtk"))
             # Accessing the node raises the exception
             print(dtk_file.nodes[0].externalId)
         return
@@ -1146,11 +1057,7 @@ class TestReadingSadPath(unittest.TestCase):
     # Corrupted chunk (LZ4)
     def test_bad_chunk_lz4(self):
         with self.assertRaises(UserWarning):
-            dtk_file = dft.read(
-                os.path.join(
-                    WORKING_DIRECTORY, "data", "serialization", "bad-chunk-lz4.dtk"
-                )
-            )
+            dtk_file = dft.read(os.path.join(manifest.serialization_folder, "bad-chunk-lz4.dtk"))
             # Accessing the node raises the exception
             print(dtk_file.nodes[0].externalId)
         return
@@ -1158,11 +1065,7 @@ class TestReadingSadPath(unittest.TestCase):
     # Corrupted chunk (SNAPPY)
     def test_bad_chunk_snappy(self):
         with self.assertRaises(UserWarning):
-            dtk_file = dft.read(
-                os.path.join(
-                    WORKING_DIRECTORY, "data", "serialization", "bad-chunk-snappy.dtk"
-                )
-            )
+            dtk_file = dft.read(os.path.join(manifest.serialization_folder, "bad-chunk-snappy.dtk"))
             # Accessing the node raises the exception
             print(dtk_file.nodes[0].externalId)
         return
@@ -1172,19 +1075,13 @@ class TestRegressions(unittest.TestCase):
 
     # https://github.com/InstituteforDiseaseModeling/DtkTrunk/issues/1268
     def test_1268(self):
-        version_two = dft.read(
-            os.path.join(WORKING_DIRECTORY, "data", "serialization", "version2.dtk")
-        )
+        version_two = dft.read(os.path.join(manifest.serialization_folder, "version2.dtk"))
         simulation = version_two.simulation
         self.assertTrue("nodes" not in simulation)
-        version_three = dft.read(
-            os.path.join(WORKING_DIRECTORY, "data", "serialization", "version3.dtk")
-        )
+        version_three = dft.read(os.path.join(manifest.serialization_folder, "version3.dtk"))
         simulation = version_three.simulation
         self.assertTrue("nodes" not in simulation)
-        version_four = dft.read(
-            os.path.join(WORKING_DIRECTORY, "data", "serialization", "version4.dtk")
-        )
+        version_four = dft.read(os.path.join(manifest.serialization_folder, "version4.dtk"))
         simulation = version_four.simulation
         self.assertTrue("nodes" not in simulation)
 
