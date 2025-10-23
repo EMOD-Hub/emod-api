@@ -479,26 +479,24 @@ class ConfigTest(unittest.TestCase):
                         msg=f'got exception: {context.exception}.')
 
     def test_6_config_from_nested_po(self):
-        self.output_filename = "output_config_from_nested_po.json"
-        po_filename = 'input_nested_param_overrides.json'
-        self.config_from_po_test(manifest.config_folder, po_filename)
+        self.output_filename = os.path.join(manifest.output_folder, "output_config_from_nested_po.json")
+        self.input_filename = os.path.join(manifest.config_folder, "input_nested_param_overrides.json")
+        self.config_from_po_test()
 
     def test_7_config_from_po(self):
-        self.output_filename = "output_config_from_po.json"
-        po_filename = 'input_param_overrides.json'
-        self.config_from_po_test(manifest.config_folder, po_filename)
+        self.output_filename = os.path.join(manifest.output_folder, "output_config_from_po.json")
+        self.input_filename = os.path.join(manifest.config_folder, "input_param_overrides.json")
+        self.config_from_po_test()
 
-    def config_from_po_test(self, folder, po_filename):
-        self.output_file = os.path.join(folder, self.output_filename)
-        manifest.delete_existing_file(self.output_file)
-        from_overrides.flattenConfig(configjson_path=os.path.join(folder, po_filename),
-                                     new_config_name=self.output_filename)
-        self.assertTrue(os.path.isfile(self.output_file), msg=f"f{self.output_file} doesn't exist.")
+    def config_from_po_test(self):
+        manifest.delete_existing_file(self.output_filename)
+        from_overrides.flattenConfig(configjson_path=self.input_filename, new_config_name=self.output_filename, use_full_out_path=True)
+        self.assertTrue(os.path.isfile(self.output_filename), msg=f"f{self.output_filename} doesn't exist.")
 
-        po, default = get_param_from_po(os.path.join(folder, po_filename))
+        po, default = get_param_from_po(self.input_filename)
         po = get_lowest_level_po(po)
 
-        with open(self.output_file, 'r') as config_file:
+        with open(self.output_filename, 'r') as config_file:
             config = json.load(config_file)['parameters']
 
         self.compare_config_with_po(config, po, default)

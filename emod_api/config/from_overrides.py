@@ -66,7 +66,7 @@ def _recursive_json_overrider(ref_json, flat_input_json):
                 flat_input_json[val] = ref_json[val]
 
 
-def flattenConfig(configjson_path, new_config_name="config.json"):
+def flattenConfig(configjson_path, new_config_name="config.json", use_full_out_path=False):
     """
     Historically called 'flattening' but really a function that takes a parameter override
     json config that includes a Default_Config_Path and produces a config.json from the two.
@@ -118,8 +118,12 @@ def flattenConfig(configjson_path, new_config_name="config.json"):
 
     # let's write out a flat version in case someone wants
     # to use regression examples as configs for debug mode
-    with open(configjson_path.replace(os.path.basename(configjson_path), new_config_name), 'w', newline='\r\n') as handle:
-        handle.write(json.dumps(configjson, sort_keys=True, indent=4))
+    outfile = new_config_name
+    if not use_full_out_path:
+        outfile = configjson_path.replace(os.path.basename(configjson_path), new_config_name)
+
+    with open(outfile, 'w') as fid01:
+        json.dump(configjson, fid01, sort_keys=True, indent=4)
 
     return configjson
 
