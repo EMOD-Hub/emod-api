@@ -1,9 +1,18 @@
 import os
 
 current_directory = os.path.dirname(os.path.realpath(__file__))
+
+output_folder = os.path.join(current_directory, 'output')
+if not os.path.isdir(output_folder):
+    os.mkdir(output_folder)
+
 demo_folder = os.path.join(current_directory, 'data', 'demographics')
 if not os.path.isdir(demo_folder):
     os.mkdir(demo_folder)
+
+campaign_folder = os.path.join(current_directory, 'data', 'campaign')
+if not os.path.isdir(campaign_folder):
+    os.mkdir(campaign_folder)
 
 
 def delete_existing_file(file):
@@ -17,6 +26,7 @@ def create_folder(folder_path):
         if not os.path.isdir(folder_path):
             print(f"\t{folder_path} doesn't exist, creating {folder_path}.")
             os.mkdir(folder_path)
+
 
 mortality_data_age_year_csv = os.path.join( demo_folder, "India_mortality_1990_to_2017.csv" )
 mortality_reference_output = os.path.join( demo_folder, "india_mortality_reference_output.json" )
@@ -51,8 +61,3 @@ if not os.path.isfile(malaria_schema_path):
     print(f'Schema does not exist, writing it to {malaria_package_folder}.')
     import emod_malaria.bootstrap as dtk
     dtk.setup(malaria_package_folder)
-
-campaign_folder = os.path.join(current_directory, 'data', 'campaign')
-if not os.path.isdir(campaign_folder):
-    os.mkdir(campaign_folder)
-
