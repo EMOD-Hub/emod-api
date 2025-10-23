@@ -37,5 +37,11 @@ jobs:
           python -m pip install .[test] --extra-index-url=https://packages.idmod.org/api/pypi/pypi-production/simple
       - name: Run unit tests
         run: |
-          python -m unittest discover .
+          python -m pytest --dist loadfile -v --junitxml="test_results.xml"
         working-directory: ./tests
+      - name: Upload emodpy test results
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: emodpy_test_results
+          path: tests/test_results.xml
