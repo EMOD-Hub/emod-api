@@ -22,6 +22,10 @@ migration_folder = os.path.join(current_directory, 'data', 'migration')
 if not os.path.isdir(migration_folder):
     os.mkdir(migration_folder)
 
+reports_folder = os.path.join(current_directory, 'data', 'reports')
+if not os.path.isdir(reports_folder):
+    os.mkdir(reports_folder)
+
 
 def delete_existing_file(file):
     if os.path.isfile(file):

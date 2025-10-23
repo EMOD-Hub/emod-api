@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import unittest
 import os
 from pathlib import Path
@@ -11,6 +9,7 @@ from datetime import datetime
 from random import random, randint
 import pandas as pd
 import json
+import manifest
 
 WORKING_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
 
@@ -167,9 +166,7 @@ class TestChannel(unittest.TestCase):
 class TestChannels(unittest.TestCase):
     def test_fromFile(self):
 
-        chart = ChannelReport(
-            os.path.join(WORKING_DIRECTORY, "data", "insetcharts", "InsetChart.json")
-        )
+        chart = ChannelReport(os.path.join(manifest.reports_folder, "InsetChart.json"))
         self.assertEqual(chart.header.time_stamp, "Wed November 27 2019 14:49:15")
         self.assertEqual(
             chart.header.dtk_version, "0 unknown-branch (unknown) May 31 2019 15:04:44"
@@ -348,11 +345,7 @@ class TestChannels(unittest.TestCase):
             pass
 
         if gotPandas:
-            chart = ChannelReport(
-                os.path.join(
-                    WORKING_DIRECTORY, "data", "insetcharts", "InsetChart.json"
-                )
-            )
+            chart = ChannelReport(os.path.join(manifest.reports_folder, "InsetChart.json"))
             df = chart.as_dataframe()
 
             self.assertEqual(len(df.columns), 16)
@@ -437,9 +430,7 @@ class TestChannels(unittest.TestCase):
         self.assertRaises(
             AssertionError,
             ChannelReport,
-            os.path.join(
-                WORKING_DIRECTORY, "data", "insetcharts", "missingHeader.json"
-            ),
+            os.path.join(manifest.reports_folder, "missingHeader.json"),
         )
 
         return
@@ -449,9 +440,7 @@ class TestChannels(unittest.TestCase):
         self.assertRaises(
             AssertionError,
             ChannelReport,
-            os.path.join(
-                WORKING_DIRECTORY, "data", "insetcharts", "missingChannels.json"
-            ),
+            os.path.join(manifest.reports_folder, "missingChannels.json"),
         )
 
         return
@@ -461,7 +450,7 @@ class TestChannels(unittest.TestCase):
         self.assertRaises(
             AssertionError,
             ChannelReport,
-            os.path.join(WORKING_DIRECTORY, "data", "insetcharts", "missingUnits.json"),
+            os.path.join(manifest.reports_folder, "missingUnits.json"),
         )
 
         return
@@ -471,7 +460,7 @@ class TestChannels(unittest.TestCase):
         self.assertRaises(
             AssertionError,
             ChannelReport,
-            os.path.join(WORKING_DIRECTORY, "data", "insetcharts", "missingData.json"),
+            os.path.join(manifest.reports_folder, "missingData.json"),
         )
 
         return
@@ -479,8 +468,8 @@ class TestChannels(unittest.TestCase):
 class TestInsetJson(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.inset_path = os.path.join(WORKING_DIRECTORY, "data", 'insetcharts')
-    
+        cls.inset_path = manifest.reports_folder
+
     def test_icj_to_csv(self):
         inset_chart_json_to_csv_dataframe_pd(self.inset_path)
         csv_path = os.path.join(self.inset_path, "InsetChart.csv")
