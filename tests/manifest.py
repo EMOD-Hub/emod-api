@@ -54,6 +54,14 @@ if not os.path.isfile(generic_schema_path):
     import emod_generic.bootstrap as dtk
     dtk.setup(generic_package_folder)
 
+hiv_package_folder = os.path.join(package_folder, 'hiv')
+hiv_eradication_path = os.path.join(hiv_package_folder, 'Eradication')
+hiv_schema_path = os.path.join(hiv_package_folder, 'schema.json')
+if not os.path.isfile(hiv_schema_path):
+    print(f'Schema does not exist, writing it to {hiv_package_folder}.')
+    import emod_hiv.bootstrap as dtk
+    dtk.setup(hiv_package_folder)
+
 malaria_package_folder = os.path.join(package_folder, 'malaria')
 malaria_eradication_path = os.path.join(malaria_package_folder, 'Eradication')
 malaria_schema_path = os.path.join(malaria_package_folder, 'schema.json')
