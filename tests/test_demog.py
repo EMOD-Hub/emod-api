@@ -45,8 +45,6 @@ class DemogTest(unittest.TestCase):
         self.assertRaises(InvalidNodeIdException, Demographics.Demographics, nodes=nodes, default_node=planet)
 
     def test_get_node_by_name(self):
-
-
         mars = Node.Node(lat=0, lon=0, pop=100, name='Mars', forced_id=1)
         venus = Node.Node(lat=0, lon=0, pop=100, name='Venus', forced_id=2)
         planet = Node.Node(lat=0, lon=0, pop=100, forced_id=0)
@@ -422,9 +420,9 @@ class DemogTest(unittest.TestCase):
         # location = pd.Series(["Seattle"]*4357)
         locations = [f"Seattle{index}" for index in range(len(csv_df))]
         csv_df['loc'] = locations
-        # self.assertFalse(any([name != "Seattle" for name in csv_df['loc']]))
-        csv_df.to_csv("demographics_places_from_csv.csv")
-        demog = Demographics.from_csv("demographics_places_from_csv.csv", res=2/3600)
+        outfile_path = os.path.join(manifest.output_folder, "demographics_places_from_csv.csv")
+        csv_df.to_csv(outfile_path)
+        demog = Demographics.from_csv(outfile_path, res=2/3600)
         nodes = demog.nodes
         for index, node in enumerate(nodes):
             self.assertEqual(node.name, locations[index], msg=f"Bad node found: {node} on line {index+2}")
@@ -494,7 +492,7 @@ class DemogTest(unittest.TestCase):
         manifest.delete_existing_file(out_filename)
 
         input_file = os.path.join(manifest.demo_folder, 'nodes.csv')
-        demog = Demographics.from_pop_raster_csv(input_file)
+        demog = Demographics.from_pop_raster_csv(input_file, pop_filename_out=manifest.output_folder)
 
         demog.SetDefaultProperties()
         demog.generate_file(out_filename)
@@ -738,7 +736,7 @@ class DemogTest(unittest.TestCase):
             overlay_nodes.append(Node.OverlayNode(node_id=node_id, individual_attributes=new_individual_attributes_2))
 
         demo.apply_overlay(overlay_nodes)
-        demo.generate_file("test_overlay_list_of_nodes.json")
+        demo.generate_file(os.path.join(manifest.output_folder, "test_overlay_list_of_nodes.json"))
 
         self.assertDictEqual(demo.nodes[0].individual_attributes.to_dict(), new_individual_attributes_1.to_dict())
         self.assertDictEqual(demo.nodes[1].individual_attributes.to_dict(), new_individual_attributes_1.to_dict())
@@ -999,7 +997,7 @@ class DemogTest(unittest.TestCase):
                                                                                file_female=female_input_file,
                                                                                predict_horizon=predict_horizon,
                                                                                results_scale_factor=results_scale_factor,
-                                                                               csv_out=True)
+                                                                               csv_out=False)
         male_input = pd.read_csv(male_input_file)
         female_input = pd.read_csv(female_input_file)
 
@@ -1422,7 +1420,7 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
 
         # Case 3: empty data file
         with self.assertRaises(Exception):
-            f = open('test_file.csv', 'w')
+            f = open(os.path.join(manifest.output_folder, 'test_file.csv'), 'w')
             writer = csv.writer(f)
             writer.writerow("{}")
             f.close()
@@ -1461,7 +1459,7 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
         # Should be able to do all the basic steps without raising any error.
         
         input_file = os.path.join( manifest.demo_folder, 'nodes.csv')  
-        demog = Demographics.from_pop_raster_csv(input_file)
+        demog = Demographics.from_pop_raster_csv(input_file, pop_filename_out=manifest.output_folder)
         demog.SetDefaultProperties()
         demog.SetMortalityOverTimeFromData(base_year=1991, data_csv=manifest.mortality_data_age_year_csv)
         
@@ -1484,7 +1482,7 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
         manifest.delete_existing_file(out_filename)
         input_file = os.path.join(manifest.demo_folder, 'nodes.csv')
         
-        demog = Demographics.from_pop_raster_csv(input_file)    # BUG 548: "from_pop_raster_csv"  generates only 1  Geo Node
+        demog = Demographics.from_pop_raster_csv(input_file, pop_filename_out=manifest.output_folder)    # BUG 548: "from_pop_raster_csv"  generates only 1  Geo Node
         geo_nodes = []
         for i in range(0, len(demog.to_dict()['Nodes'])):
             geo_nodes.append(demog.to_dict()['Nodes'][i]['NodeID'])  
@@ -2496,11 +2494,3 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
 
         node_id_5 = Demographics._node_id_from_lat_lon_res(lat=1000, lon=1001, res=30 / 3600)
         self.assertNotEqual(node_id, node_id_5)
-
-    
-if __name__ == '__main__':
-    unittest.main()
-
-
-
-

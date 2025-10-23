@@ -816,19 +816,14 @@ class MigrationTests(unittest.TestCase):
         self.compare_migration_file_to_reference(migration_file, reference_file, exact_compare=False)
 
     def test_from_csv(self):
-        if Path("test_migration.bin").exists():
-            Path("test_migration.bin").unlink()
-
-        if Path("test_migration.csv").exists():
-            Path("test_migration.csv").unlink()
-
         temp = {'source': [1, 2, 5],
                 'destination': [2, 3, 4],
                 'rate': [0.1, 0.2, 0.3]}
-        csv_file = Path("test_migration.csv")
-        pd.DataFrame.from_dict(temp).to_csv(csv_file, index=False)
 
+        csv_file = Path(os.path.join(manifest.output_folder, "test_migration.csv"))
+        pd.DataFrame.from_dict(temp).to_csv(csv_file, index=False)
         migration = from_csv(csv_file, id_ref="testing")
+
         migration_file = os.path.join(manifest.output_folder, "test_migration.bin")
         migration.to_file(migration_file)
         migration_from_bin = from_file(migration_file)
