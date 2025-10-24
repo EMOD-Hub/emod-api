@@ -214,7 +214,6 @@ class TestPublicApi(unittest.TestCase):
 
         return
 
-
     def test_plot_traces(self):
 
         json_data = read_json_file(filename=DATA_DIR / "propertyReportTruncated.json")
@@ -230,7 +229,7 @@ class TestPublicApi(unittest.TestCase):
             channel_data=channel_data
         )
 
-        traces = {key:value for (key, value) in trace_values.items() if not key.startswith(stat_pop)}
+        traces = {key: value for (key, value) in trace_values.items() if not key.startswith(stat_pop)}
         # reduce the various statistical population traces to a single vector
         norms = reduce(lambda x, y: np.array(y) + x, [value for (key, value) in trace_values.items() if key.startswith(stat_pop)], 0)
 
@@ -255,10 +254,11 @@ class TestInternalApi(unittest.TestCase):
         Infected:Age_Bin:Age_Bin_Property_From_0_To_20,QualityOfCare:High,QualityOfCare1:High,QualityOfCare2:High
         """
 
-        self.assertEqual(utils__get_trace_name("Infected", ["Age_Bin:Age_Bin_Property_From_0_To_20","QualityOfCare:High","QualityOfCare1:High","QualityOfCare2:High"], None), \
-            "Infected:Age_Bin:Age_Bin_Property_From_0_To_20,QualityOfCare:High,QualityOfCare1:High,QualityOfCare2:High")
-        self.assertEqual(utils__get_trace_name("Infected", ["Age_Bin:Age_Bin_Property_From_0_To_20","QualityOfCare:High","QualityOfCare1:High","QualityOfCare2:High"], ["Age_Bin"]), "Infected:Age_Bin:Age_Bin_Property_From_0_To_20")
-        self.assertEqual(utils__get_trace_name("Infected", ["Age_Bin:Age_Bin_Property_From_0_To_20","QualityOfCare:High","QualityOfCare1:High","QualityOfCare2:High"], []), "Infected")
+        self.assertEqual(utils__get_trace_name("Infected", ["Age_Bin:Age_Bin_Property_From_0_To_20", "QualityOfCare:High", "QualityOfCare1:High", "QualityOfCare2:High"], None),
+                         "Infected:Age_Bin:Age_Bin_Property_From_0_To_20,QualityOfCare:High,QualityOfCare1:High,QualityOfCare2:High")
+        self.assertEqual(utils__get_trace_name("Infected", ["Age_Bin:Age_Bin_Property_From_0_To_20", "QualityOfCare:High", "QualityOfCare1:High", "QualityOfCare2:High"], ["Age_Bin"]),
+                         "Infected:Age_Bin:Age_Bin_Property_From_0_To_20")
+        self.assertEqual(utils__get_trace_name("Infected", ["Age_Bin:Age_Bin_Property_From_0_To_20", "QualityOfCare:High", "QualityOfCare1:High", "QualityOfCare2:High"], []), "Infected")
 
         return
 
@@ -276,7 +276,6 @@ class TestInternalApi(unittest.TestCase):
 
         return
 
-
     def test__title_for(self):
 
         trace_name = "Infected"
@@ -289,8 +288,3 @@ class TestInternalApi(unittest.TestCase):
         # TODO - test with overlay=True when overlay functionality is fixed
 
         return
-
-
-if __name__ == "__main__":
-
-    unittest.main()

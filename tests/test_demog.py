@@ -20,8 +20,8 @@ import pandas as pd
 import numpy as np
 import pathlib
 from emod_api.demographics.PropertiesAndAttributes import IndividualAttributes, IndividualProperty, IndividualProperties, NodeAttributes
-from emod_api.demographics.demographic_exceptions import *
 import emod_api.demographics.PreDefinedDistributions as Distributions
+import emod_api.demographics.demographic_exceptions as demog_ex
 import pprint
 
 
@@ -35,14 +35,14 @@ class DemogTest(unittest.TestCase):
         venus = Node.Node(lat=0, lon=0, pop=100, name='Venus', forced_id=2)
         planet = Node.Node(lat=0, lon=0, pop=100, forced_id=99)  # not 0
         nodes = [mars, venus]
-        self.assertRaises(InvalidNodeIdException, Demographics.Demographics, nodes=nodes, default_node=planet)
+        self.assertRaises(demog_ex.InvalidNodeIdException, Demographics.Demographics, nodes=nodes, default_node=planet)
 
     def test_verify_non_default_node_objs_must_have_ids_gt_0(self):
         mars = Node.Node(lat=0, lon=0, pop=100, name='Mars', forced_id=1)
         venus = Node.Node(lat=0, lon=0, pop=100, name='Venus', forced_id=0)  # not integer > 0
         planet = Node.Node(lat=0, lon=0, pop=100, forced_id=0)
         nodes = [mars, venus]
-        self.assertRaises(InvalidNodeIdException, Demographics.Demographics, nodes=nodes, default_node=planet)
+        self.assertRaises(demog_ex.InvalidNodeIdException, Demographics.Demographics, nodes=nodes, default_node=planet)
 
     def test_get_node_by_name(self):
         mars = Node.Node(lat=0, lon=0, pop=100, name='Mars', forced_id=1)
@@ -201,7 +201,6 @@ class DemogTest(unittest.TestCase):
         self.assertIn('IndividualProperties', demog.raw['Defaults'])
         self.assertEqual(len(demog.implicits), 5)
 
-
     def test_set_overdispersion(self):
         demog = Demographics.from_template_node()
         new_overdispersion_value = 0.3
@@ -221,7 +220,7 @@ class DemogTest(unittest.TestCase):
     def test_template_simple_susceptibility_dist(self):
         mean_age_at_infection = 10
         template = DT.SimpleSusceptibilityDistribution
-        demog= self.demog_template_test(template, meanAgeAtInfection=mean_age_at_infection)
+        demog = self.demog_template_test(template, meanAgeAtInfection=mean_age_at_infection)
         self.assertIn('SusceptibilityDistribution', demog.raw['Defaults']['IndividualAttributes'])
         # todo: assert the key:value pairs in the distribution and mean_age_at_infection
 
@@ -275,7 +274,7 @@ class DemogTest(unittest.TestCase):
 
     def test_template_equilibrium_age_dist_from_birth_and_mort_rates(self):
         demog = Demographics.from_template_node()
-        demog.SetEquilibriumAgeDistFromBirthAndMortRates(CrudeBirthRate=20/1000, CrudeMortRate=10/1000)
+        demog.SetEquilibriumAgeDistFromBirthAndMortRates(CrudeBirthRate=20 / 1000, CrudeMortRate=10 / 1000)
         self.assertIn('AgeDistribution', demog.raw['Defaults']['IndividualAttributes'])
         self.assertEqual(len(demog.implicits), 2)
         print(demog.raw)
@@ -304,16 +303,16 @@ class DemogTest(unittest.TestCase):
         demog = Demographics.from_template_node()
         DT.MortalityRateByAge(demog=demog, age_bins=age_bin, mort_rates=mort_rate)
         mort_dist = demog.raw["Defaults"]["IndividualAttributes"]["MortalityDistribution"]
-        self.assertEqual( 2, len(mort_dist['PopulationGroups'][0]) ) # number of sexes
-        self.assertEqual( len(mort_rate), len(mort_dist['PopulationGroups'][1]) )
-        self.assertIn('MortalityDistribution', demog.raw['Defaults']['IndividualAttributes']) # Can't use set_default_from_template_test since template is implicit
+        self.assertEqual(2, len(mort_dist['PopulationGroups'][0]))  # number of sexes
+        self.assertEqual(len(mort_rate), len(mort_dist['PopulationGroups'][1]))
+        self.assertIn('MortalityDistribution', demog.raw['Defaults']['IndividualAttributes'])  # Can't use set_default_from_template_test since template is implicit
 
     def test_set_default_from_template_constant_mortality(self):
         demog = Demographics.from_template_node()
         demog.implicits = []
         mortality_rate = DT.DtkRate(0.0001)
-        demog.SetMortalityRate(mortality_rate=mortality_rate) # ca
-        self.assertIn('MortalityDistribution', demog.raw['Defaults']['IndividualAttributes']) # Can't use set_default_from_template_test since template is implicit
+        demog.SetMortalityRate(mortality_rate=mortality_rate)  # ca
+        self.assertIn('MortalityDistribution', demog.raw['Defaults']['IndividualAttributes'])  # Can't use set_default_from_template_test since template is implicit
         expected_rate = [[-1 * (math.log(1 - mortality_rate.get_dtk_rate()))]] * 2
         demog_rate = demog.raw['Defaults']['IndividualAttributes']['MortalityDistribution']['ResultValues']
         self.assertListEqual(expected_rate, demog_rate)
@@ -383,7 +382,7 @@ class DemogTest(unittest.TestCase):
         id_ref = "from_csv_test"
 
         input_file = os.path.join(manifest.demo_folder, 'demog_in.csv')
-        demog = Demographics.from_csv(input_file, res=2/3600, id_ref=id_ref)
+        demog = Demographics.from_csv(input_file, res=2 / 3600, id_ref=id_ref)
         self.assertEqual(demog.idref, id_ref)
         demog.SetDefaultProperties()
         demog.generate_file(out_filename)
@@ -401,8 +400,8 @@ class DemogTest(unittest.TestCase):
         self.assertEqual(inspect_node.id, demog.nodes[15].id, msg=f"This node should have an id of {demog.nodes[15].id} but instead it is {inspect_node.id}")
 
         # checking for a node/node_id that should not exist
-        with self.assertRaises(ValueError) as context:
-            bad_node = demog.get_node_by_id(node_id=161839)
+        with self.assertRaises(ValueError):
+            demog.get_node_by_id(node_id=161839)
 
         self.assertEqual(demog_json['Metadata']['IdReference'], id_ref)
 
@@ -411,7 +410,7 @@ class DemogTest(unittest.TestCase):
         csv_df = pd.read_csv(input_file, encoding='iso-8859-1')
 
         pop_threshold = 25000  # hardcoded value
-        csv_df = csv_df[(6*csv_df['under5_pop']) >= pop_threshold]
+        csv_df = csv_df[(6 * csv_df['under5_pop']) >= pop_threshold]
         self.assertEqual(len(csv_df), len(demog_json['Nodes']))
 
         self.assertTrue(self.check_for_unique_node_id(demog.raw['Nodes']))
@@ -422,10 +421,10 @@ class DemogTest(unittest.TestCase):
         csv_df['loc'] = locations
         outfile_path = os.path.join(manifest.output_folder, "demographics_places_from_csv.csv")
         csv_df.to_csv(outfile_path)
-        demog = Demographics.from_csv(outfile_path, res=2/3600)
+        demog = Demographics.from_csv(outfile_path, res=2 / 3600)
         nodes = demog.nodes
         for index, node in enumerate(nodes):
-            self.assertEqual(node.name, locations[index], msg=f"Bad node found: {node} on line {index+2}")
+            self.assertEqual(node.name, locations[index], msg=f"Bad node found: {node} on line {index + 2}")
 
     def test_from_csv_detects_duplicate_auto_node_ids(self):
         out_filename = os.path.join(self.out_folder, "demographics_from_csv.json")
@@ -460,7 +459,7 @@ class DemogTest(unittest.TestCase):
         self.assertEqual(inspect_node.id, demog.nodes[0].id, msg=f"This node should have an id of {demog.nodes[0].id} "
                                                                  f"but instead it is {inspect_node.id}")
 
-        id_reference = 'from_csv' # hardcoded value
+        id_reference = 'from_csv'  # hardcoded value
         self.assertEqual(demog_json['Metadata']['IdReference'], id_reference)
 
         self.assertDictEqual(demog_json, demog.raw)
@@ -509,8 +508,8 @@ class DemogTest(unittest.TestCase):
         self.assertEqual(inspect_node.id, demog.nodes[0].id,
                          msg=f"This node should have an id of {demog.nodes[0].id} but instead it is {inspect_node.id}")
 
-        with self.assertRaises(ValueError) as context:
-            bad_node = demog.get_node_by_id(node_id=161839)
+        with self.assertRaises(ValueError):
+            demog.get_node_by_id(node_id=161839)
 
         id_reference = 'from_raster'  # hardcoded value
         self.assertEqual(demog_json['Metadata']['IdReference'], id_reference)
@@ -552,7 +551,6 @@ class DemogTest(unittest.TestCase):
         totpop = 1e5
         num_nodes = 250
         frac_rural = 0.1
-        implicit_config_fns = []
         demog = Demographics.from_params(tot_pop=totpop, num_nodes=num_nodes, frac_rural=frac_rural)
         demog.SetDefaultProperties()
         demog.generate_file(out_filename)
@@ -624,7 +622,6 @@ class DemogTest(unittest.TestCase):
             self.assertGreater(node.lon, -1)
             self.assertLess(node.lon, 1)
 
-
     def test_from_params_produces_same_lat_long(self):
         totpop = 1e5
         lat_grid = 3
@@ -636,7 +633,6 @@ class DemogTest(unittest.TestCase):
         lat_long_1 = [(node["NodeAttributes"]["Latitude"], node["NodeAttributes"]["Longitude"]) for node in demog_1["Nodes"]]
         lat_long_2 = [(node["NodeAttributes"]["Latitude"], node["NodeAttributes"]["Longitude"]) for node in demog_2["Nodes"]]
         self.assertListEqual(lat_long_1, lat_long_2)
-
 
         # Todo: assert frac_rural after we figure out the definition of this parameter
 
@@ -674,7 +670,7 @@ class DemogTest(unittest.TestCase):
 
         # overriding with empty object does not change attributes
         temp1 = demo.nodes[3].node_attributes.to_dict()
-        self.assertDictEqual(demo.nodes[3].node_attributes.to_dict(), node_attr_before_override)
+        self.assertDictEqual(temp1, node_attr_before_override)
 
     def test_all_members_to_dict(self):
         node_attributes = NodeAttributes(airport=1,
@@ -720,8 +716,8 @@ class DemogTest(unittest.TestCase):
         overlay_nodes_id_1 = [1, 2]  # Change susceptibility of nodes with ids 1 and 2
         for node_id in overlay_nodes_id_1:
             new_susceptibility_distribution_1 = SusceptibilityDistribution(distribution_values=[0.1, 0.2],
-                                                                                                          result_scale_factor=1,
-                                                                                                          result_values=[0.1, 0.2])
+                                                                           result_scale_factor=1,
+                                                                           result_values=[0.1, 0.2])
 
             new_individual_attributes_1 = IndividualAttributes(susceptibility_distribution=new_susceptibility_distribution_1)
             overlay_nodes.append(Node.OverlayNode(node_id=node_id, individual_attributes=new_individual_attributes_1))
@@ -729,8 +725,8 @@ class DemogTest(unittest.TestCase):
         overlay_nodes_id_2 = [5, 10]    # Change susceptibility of nodes with ids 5 and 10
         for node_id in overlay_nodes_id_2:
             new_susceptibility_distribution_2 = SusceptibilityDistribution(distribution_values=[0.8, 0.9],
-                                                                                                          result_scale_factor=1,
-                                                                                                          result_values=[0.8, 0.9])
+                                                                           result_scale_factor=1,
+                                                                           result_values=[0.8, 0.9])
 
             new_individual_attributes_2 = IndividualAttributes(susceptibility_distribution=new_susceptibility_distribution_2)
             overlay_nodes.append(Node.OverlayNode(node_id=node_id, individual_attributes=new_individual_attributes_2))
@@ -759,7 +755,7 @@ class DemogTest(unittest.TestCase):
         property = "Property"
         values = ["1", "2", "3"]
         transitions = [{}, {}, {}]
-        transmission_matrix = [[0.0, 0.0, 0.2],[0.0, 0.0, 1.2],[0.0, 0.0, 0.0]]
+        transmission_matrix = [[0.0, 0.0, 0.2], [0.0, 0.0, 1.2], [0.0, 0.0, 0.0]]
         node = demo.nodes[0]
         node.individual_properties.add(IndividualProperty(initial_distribution=initial_distribution,
                                                           property=property,
@@ -787,7 +783,7 @@ class DemogTest(unittest.TestCase):
 
     def test_default_individual_property_parameters_to_dict(self):
         individual_property = IndividualProperty(property='very meaningful', values=["wow", "thanks"])
-        self.assertDictEqual(individual_property.to_dict(), {'Property': 'very meaningful', 'Values':["wow", "thanks"]})  # empty, no keys/values added
+        self.assertDictEqual(individual_property.to_dict(), {'Property': 'very meaningful', 'Values': ["wow", "thanks"]})  # empty, no keys/values added
 
     def test_overlay_individual_properties(self):
         # create simple demographics
@@ -809,11 +805,10 @@ class DemogTest(unittest.TestCase):
 
         node = demo.nodes[0]
         node.individual_properties.add(IndividualProperty(initial_distribution=initial_distribution,
-                                                                    property=property,
-                                                                    values=values,
-                                                                    transitions=transitions,
-                                                                    transmission_matrix=transmission_matrix
-                                                                    ))
+                                                          property=property,
+                                                          values=values,
+                                                          transitions=transitions,
+                                                          transmission_matrix=transmission_matrix))
         # create overlay and update
         new_population = 999
         new_property = "Test_Property"
@@ -842,9 +837,8 @@ class DemogTest(unittest.TestCase):
 
         node = demo.nodes[0]
         node._set_individual_attributes(IndividualAttributes(age_distribution_flag=3,
-                                                                      age_distribution1=0.1,
-                                                                      age_distribution2=0.2
-                                                                      ))
+                                                             age_distribution1=0.1,
+                                                             age_distribution2=0.2))
 
         node = demo.nodes[2]
         node._set_individual_attributes(IndividualAttributes())
@@ -874,7 +868,7 @@ class DemogTest(unittest.TestCase):
         initial_distribution = [0.1, 0.9]
         property = "QualityOfCare"
         values = ["High", "Low"]
-        transmission_matrix =  [[0.5, 0.0], [0.0, 1]]
+        transmission_matrix = [[0.5, 0.0], [0.0, 1]]
         new_individual_properties = IndividualProperties()
         new_individual_properties.add(IndividualProperty(initial_distribution=initial_distribution,
                                                          property=property,
@@ -910,11 +904,11 @@ class DemogTest(unittest.TestCase):
 
     def test_applyoverlay_individual_attributes(self):
         individual_attributes_1 = IndividualAttributes(age_distribution_flag=1,
-                                                                 age_distribution1=730,
-                                                                 age_distribution2=7300)
+                                                       age_distribution1=730,
+                                                       age_distribution2=7300)
         individual_attributes_2 = IndividualAttributes(age_distribution_flag=1,
-                                                                 age_distribution1=365,
-                                                                 age_distribution2=3650)
+                                                       age_distribution1=365,
+                                                       age_distribution2=3650)
         nodes = [Node.Node(0, 0, 0, individual_attributes=individual_attributes_1, forced_id=1),
                  Node.Node(0, 0, 0, individual_attributes=individual_attributes_2, forced_id=2)]
         demog = Demographics.Demographics(nodes=nodes)
@@ -922,8 +916,8 @@ class DemogTest(unittest.TestCase):
 
         overlay_nodes = []
         new_individual_attributes = IndividualAttributes(age_distribution_flag=0,
-                                                                   age_distribution1=300,
-                                                                   age_distribution2=600)
+                                                         age_distribution1=300,
+                                                         age_distribution2=600)
 
         overlay_nodes.append(Node.OverlayNode(node_id=1, individual_attributes=new_individual_attributes))
         overlay_nodes.append(Node.OverlayNode(node_id=2, individual_attributes=new_individual_attributes))
@@ -1055,9 +1049,7 @@ class DemogTest(unittest.TestCase):
                                            f"{expected_male_mortality_rate} in male csv file.\n")
 
                 female_mortality_rate = female_distribution['ResultValues'][i][j]
-                expected_female_mortality_rate = female_reference[female_reference['Age'] ==
-                                                                  expected_female_age_group[i + 1]][
-                    str(expected_female_year_group[j])].iloc[0]
+                expected_female_mortality_rate = female_reference[female_reference['Age'] == expected_female_age_group[i + 1]][str(expected_female_year_group[j])].iloc[0]
                 self.assertAlmostEqual(expected_female_mortality_rate, female_mortality_rate, delta=1e-5,
                                        msg=f"at year {expected_female_year_group[j]} age "
                                            f"{expected_female_age_group[i + 1]},"
@@ -1106,7 +1098,7 @@ class DemogTest(unittest.TestCase):
     def test_mortality_rate_with_node_ids(self):
         input_file = os.path.join(manifest.demo_folder, 'nodes.csv')
         demog = Demographics.from_csv(input_file)
-        mortality_rate = 0.1234 # CrudeRate
+        mortality_rate = 0.1234  # CrudeRate
         node_ids = [97, 99]
         demog.SetMortalityRate(mortality_rate, node_ids)
 
@@ -1172,13 +1164,13 @@ class DemogTest(unittest.TestCase):
 
     def test_set_mortality_over_time_from_data(self):
         demog = Demographics.from_template_node()
-        demog.SetMortalityOverTimeFromData( manifest.mortality_data_age_year_csv, base_year=1950 )
+        demog.SetMortalityOverTimeFromData(manifest.mortality_data_age_year_csv, base_year=1950)
         male_test = demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionMale']
         female_test = demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionFemale']
-        with open( manifest.mortality_reference_output ) as mort_fp:
-            mort_ref = json.load( mort_fp )
-        self.assertDictAlmostEqual( male_test, mort_ref )
-        self.assertDictAlmostEqual( female_test, mort_ref )
+        with open(manifest.mortality_reference_output) as mort_fp:
+            mort_ref = json.load(mort_fp)
+        self.assertDictAlmostEqual(male_test, mort_ref)
+        self.assertDictAlmostEqual(female_test, mort_ref)
 
     def test_demographic_json_integrity(self):
         df = pd.read_csv(manifest.mortality_data_age_year_csv)
@@ -1288,7 +1280,7 @@ class DemogTest(unittest.TestCase):
         while age_bucket_index < len(j_age_bucket_ends) - 1:
             tmp_age_bucket_string = age_bucket_strings[age_bucket_index]
             if '-' in tmp_age_bucket_string:
-                tmp_age_bucket_string = tmp_age_bucket_string[tmp_age_bucket_string.index('-')+1:]
+                tmp_age_bucket_string = tmp_age_bucket_string[tmp_age_bucket_string.index('-') + 1:]
             age_bucket_end_int = int(tmp_age_bucket_string)
             self.assertEqual(age_bucket_end_int, j_age_bucket_ends[age_bucket_index + 1],
                              msg="The second PopulationGroup is the upper bound of an age bucket")
@@ -1318,8 +1310,7 @@ class DemogTest(unittest.TestCase):
             analyzed_year = df_Years.loc[:, year]
             try:
                 generated_data = years_male[i]
-            except:
-
+            except Exception:
                 self.assertEqual(years, len(years_male),
                                  f"The number of  expected YEAR datasets {years} - actual {len(years_male)}")
                 print(f"Test Failed : Couldn't find a set of data expected {year}")
@@ -1338,10 +1329,10 @@ class DemogTest(unittest.TestCase):
 
     def test_set_fertility_over_time_from_params(self):
         demog = Demographics.from_template_node()
-        demog.SetFertilityOverTimeFromParams( years_region1=110, years_region2=60, start_rate=0.025, inflection_rate=0.025, end_rate=0.007 )
+        demog.SetFertilityOverTimeFromParams(years_region1=110, years_region2=60, start_rate=0.025, inflection_rate=0.025, end_rate=0.007)
         fert_test = demog.to_dict()['Defaults']['IndividualAttributes']['FertilityDistribution']
-        with open( manifest.fertility_reference_output ) as fert_fp:
-            fert_ref = json.load( fert_fp )
+        with open(manifest.fertility_reference_output) as fert_fp:
+            fert_ref = json.load(fert_fp)
         self.assertDictEqual(fert_test, fert_ref)
 
     def test_set_female_mortality_distribution(self):
@@ -1371,13 +1362,13 @@ class DemogTest(unittest.TestCase):
         # Test if wrapper ConstantDistribution changes distribution
         distribution = Distributions.Constant_Mortality
         predefined_mort_dist = MortalityDistribution(num_population_axes=2,
-                                                                          axis_names=["gender", "age"],
-                                                                          axis_units=["male=0,female=1", "years"],
-                                                                          axis_scale_factors=[1, 365],
-                                                                          population_groups=[[0, 1], [0]],
-                                                                          result_scale_factor=1,
-                                                                          result_units="daily probability of dying",
-                                                                          result_values=[[0.5], [0.5]])
+                                                     axis_names=["gender", "age"],
+                                                     axis_units=["male=0,female=1", "years"],
+                                                     axis_scale_factors=[1, 365],
+                                                     population_groups=[[0, 1], [0]],
+                                                     result_scale_factor=1,
+                                                     result_units="daily probability of dying",
+                                                     result_values=[[0.5], [0.5]])
         self.assertDictEqual(distribution.to_dict(), predefined_mort_dist.to_dict())
 
     def test_change_copied_distribution_const(self):
@@ -1391,32 +1382,33 @@ class DemogTest(unittest.TestCase):
         # test copy() function
         distribution_copy = Distributions.Constant_Mortality.copy()
         self.assertDictEqual(distribution_copy.to_dict(), Distributions.Constant_Mortality.to_dict())
-        
+
+
 class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
-    
+
     def setUp(self) -> None:
         print(f"\n{self._testMethodName} started...")
         self.out_folder = manifest.output_folder
-            
+
     def test_setmortalityovertimefromdata_eh_filename(self):
         # SetMortalityOverTimeFromData
         # Test Type:   Error Handling
         # Arg:         data_csv
         # Negative test that expects to be failing, at this point no fancy failure messages are expected
-        
+
         # Case 1: invalid argument
         with self.assertRaises(Exception):
             demog = Demographics.from_template_node()
-            demog.SetMortalityOverTimeFromData( "", base_year=1950 ) 
-        
+            demog.SetMortalityOverTimeFromData("", base_year=1950)
+
         # Case 2: arguments order
         try:
             demog = Demographics.from_template_node()
             demog.SetMortalityOverTimeFromData(base_year=1950, data_csv=manifest.mortality_data_age_year_csv)
             pprint.pprint(demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionFemale']['NumPopulationGroups'])
             pprint.pprint(demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionFemale']['PopulationGroups'])
-        except:
-            self.fail("should have taken the arguments")           
+        except Exception:
+            self.fail("should have taken the arguments")
 
         # Case 3: empty data file
         with self.assertRaises(Exception):
@@ -1426,29 +1418,29 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
             f.close()
             demog = Demographics.from_template_node()
             demog.SetMortalityOverTimeFromData(data_csv='test_file.csv', base_year=1950)
-          
+
     def test_setmortalityovertimefromdata_eh_base_year(self):
         # fn: SetMortalityOverTimeFromData
         # Test Type: Error handling
         # Arg:       base_year
         # Negative test that expects to be failing, at this point no fancy failure messages are expected
-        
+
         # Case 1: invalid argument
         with self.assertRaises(Exception):
             demog = Demographics.from_template_node()
-            demog.SetMortalityOverTimeFromData( data_csv=manifest.mortality_data_age_year_csv, base_year=19511 ) 
-            pprint.pprint(demog.to_dict()['Defaults'])  #BUG: 549 - it should not reach this point.
-            
+            demog.SetMortalityOverTimeFromData(data_csv=manifest.mortality_data_age_year_csv, base_year=19511)
+            pprint.pprint(demog.to_dict()['Defaults'])  # BUG: 549 - it should not reach this point.
+
     def test_setmortalityovertimefromdata_eh_base_node_id(self):
         # fn: SetMortalityOverTimeFromData
         # Test Type: Error handling
         # Arg:       node_ids
         # Negative test that expects to be failing, at this point no fancy failure messages are expected
-        
+
         # Case 1: invalid node_id argument
         with self.assertRaises(Exception):
             demog = Demographics.from_template_node()
-            demog.SetMortalityOverTimeFromData( data_csv=manifest.mortality_data_age_year_csv, base_year=1950, node_ids=[ 2 ] ) 
+            demog.SetMortalityOverTimeFromData(data_csv=manifest.mortality_data_age_year_csv, base_year=1950, node_ids=[2])
             pprint.pprint(demog.to_dict()['Defaults'])  # it should not reach this point.
 
     def test_01_setmortalityovertimefromdata(self):
@@ -1457,12 +1449,12 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
         #            from_pop_raster_csv
         #            without node_ids
         # Should be able to do all the basic steps without raising any error.
-        
-        input_file = os.path.join( manifest.demo_folder, 'nodes.csv')  
+
+        input_file = os.path.join(manifest.demo_folder, 'nodes.csv')
         demog = Demographics.from_pop_raster_csv(input_file, pop_filename_out=manifest.output_folder)
         demog.SetDefaultProperties()
         demog.SetMortalityOverTimeFromData(base_year=1991, data_csv=manifest.mortality_data_age_year_csv)
-        
+
         pprint.pprint(demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionFemale']['NumPopulationGroups'])
         pprint.pprint(demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionMale']['NumPopulationGroups'])
         pprint.pprint(demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionFemale']['PopulationGroups'])
@@ -1471,178 +1463,179 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
         self.assertEqual(len(demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionFemale']['PopulationGroups']), 2)
         self.assertEqual(len(demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionMale']['NumPopulationGroups']), 2)
         self.assertEqual(len(demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionMale']['PopulationGroups']), 2)
-       
+
     def test_02_setmortalityovertimefromdata(self):
         # fn: SetMortalityOverTimeFromData
         # Test type: Functional Test
-        #            from_pop_raster_csv 
+        #            from_pop_raster_csv
         #            WITH node_ids
 
         out_filename = os.path.join(self.out_folder, "demographics_from_pop_raster_csv.json")
         manifest.delete_existing_file(out_filename)
         input_file = os.path.join(manifest.demo_folder, 'nodes.csv')
-        
+
         demog = Demographics.from_pop_raster_csv(input_file, pop_filename_out=manifest.output_folder)    # BUG 548: "from_pop_raster_csv"  generates only 1  Geo Node
         geo_nodes = []
         for i in range(0, len(demog.to_dict()['Nodes'])):
-            geo_nodes.append(demog.to_dict()['Nodes'][i]['NodeID'])  
-            
-        demog.SetMortalityOverTimeFromData(base_year=1950, data_csv=manifest.mortality_data_age_year_csv, node_ids=geo_nodes) 
+            geo_nodes.append(demog.to_dict()['Nodes'][i]['NodeID'])
+
+        demog.SetMortalityOverTimeFromData(base_year=1950, data_csv=manifest.mortality_data_age_year_csv, node_ids=geo_nodes)
         demog.generate_file(out_filename)
         for i in range(0, len(demog.to_dict()['Nodes'])):
-            self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionFemale']), 0)  
+            self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionFemale']), 0)
             self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionMale']), 0)
-            
+
     def test_03_setmortalityovertimefromdata(self):
         # fn: SetMortalityOverTimeFromData
         # Test type: Functional Test
-        #            from_csv 
+        #            from_csv
         #            without node_ids   (Defaults to All)
-        #            PLUS   demog.SetDefaultProperties()   
-        
+        #            PLUS   demog.SetDefaultProperties()
+
         out_filename = os.path.join(self.out_folder, self._testMethodName + "_demographics_from_csv.json")
         out_updated_filename = out_filename.replace('_demographics_from_csv', '_updated_demographics_from_csv')
         manifest.delete_existing_file(out_filename)
         manifest.delete_existing_file(out_updated_filename)
-        
+
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.demo_folder, 'demog_in_subset.csv')
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref=id_ref)
-        
+        demog = Demographics.from_csv(input_file, res=25 / 3600, id_ref=id_ref)
+
         demog.SetDefaultProperties()
         demog.generate_file(out_filename)
-        
-        demog.SetMortalityOverTimeFromData(base_year=1950, data_csv=manifest.mortality_data_age_year_csv) 
-        demog.generate_file(out_updated_filename)   
-        self.assertGreater(len(demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionFemale']), 0)  
-        self.assertGreater(len(demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionMale']), 0)
 
+        demog.SetMortalityOverTimeFromData(base_year=1950, data_csv=manifest.mortality_data_age_year_csv)
+        demog.generate_file(out_updated_filename)
+        self.assertGreater(len(demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionFemale']), 0)
+        self.assertGreater(len(demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionMale']), 0)
 
     def test_04_setmortalityovertimefromdata(self):
         # fn: SetMortalityOverTimeFromData
         # Test type: Functional Test
-        #            from_csv 
+        #            from_csv
         #            WITH node_ids (some)
-        #            PLUS   demog.SetDefaultProperties()   
-        
+        #            PLUS   demog.SetDefaultProperties()
+
         out_filename = os.path.join(self.out_folder, self._testMethodName + "_demographics_from_csv.json")
         out_updated_filename = out_filename.replace('_demographics_from_csv', '_updated_demographics_from_csv')
         manifest.delete_existing_file(out_filename)
         manifest.delete_existing_file(out_updated_filename)
         input_file = os.path.join(manifest.demo_folder, 'demog_in_subset.csv')
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref="from_csv_test")
-        
+        demog = Demographics.from_csv(input_file, res=25 / 3600, id_ref="from_csv_test")
+
         demog.SetDefaultProperties()
         demog.generate_file(out_filename)
-        
+
         list_of_all_node_ids = []
         # nodes = demog.to_dict()['Nodes']
-        for i in range(0, len(demog.to_dict()['Nodes'])): list_of_all_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
+        for i in range(0, len(demog.to_dict()['Nodes'])):
+            list_of_all_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
 
-        demog.SetMortalityOverTimeFromData(base_year=1950, data_csv=manifest.mortality_data_age_year_csv, node_ids=list_of_all_node_ids[0:19]) 
+        demog.SetMortalityOverTimeFromData(base_year=1950, data_csv=manifest.mortality_data_age_year_csv, node_ids=list_of_all_node_ids[0:19])
         demog.generate_file(out_updated_filename)
-        
-        for i in range(0,19):
-            self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionFemale']), 0)  
+
+        for i in range(0, 19):
+            self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionFemale']), 0)
             self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionMale']), 0)
 
-        for j in [20, 21, 22]:     #testing just few of them to verify
+        for j in [20, 21, 22]:  # testing just few of them to verify
             with self.assertRaises(Exception):
-                self.assertGreater(len(demog.to_dict()['Nodes'][j]['IndividualAttributes']['MortalityDistributionFemale']), 0)  
-                self.assertGreater(len(demog.to_dict()['Nodes'][j]['IndividualAttributes']['MortalityDistributionMale']), 0) 
+                self.assertGreater(len(demog.to_dict()['Nodes'][j]['IndividualAttributes']['MortalityDistributionFemale']), 0)
+                self.assertGreater(len(demog.to_dict()['Nodes'][j]['IndividualAttributes']['MortalityDistributionMale']), 0)
 
     def test_05_setmortalityovertimefromdata(self):
         # fn: SetMortalityOverTimeFromData
         # Test type: Functional Test
-        #            from_csv 
+        #            from_csv
         #            without node_ids
         #            node_ids - ommited, therefore, All
-        
+
         out_filename = os.path.join(self.out_folder, self._testMethodName + "_demographics_from_csv.json")
         out_updated_filename = out_filename.replace('_demographics_from_csv', '_updated_demographics_from_csv')
         manifest.delete_existing_file(out_filename)
         manifest.delete_existing_file(out_updated_filename)
-        
+
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.demo_folder, 'demog_in_subset.csv')
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref=id_ref)
+        demog = Demographics.from_csv(input_file, res=25 / 3600, id_ref=id_ref)
         demog.generate_file(out_filename)
-        
-        demog.SetMortalityOverTimeFromData(base_year=1950, data_csv=manifest.mortality_data_age_year_csv) 
-        demog.generate_file(out_updated_filename) 
-        
-        #for i in range(0, len(geo_nodes)):
-        self.assertGreater(len(demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionFemale']), 0)  
+
+        demog.SetMortalityOverTimeFromData(base_year=1950, data_csv=manifest.mortality_data_age_year_csv)
+        demog.generate_file(out_updated_filename)
+
+        self.assertGreater(len(demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionFemale']), 0)
         self.assertGreater(len(demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionMale']), 0)
-        
+
     def test_06_setmortalityovertimefromdata(self):
         # fn: SetMortalityOverTimeFromData
         # Test type: Functional Test
-        #            from_csv 
+        #            from_csv
         #            WITH node_ids
-        
+
         out_filename = os.path.join(self.out_folder, self._testMethodName + "_demographics_from_csv.json")
         out_updated_filename = out_filename.replace('_demographics_from_csv', '_updated_demographics_from_csv')
         manifest.delete_existing_file(out_filename)
         manifest.delete_existing_file(out_updated_filename)
         input_file = os.path.join(manifest.demo_folder, 'demog_in_subset.csv')
 
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref="from_test_csv")
+        demog = Demographics.from_csv(input_file, res=25 / 3600, id_ref="from_test_csv")
         demog.generate_file(out_filename)
-        demog.SetMortalityOverTimeFromData(base_year=1951, data_csv=manifest.mortality_data_age_year_csv, node_ids=[1838427584, 1829187024, 1835806165]) 
+        demog.SetMortalityOverTimeFromData(base_year=1951, data_csv=manifest.mortality_data_age_year_csv, node_ids=[1838427584, 1829187024, 1835806165])
         demog.generate_file(out_updated_filename)
-        
+
         # This block validates that SetMortalityOverTimeFromData applied the changes to the specified nodes.
-        for i in range(0,2):
-            self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionFemale']), 0)  
+        for i in range(0, 2):
+            self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionFemale']), 0)
             self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionMale']), 0)
-            
+
         # For the rest of nodes, it shouldn't have been impacted
         for i in range(3, len(demog.node_ids)):
             with self.assertRaises(Exception):
-                self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionFemale']), 0)  
-                self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionMale']), 0) 
-        
+                self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionFemale']), 0)
+                self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionMale']), 0)
+
     def test_07_setmortalityovertimefromdata(self):
         # fn: SetMortalityOverTimeFromData
         # Test type: Functional Test
-        #            from_csv 
-        #            with different ranges of node_ids 
+        #            from_csv
+        #            with different ranges of node_ids
         #            Calling the function more than once, and repeating some
-        
+
         out_filename = os.path.join(self.out_folder, self._testMethodName + "_demographics_from_csv.json")
         out_updated_filename = out_filename.replace('_demographics_from_csv', '_updated_demographics_from_csv')
         input_file = os.path.join(manifest.demo_folder, 'demog_in_subset.csv')
 
         manifest.delete_existing_file(out_filename)
         manifest.delete_existing_file(out_updated_filename)
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref="from_csv_test")
+        demog = Demographics.from_csv(input_file, res=25 / 3600, id_ref="from_csv_test")
         demog.generate_file(out_filename)
-        
+
         list_of_all_node_ids = []
-        for i in range(0, len(demog.to_dict()['Nodes'])): list_of_all_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
+        for i in range(0, len(demog.to_dict()['Nodes'])):
+            list_of_all_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
 
         # First call
-        demog.SetMortalityOverTimeFromData(base_year=1950, data_csv=manifest.mortality_data_age_year_csv, node_ids=list_of_all_node_ids[0:19]) 
+        demog.SetMortalityOverTimeFromData(base_year=1950, data_csv=manifest.mortality_data_age_year_csv, node_ids=list_of_all_node_ids[0:19])
         demog.SetDefaultProperties()
-        demog.SetMortalityOverTimeFromData(base_year=1950, data_csv=manifest.mortality_data_age_year_csv, node_ids=list_of_all_node_ids[50:60]) 
-        demog.SetMortalityOverTimeFromData(base_year=1950, data_csv=manifest.mortality_data_age_year_csv, node_ids=list_of_all_node_ids[0:19]) 
+        demog.SetMortalityOverTimeFromData(base_year=1950, data_csv=manifest.mortality_data_age_year_csv, node_ids=list_of_all_node_ids[50:60])
+        demog.SetMortalityOverTimeFromData(base_year=1950, data_csv=manifest.mortality_data_age_year_csv, node_ids=list_of_all_node_ids[0:19])
         demog.generate_file(out_updated_filename)
-        for i in range(0,19):
-            self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionFemale']), 0)  
+        for i in range(0, 19):
+            self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionFemale']), 0)
             self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionMale']), 0)
 
         for i in range(50, 60):
-            self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionFemale']), 0)  
+            self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionFemale']), 0)
             self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionMale']), 0)
 
-        for j in range(20,49):     #testing just few of them to verify
+        for j in range(20, 49):  # testing just few of them to verify
             with self.assertRaises(Exception):
-                self.assertGreater(len(demog.to_dict()['Nodes'][j]['IndividualAttributes']['MortalityDistributionFemale']), 0)  
-                self.assertGreater(len(demog.to_dict()['Nodes'][j]['IndividualAttributes']['MortalityDistributionMale']), 0) 
+                self.assertGreater(len(demog.to_dict()['Nodes'][j]['IndividualAttributes']['MortalityDistributionFemale']), 0)
+                self.assertGreater(len(demog.to_dict()['Nodes'][j]['IndividualAttributes']['MortalityDistributionMale']), 0)
+
 
 class DemographicsComprehensiveTests_Fertility(unittest.TestCase):
-    
+
     def setUp(self) -> None:
         print(f"\n{self._testMethodName} started...")
         self.out_folder = manifest.output_folder
@@ -1652,96 +1645,105 @@ class DemographicsComprehensiveTests_Fertility(unittest.TestCase):
         # Test Type:   Error Handling
         # Arg:     years_region2, start_rate, inflection_rate, end_rate
         # Goal:    Negative test expects to generate exceptions or validate non functional features.
-        
+
         demog = Demographics.from_template_node()
-        
+
         # Case 1: missing arguments:
-        with self.assertRaises(TypeError):  demog.SetFertilityOverTimeFromParams( years_region2=60, start_rate=20, inflection_rate=18.4, end_rate=17 ) # years_region1
-        with self.assertRaises(TypeError):  demog.SetFertilityOverTimeFromParams(years_region1=110, start_rate=20, inflection_rate=18.4, end_rate=17 )  # years_region2
-        with self.assertRaises(TypeError):  demog.SetFertilityOverTimeFromParams(years_region1=110, years_region2=60,  inflection_rate=18.4, end_rate=17 ) # start_rate
-        with self.assertRaises(TypeError):  demog.SetFertilityOverTimeFromParams(years_region1=110, years_region2=60, start_rate=20, end_rate=17 )  # inflection_rate
-        with self.assertRaises(TypeError):  demog.SetFertilityOverTimeFromParams(years_region1=110, years_region2=60, start_rate=20, inflection_rate=18.4 ) # end_rate
+        with self.assertRaises(TypeError):
+            demog.SetFertilityOverTimeFromParams(years_region2=60, start_rate=20, inflection_rate=18.4, end_rate=17)  # years_region1
+        with self.assertRaises(TypeError):
+            demog.SetFertilityOverTimeFromParams(years_region1=110, start_rate=20, inflection_rate=18.4, end_rate=17)  # years_region2
+        with self.assertRaises(TypeError):
+            demog.SetFertilityOverTimeFromParams(years_region1=110, years_region2=60, inflection_rate=18.4, end_rate=17)  # start_rate
+        with self.assertRaises(TypeError):
+            demog.SetFertilityOverTimeFromParams(years_region1=110, years_region2=60, start_rate=20, end_rate=17)  # inflection_rate
+        with self.assertRaises(TypeError):
+            demog.SetFertilityOverTimeFromParams(years_region1=110, years_region2=60, start_rate=20, inflection_rate=18.4)  # end_rate
 
         # Case 2: negative numbers
-        with self.assertRaises(ValueError):  demog.SetFertilityOverTimeFromParams(years_region1= -110, years_region2=60, start_rate=20, inflection_rate=18.4, end_rate=17 ) # years_region1
-        with self.assertRaises(ValueError):  demog.SetFertilityOverTimeFromParams(years_region1= 110, years_region2=-60, start_rate=20, inflection_rate=18.4, end_rate=17 )  # years_region2
-        with self.assertRaises(ValueError):  demog.SetFertilityOverTimeFromParams(years_region1= 110, years_region2=60, start_rate=-20, inflection_rate=18.4, end_rate=17 ) # start_rate
-        with self.assertRaises(ValueError):  demog.SetFertilityOverTimeFromParams(years_region1= 110, years_region2=60, start_rate=20, inflection_rate=-18.4, end_rate=17 )  # inflection_rate
-        with self.assertRaises(ValueError):  demog.SetFertilityOverTimeFromParams(years_region1= 110, years_region2=60, start_rate=20, inflection_rate=18.4, end_rate=-17 ) # end_rate
+        with self.assertRaises(ValueError):
+            demog.SetFertilityOverTimeFromParams(years_region1=-110, years_region2=60, start_rate=20, inflection_rate=18.4, end_rate=17)  # years_region1
+        with self.assertRaises(ValueError):
+            demog.SetFertilityOverTimeFromParams(years_region1=110, years_region2=-60, start_rate=20, inflection_rate=18.4, end_rate=17)  # years_region2
+        with self.assertRaises(ValueError):
+            demog.SetFertilityOverTimeFromParams(years_region1=110, years_region2=60, start_rate=-20, inflection_rate=18.4, end_rate=17)  # start_rate
+        with self.assertRaises(ValueError):
+            demog.SetFertilityOverTimeFromParams(years_region1=110, years_region2=60, start_rate=20, inflection_rate=-18.4, end_rate=17)  # inflection_rate
+        with self.assertRaises(ValueError):
+            demog.SetFertilityOverTimeFromParams(years_region1=110, years_region2=60, start_rate=20, inflection_rate=18.4, end_rate=-17)  # end_rate
 
         # Case 3: arguments order
         try:
             demog = Demographics.from_template_node()
-            demog.SetFertilityOverTimeFromParams( years_region2=1000, years_region1=1, end_rate = 25, start_rate = 15, inflection_rate = 3 )
-        except:
-            self.fail("should have taken the arguments")           
+            demog.SetFertilityOverTimeFromParams(years_region2=1000, years_region1=1, end_rate=25, start_rate=15, inflection_rate=3)
+        except Exception:
+            self.fail("should have taken the arguments")
 
     def test_01_SetFertilityOverTimeFromParams(self):
         # fn:  SetFertilityOverTimeFromParams
         # Test Type:   Functional Test
-        # Feature:     Basic workflow, generate plot (single)          
-        #              without node_ids, generated using from_csv() 
-        
+        # Feature:     Basic workflow, generate plot (single)
+        #              without node_ids, generated using from_csv()
+
         out_filename = os.path.join(self.out_folder, self._testMethodName + "_demographics_from_csv.json")
-        out_plot = os.path.join(self.out_folder, self._testMethodName + "_plot.png")
         input_file = os.path.join(manifest.demo_folder, 'demog_in_subset.csv')
         out_updated_filename = out_filename.replace('_demographics_from_csv', '_updated_demographics_from_csv')
 
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref="from_csv_test")
+        demog = Demographics.from_csv(input_file, res=25 / 3600, id_ref="from_csv_test")
         demog.generate_file(out_filename)
-        
+
         list_of_all_node_ids = []
-        for i in range(0, len(demog.to_dict()['Nodes'])): list_of_all_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
+        for i in range(0, len(demog.to_dict()['Nodes'])):
+            list_of_all_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
         demog = Demographics.from_template_node()
         demog.SetDefaultProperties()
-        fertility_data = demog.SetFertilityOverTimeFromParams(years_region1=110, years_region2=60, start_rate=16, inflection_rate=18.4, end_rate=17 )
+        demog.SetFertilityOverTimeFromParams(years_region1=110, years_region2=60, start_rate=16, inflection_rate=18.4, end_rate=17)
         demog.generate_file(out_filename)
         demog.generate_file(out_updated_filename)
 
     def test_02_SetFertilityOverTimeFromParams(self):
         # fn:  SetFertilityOverTimeFromParams
         # Test Type:   Functional Test
-        # Feature:      Basic workflow, generate plot (single)          
-        #               without node_ids, generated using from_csv() 
+        # Feature:      Basic workflow, generate plot (single)
+        #               without node_ids, generated using from_csv()
         #               plus setmortalityovertimefromdata
-        
+
         out_filename = os.path.join(self.out_folder, self._testMethodName + "_demographics_from_csv.json")
         input_file = os.path.join(manifest.demo_folder, 'demog_in_subset.csv')
         out_updated_filename = out_filename.replace('_demographics_from_csv', '_updated_demographics_from_csv')
-        out_plot = os.path.join(self.out_folder, self._testMethodName + "_plot.png")
         out_updated_2_filename = out_filename.replace('_demographics_from_csv', '_updated_2_demographics_from_csv')
 
         manifest.delete_existing_file(out_filename)
         manifest.delete_existing_file(out_updated_filename)
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref="from_csv_test")
+        demog = Demographics.from_csv(input_file, res=25 / 3600, id_ref="from_csv_test")
         demog.generate_file(out_filename)
-        
+
         list_of_all_node_ids = []
-        for i in range(0, len(demog.to_dict()['Nodes'])): list_of_all_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
-        last_node_id = len(list_of_all_node_ids)-1
+        for i in range(0, len(demog.to_dict()['Nodes'])):
+            list_of_all_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
         last_node_list = [1822764416]
         # First call
-        demog.SetMortalityOverTimeFromData(base_year=1950, data_csv=manifest.mortality_data_age_year_csv, node_ids=list_of_all_node_ids[0:27]) 
+        demog.SetMortalityOverTimeFromData(base_year=1950, data_csv=manifest.mortality_data_age_year_csv, node_ids=list_of_all_node_ids[0:27])
         demog.SetDefaultProperties()
-        demog.SetMortalityOverTimeFromData(base_year=1950, data_csv=manifest.mortality_data_age_year_csv, node_ids=last_node_list) 
+        demog.SetMortalityOverTimeFromData(base_year=1950, data_csv=manifest.mortality_data_age_year_csv, node_ids=last_node_list)
 
-        fertility_data = demog.SetFertilityOverTimeFromParams(years_region1=110, years_region2=60, start_rate=16, inflection_rate=18.4, end_rate=17,  node_ids=list_of_all_node_ids[0:27]) 
+        demog.SetFertilityOverTimeFromParams(years_region1=110, years_region2=60, start_rate=16, inflection_rate=18.4, end_rate=17, node_ids=list_of_all_node_ids[0:27])
         demog.generate_file(out_filename)
         demog.generate_file(out_updated_filename)
 
-        for i in range(0,27):
-            self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionFemale']), 0)  
+        for i in range(0, 27):
+            self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionFemale']), 0)
             self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionMale']), 0)
-        
-        self.assertGreater(len(demog.to_dict()['Nodes'][89]['IndividualAttributes']['MortalityDistributionFemale']), 0)  
+
+        self.assertGreater(len(demog.to_dict()['Nodes'][89]['IndividualAttributes']['MortalityDistributionFemale']), 0)
         self.assertGreater(len(demog.to_dict()['Nodes'][89]['IndividualAttributes']['MortalityDistributionMale']), 0)
 
-        for j in range(30,49):     #testing just few of them to verify
+        for j in range(30, 49):  # testing just few of them to verify
             with self.assertRaises(Exception):
-                self.assertGreater(len(demog.to_dict()['Nodes'][j]['IndividualAttributes']['MortalityDistributionFemale']), 0)  
-                self.assertGreater(len(demog.to_dict()['Nodes'][j]['IndividualAttributes']['MortalityDistributionMale']), 0) 
-        
-        fertility_data = demog.SetFertilityOverTimeFromParams(years_region1=110, years_region2=60, start_rate=16, inflection_rate=18.4, end_rate=17,  node_ids=list_of_all_node_ids[88:89])
+                self.assertGreater(len(demog.to_dict()['Nodes'][j]['IndividualAttributes']['MortalityDistributionFemale']), 0)
+                self.assertGreater(len(demog.to_dict()['Nodes'][j]['IndividualAttributes']['MortalityDistributionMale']), 0)
+
+        demog.SetFertilityOverTimeFromParams(years_region1=110, years_region2=60, start_rate=16, inflection_rate=18.4, end_rate=17, node_ids=list_of_all_node_ids[88:89])
         demog.generate_file(out_updated_2_filename)
 
 
@@ -1797,13 +1799,13 @@ class DemographicsOverlayTest(unittest.TestCase):
                 "IndividualAttributes": {
                     "AgeDistribution": {
                         "DistributionValues": [
-                                0.0,
-                                1.0
+                            0.0,
+                            1.0
                         ],
                         "ResultScaleFactor": 1,
                         "ResultValues": [
-                                0,
-                                43769
+                            0,
+                            43769
                         ]
                     },
                     "MortalityDistribution": {
@@ -1892,13 +1894,13 @@ class DemographicsOverlayTest(unittest.TestCase):
         for implicit_funcs_name in demog.implicits:
             try:
                 implicit_funcs_names.append(implicit_funcs_name.__name__)
-            except:
+            except Exception:
                 implicit_funcs_names.append(implicit_funcs_name.func.__name__)  # partial function
 
         self.assertTrue(DT._set_local_migration_roundtrip_probability.__name__ in implicit_funcs_names)
         self.assertTrue(DT._set_local_migration_filename.__name__ in implicit_funcs_names)
         for mig_file in demog.migration_files:
-            self.assertTrue(os.path.isfile(mig_file), msg=f'commuter_migration.bin was not generated.')
+            self.assertTrue(os.path.isfile(mig_file), msg='commuter_migration.bin was not generated.')
 
     def test_SetLongTermMigration_default(self):
         demog = Demographics.from_template_node()
@@ -1907,18 +1909,18 @@ class DemographicsOverlayTest(unittest.TestCase):
         for implicit_funcs_name in demog.implicits:
             try:
                 implicit_funcs_names.append(implicit_funcs_name.__name__)
-            except:
+            except Exception:
                 implicit_funcs_names.append(implicit_funcs_name.func.__name__)  # partial function
 
         self.assertTrue(DT._set_regional_migration_roundtrip_probability.__name__ in implicit_funcs_names)
         self.assertTrue(DT._set_regional_migration_filenames.__name__ in implicit_funcs_names)
         for mig_file in demog.migration_files:
-            self.assertTrue(os.path.isfile(mig_file), msg=f'commuter_migration.bin was not generated.')
+            self.assertTrue(os.path.isfile(mig_file), msg='commuter_migration.bin was not generated.')
 
     def test_create_overlay_for_Kurt(self):
         # ***** Write vital dynamics and susceptibility initialization overlays *****
         vd_over_dict = dict()
-        node_list = [Node.Node(lat=1, lon=2, pop=123, forced_id=i) for i in [1,2]]
+        node_list = [Node.Node(lat=1, lon=2, pop=123, forced_id=i) for i in [1, 2]]
         mort_vec_X = [1.0, 5.0, 10]
         mort_year = [10, 20, 30, 90]
         result_values = [[0.1, 0.2, 0.3, 0.4], [0.1, 0.2, 0.3, 0.4], [0.1, 0.2, 0.3, 0.4]]
@@ -1932,7 +1934,7 @@ class DemographicsOverlayTest(unittest.TestCase):
 
         vd_over_dict['Defaults']['IndividualAttributes'] = {'MortalityDistributionMale': dict(),
                                                             'MortalityDistributionFemale': dict()}
-        individual_attributes=vd_over_dict['Defaults']['IndividualAttributes']
+        individual_attributes = vd_over_dict['Defaults']['IndividualAttributes']
         individual_attributes['MortalityDistributionMale']['AxisNames'] = ['age', 'year']
         individual_attributes['MortalityDistributionMale']['AxisScaleFactors'] = [365, 1]
         individual_attributes['MortalityDistributionMale']['NumPopulationGroups'] = num_population_groups
@@ -1966,30 +1968,30 @@ class DemographicsComprehensiveTests_Migration(unittest.TestCase):
         """
         fn:   Demographics.SetCommuterMigration
         Functional test - Defaults
-        Args: (self, 
-            gravity_factor=1e-4, 
-            probability_of_return=1.0, 
+        Args: (self,
+            gravity_factor=1e-4,
+            probability_of_return=1.0,
             id_ref='short term commuting migration'):
         """
         out_filename = os.path.join(self.out_folder, self._testMethodName + "_demographics_from_csv.json")
         input_file = os.path.join(manifest.demo_folder, 'demog_in_subset.csv')
         manifest.delete_existing_file(out_filename)
 
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref="from_csv_test")
+        demog = Demographics.from_csv(input_file, res=25 / 3600, id_ref="from_csv_test")
         demog.generate_file(out_filename)
-        
+
         list_of_all_node_ids = []
-        for i in range(0, len(demog.to_dict()['Nodes'])): list_of_all_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
+        for i in range(0, len(demog.to_dict()['Nodes'])):
+            list_of_all_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
         demog.SetRoundTripMigration(gravity_factor=.0001)
 
         # Test 01 - using defaults for basic case.
         self.assertEqual(1, len(demog.migration_files))
-        generated_resource_file =  demog.migration_files[0]
         bin_file_contents = os.path.join(self.out_folder, self._testMethodName + "_generated_bin_file_unpacked.csv")
-        with open(demog.migration_files[0], mode='rb') as file: # reading the file as binary.
+        with open(demog.migration_files[0], mode='rb') as file:  # reading the file as binary.
             fileContent = file.read()
-            unpf = list(struct.unpack("i" * (len(fileContent)//4), fileContent))
-            pd.DataFrame.from_dict(unpf).to_string(bin_file_contents.replace('_file', f'_from_{i}_nodes'))  #.to_csv(bin_file_contents)
+            unpf = list(struct.unpack("i" * (len(fileContent) // 4), fileContent))
+            pd.DataFrame.from_dict(unpf).to_string(bin_file_contents.replace('_file', f'_from_{i}_nodes'))  # .to_csv(bin_file_contents)
 
     def test_02_RoundTripMigration_func(self):
         """
@@ -1997,18 +1999,18 @@ class DemographicsComprehensiveTests_Migration(unittest.TestCase):
         Functional test - calling the function twice:
             - Call #1 - Using Defaults:
             - Call #2 - Use a gravity_factor=9e-4
-        
         """
         out_filename = os.path.join(self.out_folder, self._testMethodName + "_demographics_from_csv.json")
         input_file = os.path.join(manifest.demo_folder, 'demog_in_subset.csv')
         manifest.delete_existing_file(out_filename)
 
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref="from_csv_test")
+        demog = Demographics.from_csv(input_file, res=25 / 3600, id_ref="from_csv_test")
         demog.generate_file(out_filename)
-        
+
         list_of_all_node_ids = []
-        for i in range(0, len(demog.to_dict()['Nodes'])): list_of_all_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
-        
+        for i in range(0, len(demog.to_dict()['Nodes'])):
+            list_of_all_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
+
         # Call #1: With Defaults:
         demog.SetRoundTripMigration(1e-4)
 
@@ -2017,14 +2019,13 @@ class DemographicsComprehensiveTests_Migration(unittest.TestCase):
 
         # Validation
         self.assertEqual(len(demog.migration_files), 2)
-    
+
     def test_OneWayMigration_eh(self):
         """
         fn:   Demographics.SetOneWayMigration
         Functional test - EH
             rates_path: Path to csv file with node-to-node migration rates. Format is: source (node id),destination (node id),rate.
             id_ref: Text string that appears in the migration file itself; needs to match corresponding demographics file.
-
         """
 
         out_filename = os.path.join(self.out_folder, self._testMethodName + "_demographics_from_csv.json")
@@ -2033,19 +2034,20 @@ class DemographicsComprehensiveTests_Migration(unittest.TestCase):
 
         # Case 1 - no arguments
         with self.assertRaises(Exception):
-            demog = Demographics.from_csv(input_file, res=25/3600, id_ref="from_csv_test")
+            demog = Demographics.from_csv(input_file, res=25 / 3600, id_ref="from_csv_test")
             demog.SetOneWayMigration()
 
         # Case 2: valid rates_path file name, invalid contents
         with self.assertRaises(Exception):
             fname = os.path.join(self.out_folder, self._testMethodName + "_ratesfile.csv")
-            if os.path.isfile(fname): os.remove(fname)
+            if os.path.isfile(fname):
+                os.remove(fname)
             f = open(fname, 'w')
             writer = csv.writer(f)
             writer.writerow("x")  # Invalid data will be passed to the SetOneWayMigration function therefore it should raise an exception.
             f.close()
-            demog = Demographics.from_csv(input_file, res=25/3600, id_ref="from_csv_test")
-            demog.SetOneWayMigration(rates_path = fname)
+            demog = Demographics.from_csv(input_file, res=25 / 3600, id_ref="from_csv_test")
+            demog.SetOneWayMigration(rates_path=fname)
 
     def test_01_OneWayMigration_onenode(self):
         """
@@ -2057,14 +2059,15 @@ class DemographicsComprehensiveTests_Migration(unittest.TestCase):
         """
         input_file = os.path.join(manifest.demo_folder, 'demog_in_subset.csv')
         rates_file = os.path.join(self.out_folder, self._testMethodName + "_ratesfile.txt")
-        if os.path.isfile(rates_file): os.remove(rates_file)
+        if os.path.isfile(rates_file):
+            os.remove(rates_file)
         with open(rates_file, 'w') as rf:
-            lines = ['source,destination,rate\n','1881811163,1876306490,0.8\n' ]
+            lines = ['source,destination,rate\n', '1881811163,1876306490,0.8\n']
             rf.writelines(lines)
             rf.close()
 
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref="from_csv_test")
-        demog.SetOneWayMigration(rates_path = rates_file)
+        demog = Demographics.from_csv(input_file, res=25 / 3600, id_ref="from_csv_test")
+        demog.SetOneWayMigration(rates_path=rates_file)
 
     def test_02_OneWayMigration_manynodes(self):
         """
@@ -2079,43 +2082,45 @@ class DemographicsComprehensiveTests_Migration(unittest.TestCase):
         bin_file_contents = os.path.join(self.out_folder, self._testMethodName + "_generated_bin_file_unpacked.csv")
 
         # Demographics object
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref="from_csv_test")
+        demog = Demographics.from_csv(input_file, res=25 / 3600, id_ref="from_csv_test")
         list_of_all_node_ids = []
-        for i in range(0, len(demog.to_dict()['Nodes'])): list_of_all_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
-        if os.path.isfile(rates_file): os.remove(rates_file)
+        for i in range(0, len(demog.to_dict()['Nodes'])):
+            list_of_all_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
+        if os.path.isfile(rates_file):
+            os.remove(rates_file)
 
         source = list_of_all_node_ids[0:88]
         destination = list_of_all_node_ids[1:89]
         rate = []
-        for i in range(1, len(source)+1): rate.append(1/i)
+        for i in range(1, len(source) + 1):
+            rate.append(1 / i)
 
-        data = {'source': source, 'destination': destination,'rate': rate}
+        data = {'source': source, 'destination': destination, 'rate': rate}
         pd.DataFrame.from_dict(data).to_csv(pathlib.Path(rates_file), index=False)
 
-        # SetOneWayMigration call 
-        demog.SetOneWayMigration(rates_path = rates_file)
+        # SetOneWayMigration call
+        demog.SetOneWayMigration(rates_path=rates_file)
 
         print(",".join(demog.migration_files))  # btw, there should be only one file for this test.
-        with open(demog.migration_files[0], mode='rb') as file: # reading the file as binary.
+        with open(demog.migration_files[0], mode='rb') as file:  # reading the file as binary.
             fileContent = file.read()
-            unpf = list(struct.unpack("i" * (len(fileContent)//4), fileContent))
-            pd.DataFrame.from_dict(unpf).to_string(bin_file_contents.replace('_file', f'_file_with_{len(source)}_migrations'))  #.to_csv(bin_file_contents)
-            # print(unpf )
+            unpf = list(struct.unpack("i" * (len(fileContent) // 4), fileContent))
+            pd.DataFrame.from_dict(unpf).to_string(bin_file_contents.replace('_file', f'_file_with_{len(source)}_migrations'))  # .to_csv(bin_file_contents)
+
 
 class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
-    
+
     def setUp(self) -> None:
         print(f"\n{self._testMethodName} started...")
         self.out_folder = manifest.output_folder
 
     def validate_node(self, test_node):
-        self.assertGreater(len(test_node['AgeDistribution']['DistributionValues']), 0)  
-        self.assertEqual(test_node['MortalityDistribution']['AxisNames'], ["gender","age"])  
-        self.assertEqual(test_node['MortalityDistribution']['AxisScaleFactors'], [1, 365])  
-        self.assertEqual(test_node['MortalityDistribution']['AxisUnits'], ["male=0,female=1", "years"])  
-        self.assertEqual(test_node['MortalityDistribution']['PopulationGroups'], [[0,1], [0]])  
-        self.assertEqual(len(test_node['MortalityDistribution']['ResultValues']), 2) 
-        
+        self.assertGreater(len(test_node['AgeDistribution']['DistributionValues']), 0)
+        self.assertEqual(test_node['MortalityDistribution']['AxisNames'], ["gender", "age"])
+        self.assertEqual(test_node['MortalityDistribution']['AxisScaleFactors'], [1, 365])
+        self.assertEqual(test_node['MortalityDistribution']['AxisUnits'], ["male=0,female=1", "years"])
+        self.assertEqual(test_node['MortalityDistribution']['PopulationGroups'], [[0, 1], [0]])
+        self.assertEqual(len(test_node['MortalityDistribution']['ResultValues']), 2)
 
     def verify_demographics_Json(self, demog, test_case, with_nodeids=False, nodes_count=0):
         if not with_nodeids:
@@ -2124,14 +2129,15 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
 
         if with_nodeids:
             demogdict = demog.to_dict()['Nodes']
-            if nodes_count==0: nodes_count = len(demogdict)
+            if nodes_count == 0:
+                nodes_count = len(demogdict)
             for n in range(0, nodes_count):
                 self.validate_node(demogdict[n]['IndividualAttributes'])
 
     def test_setsimplevitaldynamics_bvt_01(self):
         # SetSimpleVitalDynamics
         # Test Type:   Core Functional Test - Created FROM_TEMPLATE_NODE
-        # Arg:  No arguments - Using defaults        
+        # Arg:  No arguments - Using defaults
         out_filename = os.path.join(self.out_folder, self._testMethodName + "_demographics_from_csv.json")
         out_updated_filename = out_filename.replace('_demographics_from_csv', '_updated_demographics_from_csv')
         manifest.delete_existing_file(out_filename)
@@ -2139,10 +2145,9 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
 
         demog = Demographics.from_template_node()
         demog.generate_file(out_filename)
-        #demog.SetSimpleVitalDynamics(crude_birth_rate=.4, crude_death_rate=.5 )
-        
+
         demog.SetSimpleVitalDynamics()  # function invoke
-        demog.generate_file(out_updated_filename)       
+        demog.generate_file(out_updated_filename)
 
         self.verify_demographics_Json(demog, self._testMethodName)
 
@@ -2150,7 +2155,7 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
         # SetSimpleVitalDynamics
         # Test Type:   Core Functional Test - Created FROM_CSV
         # Arg:  No arguments - Using defaults
-                
+
         out_filename = os.path.join(self.out_folder, self._testMethodName + "_demographics_from_template_node.json")
         out_updated_filename = out_filename.replace('_demographics_from_template_node', '_updated_demographics_from_template_node')
         manifest.delete_existing_file(out_filename)
@@ -2158,18 +2163,18 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
 
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.demo_folder, 'demog_in_subset.csv')
-        
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref=id_ref)
+
+        demog = Demographics.from_csv(input_file, res=25 / 3600, id_ref=id_ref)
         demog.generate_file(out_filename)
 
         demog.SetSimpleVitalDynamics()   # function invoke
-        demog.generate_file(out_updated_filename)     
+        demog.generate_file(out_updated_filename)
         self.verify_demographics_Json(demog, self._testMethodName)
 
     def test_SetSimpleVitalDynamics_multiple_nodeids(self):
         # SetSimpleVitalDynamics with node ids
         # Test Type:   Core Functional Test - Created FROM_CSV
-        # Arg: Using same values as 'docstrings' and a subset of 3 node_ids 
+        # Arg: Using same values as 'docstrings' and a subset of 3 node_ids
 
         out_filename = os.path.join(self.out_folder, self._testMethodName + "_demographics_from_template_node.json")
         out_updated_filename = out_filename.replace('_demographics_from_template_node', '_updated_demographics_from_template_node')
@@ -2178,19 +2183,20 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
 
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.demo_folder, 'demog_in_subset.csv')
-        
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref=id_ref)
+
+        demog = Demographics.from_csv(input_file, res=25 / 3600, id_ref=id_ref)
         list_of_node_ids = []
-        for i in range(0, 3): list_of_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
+        for i in range(0, 3):
+            list_of_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
 
         demog.generate_file(out_filename)
         demog.SetSimpleVitalDynamics(crude_birth_rate=DT.CrudeRate(40), crude_death_rate=DT.CrudeRate(20), node_ids=list_of_node_ids)
-        
-        demog.generate_file(out_updated_filename)     
+
+        demog.generate_file(out_updated_filename)
         self.verify_demographics_Json(demog, self._testMethodName, True, len(list_of_node_ids))
 
     def test_SetSimpleVitalDynamics_repeated_call(self):
-        # SetSimpleVitalDynamics 
+        # SetSimpleVitalDynamics
         # Test Type:   Core Functional Test - calling the function more than once with diffent args
         # Arg: same as docstrings plus subset of node_ids, and, second call with different values and no Node_ids argument)
 
@@ -2203,24 +2209,25 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
 
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.demo_folder, 'demog_in_subset.csv')
-        
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref=id_ref)
+
+        demog = Demographics.from_csv(input_file, res=25 / 3600, id_ref=id_ref)
         list_of_node_ids = []
-        for i in range(0, 3): list_of_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
+        for i in range(0, 3):
+            list_of_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
 
         demog.generate_file(out_filename)
-        demog.SetSimpleVitalDynamics(crude_birth_rate=DT.CrudeRate(40), crude_death_rate=DT.CrudeRate(20), node_ids=list_of_node_ids)   # Call #1
-        demog.generate_file(out_updated_filename)     
-        self.verify_demographics_Json(demog, self._testMethodName, True, len(list_of_node_ids))                                         # Call #2
-        demog.SetSimpleVitalDynamics(crude_birth_rate=DT.CrudeRate(10), crude_death_rate=DT.CrudeRate(5))  
-        demog.generate_file(out_updated_filename_02)   
+        demog.SetSimpleVitalDynamics(crude_birth_rate=DT.CrudeRate(40), crude_death_rate=DT.CrudeRate(20), node_ids=list_of_node_ids)  # Call #1
+        demog.generate_file(out_updated_filename)
+        self.verify_demographics_Json(demog, self._testMethodName, True, len(list_of_node_ids))  # Call #2
+        demog.SetSimpleVitalDynamics(crude_birth_rate=DT.CrudeRate(10), crude_death_rate=DT.CrudeRate(5))
+        demog.generate_file(out_updated_filename_02)
 
         self.verify_demographics_Json(demog, self._testMethodName, True, len(list_of_node_ids))
 
     def test_SetSimpleVitalDynamics_combined_functions(self):
-        # SetSimpleVitalDynamics  
+        # SetSimpleVitalDynamics
         # Test Type:   Combining the use of this method with other methods - (i.e. SetAgeDistribution)
-         # Arg: Using same values as 'docstrings' and a subset of 3 node_ids
+        # Arg: Using same values as 'docstrings' and a subset of 3 node_ids
 
         out_filename = os.path.join(self.out_folder, self._testMethodName + "_demographics_from_template_node.json")
         out_updated_filename = out_filename.replace('_demographics_from_template_node', '_updated_01_demographics_from_template_node')
@@ -2230,49 +2237,50 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
         manifest.delete_existing_file(out_updated_filename_02)
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.demo_folder, 'demog_in_subset.csv')
-        
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref=id_ref)
+
+        demog = Demographics.from_csv(input_file, res=25 / 3600, id_ref=id_ref)
         list_of_node_ids = []
-        for i in range(0, 3): list_of_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
+        for i in range(0, 3):
+            list_of_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
         demog.generate_file(out_filename)
         demog.SetSimpleVitalDynamics(crude_birth_rate=DT.CrudeRate(40), crude_death_rate=DT.CrudeRate(20), node_ids=list_of_node_ids)
-        demog.generate_file(out_updated_filename) 
+        demog.generate_file(out_updated_filename)
         self.verify_demographics_Json(demog, self._testMethodName, True, len(list_of_node_ids))
         demog.SetAgeDistribution(distribution=Distributions.SEAsia_Diag)
-        demog.generate_file(out_updated_filename_02)     
+        demog.generate_file(out_updated_filename_02)
         self.verify_demographics_Json(demog, self._testMethodName, True, len(list_of_node_ids))
-        
+
         # TODO: Do we need verification for the contents?
-    
+
     def validate_node_02(self, test_node):
         # SetEquilibriumVitalDynamics validations
-        self.assertGreater(len(test_node['AgeDistribution']['DistributionValues']), 0)  
-        self.assertEqual(test_node['MortalityDistribution']['AxisNames'], ["gender","age"])  
-        self.assertEqual(test_node['MortalityDistribution']['AxisScaleFactors'], [1, 365])  
-        self.assertEqual(test_node['MortalityDistribution']['AxisUnits'], ["male=0,female=1", "years"])  
-        self.assertEqual(test_node['MortalityDistribution']['PopulationGroups'], [[0,1], [0]])  
-        self.assertEqual(len(test_node['MortalityDistribution']['ResultValues']), 2) 
-      
+        self.assertGreater(len(test_node['AgeDistribution']['DistributionValues']), 0)
+        self.assertEqual(test_node['MortalityDistribution']['AxisNames'], ["gender", "age"])
+        self.assertEqual(test_node['MortalityDistribution']['AxisScaleFactors'], [1, 365])
+        self.assertEqual(test_node['MortalityDistribution']['AxisUnits'], ["male=0,female=1", "years"])
+        self.assertEqual(test_node['MortalityDistribution']['PopulationGroups'], [[0, 1], [0]])
+        self.assertEqual(len(test_node['MortalityDistribution']['ResultValues']), 2)
 
     def verify_demographics_Json_02(self, demog, test_case, with_nodeids=False, nodes_count=0):
         # validate SetEquilibriumVitalDynamics initial age, fertility, mortality to achieve steady state population.
         if not with_nodeids:
             demogdict = demog.to_dict()['Defaults']
             individual_attributes = demogdict['IndividualAttributes']
-            self.validate_node_02(individual_attributes)   #  validate initial age, mortality
+            self.validate_node_02(individual_attributes)  # validate initial age, mortality
             self.assertGreater(demogdict['NodeAttributes']['BirthRate'], 0)  # validate fertility
 
         if with_nodeids:
             demogdict = demog.to_dict()['Nodes']
-            if nodes_count==0: nodes_count = len(demogdict)
-            for n in range(0, nodes_count):                               # For each node 
+            if nodes_count == 0:
+                nodes_count = len(demogdict)
+            for n in range(0, nodes_count):  # For each node
                 self.validate_node(demogdict[n]['IndividualAttributes'])  # validate initial age, mortality
-                self.assertGreater(demogdict[n]['NodeAttributes']['BirthRate'], 0) # validate fertility
+                self.assertGreater(demogdict[n]['NodeAttributes']['BirthRate'], 0)  # validate fertility
 
     def test_SetEquilibriumVitalDynamics_bvt_01(self):
         # SetEquilibriumVitalDynamics
         # Test Type:   Core Functional Test - Created FROM_TEMPLATE_NODE
-        # Arg:  No arguments - Using defaults  (crude_birth_rate=40/1000, All)       
+        # Arg:  No arguments - Using defaults  (crude_birth_rate=40/1000, All)
         out_filename = os.path.join(self.out_folder, self._testMethodName + "_demographics_from_csv.json")
         out_updated_filename = out_filename.replace('_demographics_from_csv', '_updated_demographics_from_csv')
         manifest.delete_existing_file(out_filename)
@@ -2280,16 +2288,16 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
 
         demog = Demographics.from_template_node()
         demog.generate_file(out_filename)
-        
+
         demog.SetEquilibriumVitalDynamics()  # function under test
-        demog.generate_file(out_updated_filename)   
+        demog.generate_file(out_updated_filename)
         self.verify_demographics_Json_02(demog, self._testMethodName)
 
     def test_SetEquilibriumVitalDynamics_bvt_02(self):
         # SetEquilibriumVitalDynamics
         # Test Type:   Core Functional Test - Created FROM_CSV
         # Arg:  No arguments - Using defaults (crude_birth_rate=40/1000, All)
-                
+
         out_filename = os.path.join(self.out_folder, self._testMethodName + "_demographics_from_template_node.json")
         out_updated_filename = out_filename.replace('_demographics_from_template_node', '_updated_demographics_from_template_node')
         manifest.delete_existing_file(out_filename)
@@ -2297,18 +2305,18 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
 
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.demo_folder, 'demog_in_subset.csv')
-        
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref=id_ref)
+
+        demog = Demographics.from_csv(input_file, res=25 / 3600, id_ref=id_ref)
         demog.generate_file(out_filename)
 
-        demog.SetEquilibriumVitalDynamics()   # function under test
-        demog.generate_file(out_updated_filename)     
+        demog.SetEquilibriumVitalDynamics()  # function under test
+        demog.generate_file(out_updated_filename)
         self.verify_demographics_Json_02(demog, self._testMethodName)
 
     def test_SetEquilibriumVitalDynamics_multiple_nodeids(self):
         # SetEquilibriumVitalDynamics with 3 node ids
         # Test Type:   Core Functional Test - Created FROM_CSV
-        # Arg: Using same values as 'docstrings' and a subset of 3 node_ids 
+        # Arg: Using same values as 'docstrings' and a subset of 3 node_ids
 
         out_filename = os.path.join(self.out_folder, self._testMethodName + "_demographics_from_template_node.json")
         out_updated_filename = out_filename.replace('_demographics_from_template_node', '_updated_demographics_from_template_node')
@@ -2317,19 +2325,20 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
 
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.demo_folder, 'demog_in_subset.csv')
-        
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref=id_ref)
+
+        demog = Demographics.from_csv(input_file, res=25 / 3600, id_ref=id_ref)
         list_of_node_ids = []
-        for i in range(0, 3): list_of_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
+        for i in range(0, 3):
+            list_of_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
 
         demog.generate_file(out_filename)
         demog.SetEquilibriumVitalDynamics(crude_birth_rate=DT.CrudeRate(40), node_ids=list_of_node_ids)
-        
-        demog.generate_file(out_updated_filename)     
+
+        demog.generate_file(out_updated_filename)
         self.verify_demographics_Json_02(demog, self._testMethodName, True, len(list_of_node_ids))
 
     def test_SetEquilibriumVitalDynamics_repeated_call(self):
-        # SetEquilibriumVitalDynamics 
+        # SetEquilibriumVitalDynamics
         # Test Type:   Core Functional Test - calling the function more than once with diffent args
         # Arg: same as docstrings plus subset of node_ids, and, second call with different values and no Node_ids argument)
 
@@ -2342,23 +2351,24 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
 
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.demo_folder, 'demog_in_subset.csv')
-        
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref=id_ref)
+
+        demog = Demographics.from_csv(input_file, res=25 / 3600, id_ref=id_ref)
         list_of_node_ids = []
-        for i in range(0, 3): list_of_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
+        for i in range(0, 3):
+            list_of_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
 
         demog.generate_file(out_filename)
-        
-        demog.SetEquilibriumVitalDynamics(crude_birth_rate=DT.CrudeRate(50), node_ids=list_of_node_ids)   # Call #1
-        demog.generate_file(out_updated_filename)     
-        self.verify_demographics_Json_02(demog, self._testMethodName, True, len(list_of_node_ids))         # verify data for some nodes
 
-        demog.SetEquilibriumVitalDynamics(crude_birth_rate=DT.CrudeRate(30))  
-        demog.generate_file(out_updated_filename_02)   
-        self.verify_demographics_Json_02(demog, self._testMethodName)           # verify default data
+        demog.SetEquilibriumVitalDynamics(crude_birth_rate=DT.CrudeRate(50), node_ids=list_of_node_ids)  # Call #1
+        demog.generate_file(out_updated_filename)
+        self.verify_demographics_Json_02(demog, self._testMethodName, True, len(list_of_node_ids))  # verify data for some nodes
+
+        demog.SetEquilibriumVitalDynamics(crude_birth_rate=DT.CrudeRate(30))
+        demog.generate_file(out_updated_filename_02)
+        self.verify_demographics_Json_02(demog, self._testMethodName)  # verify default data
 
     def test_SetEquilibriumVitalDynamics_twice_All(self):
-        # SetEquilibriumVitalDynamics 
+        # SetEquilibriumVitalDynamics
         # Test Type:   Setting Equilibrium Vital Dynamics twice for all nodes
         # Arg: crude_death only - different value from first and  second calls.
 
@@ -2371,23 +2381,23 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
 
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.demo_folder, 'demog_in_subset.csv')
-        
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref=id_ref)
+
+        demog = Demographics.from_csv(input_file, res=25 / 3600, id_ref=id_ref)
         demog.generate_file(out_filename)
 
-        demog.SetEquilibriumVitalDynamics(crude_birth_rate=DT.CrudeRate(50))   # First call 
-        demog.generate_file(out_updated_filename)     
-        self.verify_demographics_Json_02(demog, self._testMethodName)           # verify default data
+        demog.SetEquilibriumVitalDynamics(crude_birth_rate=DT.CrudeRate(50))   # First call
+        demog.generate_file(out_updated_filename)
+        self.verify_demographics_Json_02(demog, self._testMethodName)  # verify default data
         birth_rate_01 = demog.to_dict()['Defaults']['NodeAttributes']['BirthRate']
 
         demog.SetEquilibriumVitalDynamics(crude_birth_rate=DT.CrudeRate(30))  # Second call
-        demog.generate_file(out_updated_filename_02)  
-        self.verify_demographics_Json_02(demog, self._testMethodName)           # verify default data again
+        demog.generate_file(out_updated_filename_02)
+        self.verify_demographics_Json_02(demog, self._testMethodName)  # verify default data again
         birth_rate_02 = demog.to_dict()['Defaults']['NodeAttributes']['BirthRate']
         self.assertNotEqual(birth_rate_01, birth_rate_02)
 
     def test_SetEquilibriumVitalDynamics_combined_functions(self):
-        # SetEquilibriumVitalDynamics  
+        # SetEquilibriumVitalDynamics
         # Test Type:   Combining the use of SetEquilibriumVitalDynamics method with other methods - (i.e. SetAgeDistribution)
         # Args: Using same values as 'docstrings' and a subset of 3 node_ids
 
@@ -2399,19 +2409,20 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
         manifest.delete_existing_file(out_updated_filename_02)
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.demo_folder, 'demog_in_subset.csv')
-        
-        demog = Demographics.from_csv(input_file, res=25/3600, id_ref=id_ref)
-        list_of_node_ids = []
-        for i in range(0, 3): list_of_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
-        demog.generate_file(out_filename)
-        demog.SetEquilibriumVitalDynamics(crude_birth_rate=DT.CrudeRate(40), node_ids=list_of_node_ids)     # FUT - aka - feature under test :)
-        demog.generate_file(out_updated_filename) 
-        self.verify_demographics_Json(demog, self._testMethodName, True, len(list_of_node_ids))
-        demog.SetAgeDistribution(distribution=Distributions.SEAsia_Diag)                                    # Second funcion 
-        demog.generate_file(out_updated_filename_02)     
-        self.verify_demographics_Json_02(demog, self._testMethodName, True, len(list_of_node_ids))    
 
-    #region From World Bank 
+        demog = Demographics.from_csv(input_file, res=25 / 3600, id_ref=id_ref)
+        list_of_node_ids = []
+        for i in range(0, 3):
+            list_of_node_ids.append(demog.to_dict()['Nodes'][i]['NodeID'])
+        demog.generate_file(out_filename)
+        demog.SetEquilibriumVitalDynamics(crude_birth_rate=DT.CrudeRate(40), node_ids=list_of_node_ids)  # FUT - aka - feature under test :)
+        demog.generate_file(out_updated_filename)
+        self.verify_demographics_Json(demog, self._testMethodName, True, len(list_of_node_ids))
+        demog.SetAgeDistribution(distribution=Distributions.SEAsia_Diag)  # Second funcion
+        demog.generate_file(out_updated_filename_02)
+        self.verify_demographics_Json_02(demog, self._testMethodName, True, len(list_of_node_ids))
+
+    # region From World Bank
     def from_template_node_with_country(self, _country, _year):
         out_filename = os.path.join(self.out_folder, self._testMethodName + f"_demographics_{_country}_FromTNode.json")
         out_updated_filename = out_filename.replace('_demographics_', '_demographics_updated_')
@@ -2423,64 +2434,69 @@ class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
 
         demog = Demographics.from_template_node()
         demog.generate_file(out_filename)
-        
+
         demog.SetEquilibriumVitalDynamicsFromWorldBank(wb_births_df=_wb_births_df, country=_country, year=_year)  # FUT
-        demog.generate_file(out_updated_filename)  
+        demog.generate_file(out_updated_filename)
 
     def from_csv_with_country(self, _country, _year):
-        out_filename = os.path.join(self.out_folder, self._testMethodName +f"_demographics_{_country}_FromCSV.json")
+        out_filename = os.path.join(self.out_folder, self._testMethodName + f"_demographics_{_country}_FromCSV.json")
         out_updated_filename = out_filename.replace('_demographics_', '_demographics_updated_')
         manifest.delete_existing_file(out_filename)
         manifest.delete_existing_file(out_updated_filename)
         # World Bank Data:
         input_WB_file = os.path.join(manifest.demo_folder, 'wb_data.csv')
         _wb_births_df = pd.read_csv(input_WB_file)
-        
+
         id_ref = "from_csv_test"
         input_file = os.path.join(manifest.demo_folder, 'demog_some_nodes.csv')
-        demog = Demographics.from_csv(input_file, res=35/3600, id_ref=id_ref)
+        demog = Demographics.from_csv(input_file, res=35 / 3600, id_ref=id_ref)
         demog.generate_file(out_filename)
-        
+
         demog.SetEquilibriumVitalDynamicsFromWorldBank(wb_births_df=_wb_births_df, country=_country, year=_year)  # FUT
-        demog.generate_file(out_updated_filename) 
+        demog.generate_file(out_updated_filename)
 
     def test_SetEquilibriumVitalDynamicsFromWorldBank_bvt_01(self):
         # SetEquilibriumVitalDynamicsFromWorldBank
         # Test Type:   Core Functional Test - Created FROM_TEMPLATE_NODE
-        # Arg:  All valid values    
+        # Arg:  All valid values
         #         wb_births_df: Pandas dataframe with World Bank birth rate by country and year.
         #         country: Country to pick from World Bank dataset.
         #         year: Year to pick from World Bank dataset.
-        #         node_ids: Optional list of nodes to limit these settings to.  
+        #         node_ids: Optional list of nodes to limit these settings to.
         self.from_template_node_with_country("Aruba", 1980)
 
     def test_SetEquilibriumVitalDynamicsFromWorldBank_bvt_02(self):
         # SetEquilibriumVitalDynamicsFromWorldBank
         # Test Type:   Core Functional Test - Created FROM_csv
-        # Arg:  All valid values    
+        # Arg:  All valid values
         #         wb_births_df: Pandas dataframe with World Bank birth rate by country and year.
         #         country: Country to pick from World Bank dataset.
         #         year: Year to pick from World Bank dataset.
-        #         node_ids: Optional list of nodes to limit these settings to.  
+        #         node_ids: Optional list of nodes to limit these settings to.
         self.from_csv_with_country("Mozambique", 1980)
 
     def test_SetEquilibriumVitalDynamicsFromWorldBank_EH_01(self):
         self.from_csv_with_country("Cote d'Ivoire", 1980)
+
     def test_SetEquilibriumVitalDynamicsFromWorldBank_EH_02(self):
         self.from_csv_with_country("Congo, Rep.", 1981)
+
     def test_SetEquilibriumVitalDynamicsFromWorldBank_EH_03(self):
         self.from_csv_with_country("East Asia & Pacific (excluding high income)", 1980)
+
     def test_SetEquilibriumVitalDynamicsFromWorldBank_EH_04(self):
         self.from_csv_with_country("Egypt, Arab Rep.", 1980)
+
     def test_SetEquilibriumVitalDynamicsFromWorldBank_EH_05(self):
         self.from_csv_with_country("Fragile and conflict affected situations", 1980)
+
     def test_SetEquilibriumVitalDynamicsFromWorldBank_EH_06(self):
         self.from_csv_with_country("Least developed countries: UN classification", 1980)
+
     def test_SetEquilibriumVitalDynamicsFromWorldBank_EH_07(self):
         self.from_csv_with_country("Turks and Caicos Islands", 1980)
-    #endregion
 
-    # moved from now-defunct test_demog_Parser.py, because the file it used to test has been deleted.    
+    # moved from now-defunct test_demog_Parser.py, because the file it used to test has been deleted.
     def test_node_id_from_lat_lon_res(self):
         node_id = Demographics._node_id_from_lat_lon_res(lat=1000, lon=1000, res=30 / 3600)
         node_id_2 = Demographics._node_id_from_lat_lon_res(lat=1000, lon=1000, res=30 / 3600)
