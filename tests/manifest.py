@@ -22,6 +22,14 @@ migration_folder = os.path.join(current_directory, 'data', 'migration')
 if not os.path.isdir(migration_folder):
     os.mkdir(migration_folder)
 
+proprep_folder = os.path.join(current_directory, 'data', 'propertyreports')
+if not os.path.isdir(proprep_folder):
+    os.mkdir(proprep_folder)
+
+spatrep_folder = os.path.join(current_directory, 'data', 'spatialreports')
+if not os.path.isdir(spatrep_folder):
+    os.mkdir(spatrep_folder)
+
 reports_folder = os.path.join(current_directory, 'data', 'reports')
 if not os.path.isdir(reports_folder):
     os.mkdir(reports_folder)
@@ -29,6 +37,10 @@ if not os.path.isdir(reports_folder):
 serialization_folder = os.path.join(current_directory, 'data', 'serialization')
 if not os.path.isdir(serialization_folder):
     os.mkdir(serialization_folder)
+
+weather_folder = os.path.join(current_directory, 'data', 'weatherfiles')
+if not os.path.isdir(weather_folder):
+    os.mkdir(weather_folder)
 
 
 def delete_existing_file(file):

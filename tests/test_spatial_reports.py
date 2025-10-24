@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import unittest
 import numpy as np
 import os
@@ -7,7 +5,7 @@ import pathlib
 import tempfile
 from emod_api.spatialreports.spatial import SpatialReport, SpatialNode
 
-WORKING_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
+from tests import manifest
 
 
 class TestSpatialNode(unittest.TestCase):
@@ -110,17 +108,7 @@ class TestSpatial(unittest.TestCase):
 
     def test_fromFile(self):
 
-        # report = spatial.SpatialReport.fromFile('test/SpatialReport_Daily_EIR.bin')
-        # report = spatial.SpatialReport.fromFile('test/SpatialReport_New_Diagnostic_Prevalence.bin')
-        # report = spatial.SpatialReport.fromFile('test/SpatialReport_Population.bin')
-        report = SpatialReport(
-            os.path.join(
-                WORKING_DIRECTORY,
-                "data",
-                "spatialreports",
-                "SpatialReport_Prevalence.bin",
-            )
-        )
+        report = SpatialReport(os.path.join(manifest.spatrep_folder, "SpatialReport_Prevalence.bin"))
 
         NUM_TIME_STEPS = 730
         NUM_NODES = 1423
@@ -182,14 +170,7 @@ class TestSpatial(unittest.TestCase):
 
     def test_filtered_report(self):
 
-        report = SpatialReport(
-            os.path.join(
-                WORKING_DIRECTORY,
-                "data",
-                "spatialreports",
-                "SpatialReportMalariaFiltered_Adult_Vectors.bin",
-            )
-        )
+        report = SpatialReport(os.path.join(manifest.spatrep_folder, "SpatialReportMalariaFiltered_Adult_Vectors.bin"))
 
         NUM_TIME_STEPS = 45
         NUM_NODES = 1423
@@ -205,7 +186,3 @@ class TestSpatial(unittest.TestCase):
         self.assertEqual(report.interval, SAMPLE_INTERVAL)
 
         return
-
-
-if __name__ == "__main__":
-    unittest.main()

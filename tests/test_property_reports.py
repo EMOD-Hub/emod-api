@@ -1,7 +1,3 @@
-#! /usr/bin/env python3
-
-"""PropertyReport tests."""
-
 from functools import reduce
 from pathlib import Path
 import os
@@ -13,13 +9,14 @@ from emod_api.channelreports.utils import __get_trace_name as utils__get_trace_n
 
 import numpy as np
 
-WORKING_DIRECTORY = Path(__file__).parent.absolute()
-DATA_DIR = WORKING_DIRECTORY / "data" / "propertyreports"
+from tests import manifest
 
 
 class TestPublicApi(unittest.TestCase):
-
     """Test cases for public API."""
+
+    prop_file = os.path.join(manifest.proprep_folder, "propertyReport.json")
+    prop_file_short = os.path.join(manifest.proprep_folder, "propertyReportTruncated.json")
 
     def test_property_report_to_csv(self):
 
@@ -28,7 +25,7 @@ class TestPublicApi(unittest.TestCase):
         csv_file = Path(filename)
 
         property_report_to_csv(
-            source_file=DATA_DIR / "propertyReport.json",
+            source_file=self.prop_file,
             csv_file=csv_file,
             channels=["Infected", "New Infections"],
             groupby=["Age_Bin"])
@@ -43,7 +40,7 @@ class TestPublicApi(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             property_report_to_csv(
-                source_file=DATA_DIR / "propertyReport.json",
+                source_file=self.prop_file,
                 csv_file="this-is-an-error.csv",
                 channels=["Zombified", "New Infections"],
                 groupby=["Age_Bin"])
@@ -54,7 +51,7 @@ class TestPublicApi(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             property_report_to_csv(
-                source_file=DATA_DIR / "propertyReport.json",
+                source_file=self.prop_file,
                 csv_file="this-is-an-error.csv",
                 channels=["Infected", "New Infections"],
                 groupby=["AgeAtDriversLicense"])
@@ -63,7 +60,7 @@ class TestPublicApi(unittest.TestCase):
 
     def test_read_json_file(self):
 
-        property_report = read_json_file(filename=DATA_DIR / "propertyReport.json")
+        property_report = read_json_file(filename=self.prop_file)
 
         # Test a selected few data points.
         self.assertEqual(property_report["Header"]["DateTime"], "Tue May 24 13:28:37 2022")
@@ -74,7 +71,7 @@ class TestPublicApi(unittest.TestCase):
 
     def test_get_report_channels(self):
 
-        property_report = read_json_file(filename=DATA_DIR / "propertyReport.json")
+        property_report = read_json_file(filename=self.prop_file)
         channels = get_report_channels(property_report)
 
         self.assertEqual(len(channels), property_report["Header"]["Channels"])
@@ -92,7 +89,7 @@ class TestPublicApi(unittest.TestCase):
 
     def test_accumulate_channel_data(self):
 
-        json_data = read_json_file(filename=DATA_DIR / "propertyReport.json")
+        json_data = read_json_file(filename=self.prop_file)
         channel_data = get_report_channels(json_data)
 
         # No roll-up IP(s), no normalization
@@ -192,7 +189,7 @@ class TestPublicApi(unittest.TestCase):
 
     def test_save_to_csv(self):
 
-        json_data = read_json_file(filename=DATA_DIR / "propertyReportTruncated.json")
+        json_data = read_json_file(filename=self.prop_file_short)
         channel_data = get_report_channels(json_data)
 
         trace_values = accumulate_channel_data(
@@ -216,7 +213,7 @@ class TestPublicApi(unittest.TestCase):
 
     def test_plot_traces(self):
 
-        json_data = read_json_file(filename=DATA_DIR / "propertyReportTruncated.json")
+        json_data = read_json_file(filename=self.prop_file)
         channel_data = get_report_channels(json_data)
 
         stat_pop = "Statistical Population"

@@ -1,11 +1,6 @@
 import unittest
-import sys
-from pathlib import Path
 
 from emod_api.demographics.PropertiesAndAttributes import IndividualProperties, IndividualProperty
-
-parent = Path(__file__).resolve().parent
-sys.path.append(str(parent))
 
 
 class IndividualPropertiesTest(unittest.TestCase):

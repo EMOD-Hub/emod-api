@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import datetime
 import json
 import math
@@ -12,7 +10,7 @@ import unittest
 import emod_api.weather.weather as weather
 from emod_api.weather.weather import Weather, Metadata, WeatherNode
 
-WORKING_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
+from tests import manifest
 
 
 class TestWeatherNode(unittest.TestCase):
@@ -151,14 +149,7 @@ class TestWeather(unittest.TestCase):
         NUMNODES = 35
         NUMVALUES = 365  # one year
 
-        w = Weather(
-            os.path.join(
-                WORKING_DIRECTORY,
-                "data",
-                "weatherfiles",
-                "Kenya_Nairobi_2.5arcmin_air_temperature_daily.bin",
-            )
-        )
+        w = Weather(os.path.join(manifest.weather_folder, "Kenya_Nairobi_2.5arcmin_air_temperature_daily.bin"))
 
         self.assertEqual(w.datavalue_count, NUMVALUES)  # one year of data
         self.assertEqual(len(w.nodes), NUMNODES)  # expecting 35 nodes
@@ -185,9 +176,7 @@ class TestWeather(unittest.TestCase):
         NUMNODES = 8
         NUMVALUES = 365
 
-        w = Weather.from_csv(
-            os.path.join(WORKING_DIRECTORY, "data", "weatherfiles", "airtemp.csv")
-        )
+        w = Weather.from_csv(os.path.join(manifest.weather_folder, "airtemp.csv"))
 
         self.assertEqual(w.datavalue_count, NUMVALUES)
         self.assertEqual(len(w.nodes), NUMNODES)
@@ -241,8 +230,7 @@ class TestWeather(unittest.TestCase):
         IDREFERENCE = weather.IDREF_LEGACY
         UPDATERESOLUTION = weather.CLIMATE_UPDATE_DAY
 
-        w = Weather.from_csv(
-            os.path.join(WORKING_DIRECTORY, "data", "weatherfiles", "rainfall.csv"),
+        w = Weather.from_csv(os.path.join(manifest.weather_folder, "rainfall.csv"),
             var_column="rainfall",
             author=USERNAME,
             provenance=PROVENANCE,
@@ -282,7 +270,3 @@ class TestWeather(unittest.TestCase):
             )  # node 8, last value
 
         return
-
-
-if __name__ == "__main__":
-    unittest.main()
