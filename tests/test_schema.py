@@ -76,6 +76,17 @@ class TestSchemaCommon():
         assert test_true
         self.succeeded = True
 
+    def test_unique_containers(self):
+        # Instances of dict and list should be independent
+        IVM = 'idmType:InterpolatedValueMap'
+        map01 = s2c.get_class_with_defaults(IVM, schema_json=self.schema_json)
+        map02 = s2c.get_class_with_defaults(IVM, schema_json=self.schema_json)
+        map01.Values.append(1)
+
+        test_true = (not map02.Values)
+        assert test_true
+        self.succeeded = True
+
 
 class TestSchemaGeneric(TestSchemaCommon):
     with open(manifest.generic_schema_path) as fid01:
