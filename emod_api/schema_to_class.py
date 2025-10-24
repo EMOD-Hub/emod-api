@@ -195,8 +195,6 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
         classname (str): Name of target datatype
         schema_path (str): Filename of schema: DEPRECATED, use schema_json instead
         schema_json (dict): Contents of schema file
-        show_warnings (bool): Show warning associated with NodeSet
-
     Returns:
         (dict): Default parameter values for requested datatype
     """
