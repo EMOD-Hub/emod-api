@@ -18,8 +18,7 @@ class ReadOnlyDict(OrderedDict):
             raise AttributeError(item)  # to allow deepcopy (from s/o)
 
     def __setattr__(self, key, value):
-        # if key not in self and "Config" not in key and "List" not in key: # these are lame;
-        # find way in schema to initialize complex types {}, [], or null
+        # if key not in self and "Config" not in key and "List" not in key:
         if key not in self:  # these are lame; find way in schema to initialize complex types {}, [], or null
             self.__missing__(key)  # this should not be necessary
 
@@ -265,7 +264,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None, show_
                 if ce_key == "class":
                     continue
                 try:
-                    if "default" in schema_blob[ce_key] and schema_blob[ce_key]["default"] != "null":
+                    if "default" in schema_blob[ce_key]:
                         ret_json[ce_key] = schema_blob[ce_key]["default"]
                     elif ce_key == "Nodeset_Config":  # this doesn't look a real pattern
                         ret_json[ce_key] = get_class_with_defaults("NodeSetAll", schema_json=schema)
@@ -299,31 +298,26 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None, show_
             if type(schema_blob) is list:
                 ret_json = list()
                 schema_blob = schema_blob[0]
-            # schema_blob might be dict or list
-            if schema_blob is None:
-                raise ValueError(f"Wow. That's super-bad. {classname} is in schema but schema is null."
-                                 f"Must be LarvalHabitat?")
+            new_elem = dict()
+            for type_key in schema_blob.keys():
+                if type_key.startswith("<"):
+                    continue
+                try:
+                    if "default" in schema_blob[type_key]:
+                        new_elem[type_key] = schema_blob[type_key]["default"]
+                    elif "min" in schema_blob[type_key]:
+                        new_elem[type_key] = schema_blob[type_key]["min"]
+                    elif "type" in schema_blob[type_key]:
+                        new_elem[type_key] = get_class_with_defaults(schema_blob[type_key]["type"], schema_json=schema)
+                    elif type_key != "class":
+                        new_elem[type_key] = {}
+                except Exception as ex:
+                    raise ValueError(f"ERROR: {ex}")
+            if type(ret_json) is list:
+                if new_elem:
+                    ret_json.append(new_elem)
             else:
-                new_elem = dict()
-                for type_key in schema_blob.keys():
-                    if type_key.startswith("<"):
-                        continue
-                    try:
-                        if "default" in schema_blob[type_key] and schema_blob[type_key]["default"] != "null":
-                            new_elem[type_key] = schema_blob[type_key]["default"]
-                        elif "min" in schema_blob[type_key] and schema_blob[type_key]["min"] != "null":
-                            new_elem[type_key] = schema_blob[type_key]["min"]
-                        elif "type" in schema_blob[type_key]:
-                            new_elem[type_key] = get_class_with_defaults(schema_blob[type_key]["type"], schema_json=schema)
-                        elif type_key != "class":
-                            new_elem[type_key] = {}
-                    except Exception as ex:
-                        raise ValueError(f"ERROR: {ex}")
-                if type(ret_json) is list:
-                    if new_elem:
-                        ret_json.append(new_elem)
-                else:
-                    ret_json.update(new_elem)
+                ret_json.update(new_elem)
         else:
             raise ValueError(f"ERROR: '{classname}' not found in schema.")
 
@@ -392,7 +386,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None, show_
             if ce_key == "class":
                 continue
             try:
-                if "default" in schema_blob[ce_key] and schema_blob[ce_key]["default"] != "null":
+                if "default" in schema_blob[ce_key]:
                     ret_json[ce_key] = schema_blob[ce_key]["default"]
                 elif ce_key == "Nodeset_Config":  # this doesn't look a real pattern
                     ret_json[ce_key] = get_class_with_defaults("NodeSetAll", schema_json=schema)
