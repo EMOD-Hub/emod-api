@@ -64,6 +64,18 @@ class TestSchemaCommon():
         assert test_true
         self.succeeded = True
 
+    def test_empty_container_defaults(self):
+        # Schema processing assumes default containers are empty
+        def fun_not_none(key_in, val_in):
+            ret_val = True
+            if (key_in == 'default' and (type(val_in) is dict or type(val_in) is list)):
+                ret_val = (not val_in)
+            return ret_val
+
+        test_true = self.rabbit_hole(self.schema_json, fun_not_none)
+        assert test_true
+        self.succeeded = True
+
 
 class TestSchemaGeneric(TestSchemaCommon):
     with open(manifest.generic_schema_path) as fid01:
