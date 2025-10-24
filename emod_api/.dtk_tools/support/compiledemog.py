@@ -90,7 +90,7 @@ def GetNextString(currentstring):
 
 def CompileDemographics(infilename, forceoverwrite=False):
 
-    outfilename = re.sub("\.json$", ".compiled.json", infilename)
+    outfilename = re.sub(r"\.json$", ".compiled.json", infilename)
 
     if not CheckFiles(infilename, outfilename, forceoverwrite):
         exit(-1)

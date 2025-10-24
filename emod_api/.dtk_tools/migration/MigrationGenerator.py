@@ -105,7 +105,7 @@ class MigrationGenerator(object):
         compiledemog.main(demographics_file_path)
         createmigrationheader.main(
             "dtk-tools",
-            re.sub("\.json$", ".compiled.json", demographics_file_path),
+            re.sub(r"\.json$", ".compiled.json", demographics_file_path),
             self.migration_file_name,
             self.migration_type.value,
         )
@@ -157,7 +157,7 @@ class MigrationGenerator(object):
                 self.migration_file_name,
                 route=self.migration_type,
                 compiled_demographics_file_path=re.sub(
-                    "\.json$", ".compiled.json", demographics_file_path
+                    r"\.json$", ".compiled.json", demographics_file_path
                 ),
             )
         else:
