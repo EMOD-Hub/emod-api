@@ -59,6 +59,7 @@ test = [
     "emod-malaria",
     "pytest",
     "pytest-cov",
+    "pytest-xdist",
 ]
 
 [project.urls]
