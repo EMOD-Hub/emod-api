@@ -3,7 +3,8 @@ import json
 import os
 from emod_api import campaign as api_campaign
 from emod_api import schema_to_class as s2c
-import manifest
+
+from tests import manifest
 
 
 def generate_sample_campaign_event(my_campaign, schema_path):

@@ -14,7 +14,7 @@ from emod_api.migration.migration import Migration, from_file, from_params, from
 import pandas as pd
 import io
 from contextlib import redirect_stdout
-import manifest
+from tests import manifest
 
 
 class MigrationTests(unittest.TestCase):

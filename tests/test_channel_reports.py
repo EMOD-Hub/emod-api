@@ -9,7 +9,7 @@ from datetime import datetime
 from random import random, randint
 import pandas as pd
 import json
-import manifest
+from tests import manifest
 
 
 class TestHeader(unittest.TestCase):

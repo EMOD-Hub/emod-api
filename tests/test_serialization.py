@@ -7,7 +7,7 @@ import os
 import tempfile
 import unittest
 import time
-import manifest
+from tests import manifest
 
 
 class TestReadVersionOne(unittest.TestCase):

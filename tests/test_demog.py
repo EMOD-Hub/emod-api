@@ -12,7 +12,7 @@ from emod_api.demographics.mortality_distribution_old import MortalityDistributi
 from emod_api.demographics.susceptibility_distribution_old import SusceptibilityDistributionOld as SusceptibilityDistribution
 from emod_api.demographics.demographics_base import DemographicsBase
 
-import manifest
+from tests import manifest
 import math
 from datetime import date
 import getpass

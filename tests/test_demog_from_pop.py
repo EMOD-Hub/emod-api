@@ -7,7 +7,7 @@ import numpy as np
 from datetime import date
 import getpass
 
-import manifest
+from tests import manifest
 
 
 class DemogFromPop():

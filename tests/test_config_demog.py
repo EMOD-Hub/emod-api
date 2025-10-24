@@ -3,7 +3,7 @@ import emod_api.demographics.Demographics as Demographics
 import emod_api.demographics.PreDefinedDistributions as Distributions
 
 from emod_api.config import default_from_schema_no_validation as dfs
-import manifest
+from tests import manifest
 
 
 class DemoConfigTest(unittest.TestCase):
