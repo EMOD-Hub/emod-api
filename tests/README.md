@@ -1,4 +1,4 @@
-## Navigating the tests
+## Navigating the Tests
 
 The files in this folder are named for the **emod_api** modules that they cover. Other than the tests themselves there are a few other directories:
 
@@ -7,11 +7,19 @@ The files in this folder are named for the **emod_api** modules that they cover.
 
 ## Running the Tests
 
-You can run the tests by executing the following command in the terminal from the root directory of your project:
+Run the tests using the following command from the root directory of the project:
 
-`$ python -m pytest -v`
+`$ python -m pytest -v tests/`
 
 The `pytest` module will automatically discover and execute all the tests present in the `tests/` folder (including the ones in `/unittest`).
+
+## Estimating Test Coverage
+
+Estimate test coverage using the following command from the root directory of the project:
+
+`$ python -m pytest -v tests/ --cov=emod_api`
+
+The pytest coverage plugin will generate a report estimating the fraction of statements with test coverage.
 
 ## Adding New Tests
 
