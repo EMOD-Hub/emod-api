@@ -226,17 +226,28 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
 
         return schema_ret
 
-    def get_default(schema_blob, key, schema):
+    # Provide default values from schema; assumes containers are empty
+    def eval_default(default_val):
+        if (type(default_val) is dict):
+            return dict()
+        elif (type(default_val) is list):
+            return list()
+        else:
+            return default_val
+
+    def get_default(schema_obj, schema):
         default = None
         try:
-            if "default" in schema_blob[key]:
-                default = schema_blob[key]["default"]
-            elif "Vector2d idmType:AdditionalRestrictions" in schema_blob[key]["type"]:
-                default = list()
-            elif "idmType:" in schema_blob[key]["type"]:
-                default = get_class_with_defaults(schema_blob[key]["type"], schema_json=schema)
+            if ("default" in schema_obj):
+                default = eval_default(schema_obj["default"])
+            elif ("type" in schema_obj):
+                type_name = schema_obj["type"]
+                if ("Vector2d idmType:AdditionalRestrictions" in type_name):
+                    default = list()
+                else:
+                    default = get_class_with_defaults(type_name, schema_json=schema)
         except Exception as ex:
-            raise ValueError(f"ERROR for key '{key}': {ex}")
+            raise ValueError(f"ERROR for object: {schema_obj}: {ex}")
         return default
 
     # Depending on the schema, a WaningEffect may be an abstract type or a
@@ -244,6 +255,8 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
     # idmType:WaningEffect, then the schema is using WaningEffect as an
     # abstract type, and uses_old_waning should return True.
     def uses_old_waning(schema_idm):
+        if ("idmType:WaningEffect" not in schema_idm):
+            return True
         waning_effects = schema_idm["idmType:WaningEffect"].keys()
         return any(["WaningEffect" in k for k in waning_effects])
 
@@ -254,24 +267,29 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
     assert "idmTypes" in schema.keys()
     schema_idm = schema["idmTypes"]
 
-    if "campaignevent" in classname.lower():
-        if classname in schema_idm["idmAbstractType:CampaignEvent"].keys():
-            schema_blob = schema_idm["idmAbstractType:CampaignEvent"][classname]
-            ret_json["class"] = schema_blob["class"]
-            for ce_key in schema_blob.keys():
-                if ce_key == "class":
-                    continue
-                try:
-                    if "default" in schema_blob[ce_key]:
-                        ret_json[ce_key] = schema_blob[ce_key]["default"]
-                    elif ce_key == "Nodeset_Config":  # this doesn't look a real pattern
-                        ret_json[ce_key] = get_class_with_defaults("NodeSetAll", schema_json=schema)
-                    elif "type" in schema_blob[ce_key]:
-                        ret_json[ce_key] = get_class_with_defaults(schema_blob[ce_key]["type"], schema_json=schema)
-                    elif ce_key != "class":
-                        ret_json[ce_key] = {}
-                except Exception as ex:
-                    raise ValueError(f"ERROR: {ex}")
+    abstract_key1 = "idmAbstractType:CampaignEvent"
+    abstract_key2 = "idmType:AdditionalRestrictions"
+
+    # Abstract types get initialized to empty object
+    if (classname.startswith("idmAbstractType")):
+        ret_json = dict()
+
+    # AdditionalRestrictions is an abstract type
+    elif (classname == "idmType:AdditionalRestrictions"):
+        ret_json = dict()
+
+    # Waning effect (old style) is an abstract type
+    elif (classname == "idmType:WaningEffect" and uses_old_waning(schema_idm)):
+        ret_json = dict()
+
+    # Check if class is CampaignEvent
+    elif (abstract_key1 in schema_idm and classname in schema_idm[abstract_key1].keys()):
+        schema_blob = schema_idm[abstract_key1][classname]
+        ret_json["class"] = schema_blob["class"]
+        for key_str in schema_blob.keys():
+            if key_str in ["class"]:
+                continue
+            ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
     elif "coordinator" in classname.lower() and classname.lower() != "broadcastcoordinatoreventfromnode":
         for ec_name in schema_idm["idmAbstractType:EventCoordinator"].keys():
@@ -281,16 +299,19 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
                 for ec_key in schema_blob.keys():
                     if ec_key == "class" or ec_key == "Sim_Types":
                         continue
-                    ret_json[ec_key] = get_default(schema_blob, ec_key, schema)
+                    ret_json[ec_key] = get_default(schema_blob[ec_key], schema)
                 break  # once we find it, stop
 
-    elif ("idmType:AdditionalRestrictions" == classname):
-        ret_json = dict()
+    # Check if class is AdditionalRestriction
+    elif (abstract_key2 in schema_idm.keys() and classname in schema_idm[abstract_key2].keys()):
+        schema_blob = schema_idm[abstract_key2][classname]
+        ret_json["class"] = schema_blob["class"]
+        for key_str in schema_blob.keys():
+            if key_str in ["class", "Sim_Types", "Vector2d idmType:AdditionalRestrictions"]:
+                continue
+            ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
-    elif ("idmType:WaningEffect" == classname and uses_old_waning(schema_idm)):
-        ret_json = dict()
-
-    elif "idmType:" in classname:
+    elif (classname.startswith("idmType:")):
         if classname in schema_idm.keys():
             schema_blob = schema_idm[classname]
             if type(schema_blob) is list:
@@ -302,7 +323,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
                     continue
                 try:
                     if "default" in schema_blob[type_key]:
-                        new_elem[type_key] = schema_blob[type_key]["default"]
+                        new_elem[type_key] = eval_default(schema_blob[type_key]["default"])
                     elif "min" in schema_blob[type_key]:
                         new_elem[type_key] = schema_blob[type_key]["min"]
                     elif "type" in schema_blob[type_key]:
@@ -327,7 +348,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
         schema_blob = schema_idm["idmType:WaningEffect"]
         ret_json["class"] = classname
         for effect in schema_blob.keys():
-            ret_json[effect] = get_default(schema_blob, effect, schema)
+            ret_json[effect] = get_default(schema_blob[effect], schema)
 
     elif "waning" in classname.lower():
         # Only used when there are multiple waning effect options
@@ -339,18 +360,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
             for wan_key in schema_blob.keys():
                 if wan_key == "class":
                     continue
-                ret_json[wan_key] = get_default(schema_blob, wan_key, schema)
-
-    elif ("idmType:AdditionalRestrictions" in schema_idm.keys()
-          and classname in schema_idm["idmType:AdditionalRestrictions"].keys()):
-        # Only used if the class is in idmType:AdditionalRestrictions
-
-        schema_blob = schema_idm["idmType:AdditionalRestrictions"][classname]
-        ret_json["class"] = schema_blob["class"]
-        for tar_key in schema_blob.keys():
-            if tar_key in ["class", "Sim_Types", "Vector2d idmType:AdditionalRestrictions"]:
-                continue
-            ret_json[tar_key] = get_default(schema_blob, tar_key, schema)
+                ret_json[wan_key] = get_default(schema_blob[wan_key], schema)
 
     elif "nodeset" in classname.lower():
         if classname in schema_idm["idmAbstractType:NodeSet"].keys():
@@ -361,7 +371,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
                     continue
                 try:
                     if "default" in schema_blob[ns_key]:
-                        ret_json[ns_key] = schema_blob[ns_key]["default"]
+                        ret_json[ns_key] = eval_default(schema_blob[ns_key]["default"])
                     elif "type" in schema_blob[ns_key]:
                         if schema_blob[ns_key]["type"] == "idmType:NodeListConfig":
                             # hack for now, might be schema bug
@@ -382,9 +392,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
                 continue
             try:
                 if "default" in schema_blob[ce_key]:
-                    ret_json[ce_key] = schema_blob[ce_key]["default"]
-                elif ce_key == "Nodeset_Config":  # this doesn't look a real pattern
-                    ret_json[ce_key] = get_class_with_defaults("NodeSetAll", schema_json=schema)
+                    ret_json[ce_key] = eval_default(schema_blob[ce_key]["default"])
                 elif ce_key != "class":
                     ret_json[ce_key] = {}
             except Exception as ex:
@@ -403,7 +411,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
                         continue
                     try:
                         if "default" in schema_blob[iv_key]:
-                            ret_json[iv_key] = schema_blob[iv_key]["default"]
+                            ret_json[iv_key] = eval_default(schema_blob[iv_key]["default"])
 
                         elif "type" in schema_blob[iv_key]:
                             idmtype = schema_blob[iv_key]["type"]

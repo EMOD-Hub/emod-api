@@ -47,7 +47,7 @@ class TestSchemaCommon():
         elif (type(cont_arg) is dict):
             for key_ele in cont_arg:
                 val_ele = cont_arg[key_ele]
-                ret_val = ret_val and funct_arg(key_ele, val_ele) 
+                ret_val = ret_val and funct_arg(key_ele, val_ele)
                 if (type(val_ele) is list or type(val_ele) is dict):
                     ret_val = ret_val and self.rabbit_hole(val_ele, funct_arg)
         else:
