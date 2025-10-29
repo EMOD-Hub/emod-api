@@ -64,15 +64,24 @@ class TestSchemaCommon():
         assert test_true
         self.succeeded = True
 
+    def test_no_iv_type(self):
+        # Schema processing assumes no "iv_type" key
+        def fun_no_iv_type(key_in, val_in):
+            return (key_in != 'iv_type' and val_in != 'iv_type')
+
+        test_true = self.rabbit_hole(self.schema_json, fun_no_iv_type)
+        assert test_true
+        self.succeeded = True
+
     def test_empty_container_defaults(self):
         # Schema processing assumes default containers are empty
-        def fun_not_none(key_in, val_in):
+        def fun_empty_default(key_in, val_in):
             ret_val = True
             if (key_in == 'default' and (type(val_in) is dict or type(val_in) is list)):
                 ret_val = (not val_in)
             return ret_val
 
-        test_true = self.rabbit_hole(self.schema_json, fun_not_none)
+        test_true = self.rabbit_hole(self.schema_json, fun_empty_default)
         assert test_true
         self.succeeded = True
 
@@ -85,6 +94,23 @@ class TestSchemaCommon():
 
         test_true = (not map02.Values)
         assert test_true
+        self.succeeded = True
+
+    def test_required_idmTypes(self):
+        # Required keys in schema
+        assert 'idmTypes' in self.schema_json
+        schema_idm = self.schema_json['idmTypes']
+
+        # Always required
+        list_required = [
+            "idmAbstractType:CampaignEvent",
+            "idmAbstractType:EventCoordinator",
+            "idmAbstractType:NodeSet",
+            "idmAbstractType:Intervention",
+        ]
+        for req_key in list_required:
+            assert req_key in schema_idm
+
         self.succeeded = True
 
 
