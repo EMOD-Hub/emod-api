@@ -290,6 +290,10 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
         ret_json = dict()
 
     # AdditionalRestriction is NOT abstract, but needs to be handled like it is
+    elif (classname == abstract_key0):
+        ret_json = dict()
+
+    # AdditionalRestriction is NOT abstract, but needs to be handled like it is
     elif (abstract_key0 in schema_idm.keys() and classname in schema_idm[abstract_key0].keys()):
         schema_blob = schema_idm[abstract_key0][classname]
         ret_json["class"] = schema_blob["class"]
@@ -366,6 +370,8 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
             if type(schema_blob) is list:
                 ret_json = list()
                 schema_blob = schema_blob[0]
+                if ('NodeListConfig' in classname):  # KF: Need to remove NodeListConfig
+                    schema_blob = dict()
             new_elem = dict()
             for type_key in schema_blob.keys():
                 if type_key.startswith("<"):
