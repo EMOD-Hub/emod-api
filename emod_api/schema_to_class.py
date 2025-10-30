@@ -199,7 +199,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
         (dict): Default parameter values for requested datatype
     """
 
-    # Function should be removed after schema_path arguement is removed
+    # Function should be removed after schema_path argument is removed
     def get_schema(schema_path=None, schema_json=None):
         global schema_cache
         global _schema_path
@@ -294,7 +294,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
         ret_json = dict()
 
     # AdditionalRestriction is NOT abstract, but needs to be handled like it is
-    elif (abstract_key0 in schema_idm.keys() and classname in schema_idm[abstract_key0].keys()):
+    elif (abstract_key0 in schema_idm and classname in schema_idm[abstract_key0]):
         schema_blob = schema_idm[abstract_key0][classname]
         ret_json["class"] = schema_blob["class"]
         for key_str in schema_blob.keys():
@@ -303,7 +303,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
             ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
     # Check if class is CampaignEvent type
-    elif (abstract_key1 in schema_idm and classname in schema_idm[abstract_key1].keys()):
+    elif (abstract_key1 in schema_idm and classname in schema_idm[abstract_key1]):
         schema_blob = schema_idm[abstract_key1][classname]
         ret_json["class"] = schema_blob["class"]
         for key_str in schema_blob.keys():
@@ -312,7 +312,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
             ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
     # Check if class is EventCoordinator type
-    elif (abstract_key2 in schema_idm.keys() and classname in schema_idm[abstract_key2].keys()):
+    elif (abstract_key2 in schema_idm and classname in schema_idm[abstract_key2]):
         schema_blob = schema_idm[abstract_key2][classname]
         ret_json["class"] = schema_blob["class"]
         for key_str in schema_blob.keys():
@@ -321,7 +321,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
             ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
     # Check if class is IReport type
-    elif (abstract_key3a in schema_idm and classname in schema_idm[abstract_key3a].keys()):
+    elif (abstract_key3a in schema_idm and classname in schema_idm[abstract_key3a]):
         schema_blob = schema_idm[abstract_key3a][classname]
         ret_json["class"] = schema_blob["class"]
         for key_str in schema_blob.keys():
@@ -329,7 +329,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
                 continue
             ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
-    elif (abstract_key3b in schema_idm and classname in schema_idm[abstract_key3b].keys()):
+    elif (abstract_key3b in schema_idm and classname in schema_idm[abstract_key3b]):
         schema_blob = schema_idm[abstract_key3b][classname]
         ret_json["class"] = schema_blob["class"]
         for key_str in schema_blob.keys():
@@ -338,7 +338,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
             ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
     # Check if class is NodeSet type
-    elif (abstract_key4 in schema_idm and classname in schema_idm[abstract_key4].keys()):
+    elif (abstract_key4 in schema_idm and classname in schema_idm[abstract_key4]):
         schema_blob = schema_idm[abstract_key4][classname]
         ret_json["class"] = schema_blob["class"]
         for key_str in schema_blob.keys():
@@ -347,7 +347,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
             ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
     # Check if class is WaningEffect (old style) type
-    elif (abstract_key5a in schema_idm and classname in schema_idm[abstract_key5a].keys()):
+    elif (abstract_key5a in schema_idm and classname in schema_idm[abstract_key5a]):
         schema_blob = schema_idm[abstract_key5a][classname]
         ret_json["class"] = schema_blob["class"]
         for key_str in schema_blob.keys():
@@ -355,7 +355,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
                 continue
             ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
-    elif (abstract_key5b in schema_idm and classname in schema_idm[abstract_key5b].keys()):
+    elif (abstract_key5b in schema_idm and classname in schema_idm[abstract_key5b]):
         schema_blob = schema_idm[abstract_key5b][classname]
         ret_json["class"] = schema_blob["class"]
         for key_str in schema_blob.keys():
@@ -365,7 +365,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
 
     # Check if class is an idmType
     elif (classname.startswith("idmType:")):
-        if classname in schema_idm.keys():
+        if classname in schema_idm:
             schema_blob = schema_idm[classname]
             if type(schema_blob) is list:
                 ret_json = list()
