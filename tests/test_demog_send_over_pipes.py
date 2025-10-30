@@ -2,8 +2,8 @@ import os
 import sys
 import json
 import unittest
-import emod_api.demographics.Demographics as Demog
-import emod_api.demographics.PreDefinedDistributions as Distributions
+import emod_api.demographics.demographics as Demog
+import emod_api.demographics.pre_defined_distributions as Distributions
 import tempfile
 import copy
 

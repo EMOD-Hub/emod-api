@@ -1,7 +1,7 @@
 import unittest
-import emod_api.demographics.Node as Node
-import emod_api.demographics.PreDefinedDistributions as Distributions
-from emod_api.demographics.PropertiesAndAttributes import IndividualAttributes, IndividualProperty, IndividualProperties, NodeAttributes
+import emod_api.demographics.node as Node
+import emod_api.demographics.pre_defined_distributions as Distributions
+from emod_api.demographics.properties_and_attributes import IndividualAttributes, IndividualProperty, IndividualProperties, NodeAttributes
 
 
 class NodeTest(unittest.TestCase):

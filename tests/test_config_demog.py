@@ -1,6 +1,6 @@
 import unittest
-import emod_api.demographics.Demographics as Demographics
-import emod_api.demographics.PreDefinedDistributions as Distributions
+import emod_api.demographics.demographics as Demographics
+import emod_api.demographics.pre_defined_distributions as Distributions
 
 from emod_api.config import default_from_schema_no_validation as dfs
 from tests import manifest

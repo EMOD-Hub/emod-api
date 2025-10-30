@@ -14,10 +14,10 @@ import pandas as pd
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from emod_api.demographics import DemographicsTemplates as DT
-from emod_api.demographics.BaseInputFile import BaseInputFile
-from emod_api.demographics.DemographicsTemplates import CrudeRate, YearlyRate
-from emod_api.demographics.Node import Node
+from emod_api.demographics import demographics_templates as DT
+from emod_api.demographics.base_input_file import BaseInputFile
+from emod_api.demographics.demographics_templates import CrudeRate, YearlyRate
+from emod_api.demographics.node import Node
 from emod_api.demographics.age_distribution_old import AgeDistributionOld as AgeDistribution
 from emod_api.demographics.demographic_exceptions import InvalidNodeIdException
 from emod_api.demographics.mortality_distribution_old import MortalityDistributionOld as MortalityDistribution
