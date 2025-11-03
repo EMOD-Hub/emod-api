@@ -1,9 +1,7 @@
 import json
 import math
 import os
-import pathlib
 import sys
-import tempfile
 import warnings
 from collections import Counter
 from functools import partial
@@ -21,7 +19,6 @@ from emod_api.demographics.node import Node
 from emod_api.demographics.age_distribution_old import AgeDistributionOld as AgeDistribution
 from emod_api.demographics.demographic_exceptions import InvalidNodeIdException
 from emod_api.demographics.mortality_distribution_old import MortalityDistributionOld as MortalityDistribution
-from emod_api.migration import migration
 
 
 class DemographicsBase(BaseInputFile):
