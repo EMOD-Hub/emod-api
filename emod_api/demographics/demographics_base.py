@@ -1,9 +1,7 @@
 import json
 import math
 import os
-import pathlib
 import sys
-import tempfile
 import warnings
 from collections import Counter
 from functools import partial
@@ -16,12 +14,10 @@ from sklearn.preprocessing import StandardScaler
 
 from emod_api.demographics import demographics_templates as DT
 from emod_api.demographics.base_input_file import BaseInputFile
-from emod_api.demographics.demographics_templates import CrudeRate, YearlyRate
 from emod_api.demographics.node import Node
 from emod_api.demographics.age_distribution_old import AgeDistributionOld as AgeDistribution
 from emod_api.demographics.demographic_exceptions import InvalidNodeIdException
 from emod_api.demographics.mortality_distribution_old import MortalityDistributionOld as MortalityDistribution
-from emod_api.migration import migration
 
 
 class DemographicsBase(BaseInputFile):
@@ -406,25 +402,35 @@ class DemographicsBase(BaseInputFile):
                      node_ids: List = None):
         """
         Set Default birth rate to birth_rate. Turn on Vital Dynamics and Births implicitly.
+
+        Args:
+            birth_rate: (float) The birth rate in units of births/year/1000-women
+            node_ids: a list of node_ids. None or 0 indicates the default node.
+
+        Returns:
+            Nothing
         """
         warnings.warn('SetBirthRate() is deprecated. Default nodes should now be represented by Node '
                       'objects and passed to the Demographics object during the constructor call. They can be modified '
                       'afterward, if needed.',
                       DeprecationWarning, stacklevel=2)
-        if type(birth_rate) is float or type(birth_rate) is int:
-            birth_rate = CrudeRate(birth_rate)
-        dtk_birthrate = birth_rate.get_dtk_rate()
+        # if type(birth_rate) is float or type(birth_rate) is int:
+        #     birth_rate = CrudeRate(birth_rate)
+        # dtk_birthrate = birth_rate.get_dtk_rate()
+        dtk_birthrate = birth_rate / 365 / 1000
+
         if node_ids is None:
             self.raw['Defaults']['NodeAttributes'].update({
                 "BirthRate": dtk_birthrate
             })
         else:
-            for node_id in node_ids:
-                self.get_node_by_id(node_id=node_id).birth_rate = dtk_birthrate
+            nodes = self.get_nodes_by_id(node_ids=node_ids)
+            for _, node in nodes.items():
+                node.birth_rate = dtk_birthrate
         self.implicits.append(DT._set_population_dependent_birth_rate)
 
     def SetMortalityRate(self,
-                         mortality_rate: CrudeRate, node_ids: List[int] = None):
+                         mortality_rate: float, node_ids: List[int] = None):
         """
         Set constant mortality rate to mort_rate. Turn on Enable_Natural_Mortality implicitly.
         """
@@ -432,9 +438,11 @@ class DemographicsBase(BaseInputFile):
                       'set_mortality_distribution()', DeprecationWarning, stacklevel=2)
 
         # yearly_mortality_rate = YearlyRate(mortality_rate)
-        if type(mortality_rate) is float or type(mortality_rate) is int:
-            mortality_rate = CrudeRate(mortality_rate)
-        mortality_rate = mortality_rate.get_dtk_rate()
+        # if type(mortality_rate) is float or type(mortality_rate) is int:
+        #     mortality_rate = CrudeRate(mortality_rate)
+        # mortality_rate = mortality_rate.get_dtk_rate()
+        mortality_rate = mortality_rate #/ 365 / 1000
+
         if node_ids is None:
             # setting = {"MortalityDistribution": DT._ConstantMortality(yearly_mortality_rate).to_dict()}
             setting = {"MortalityDistribution": DT._ConstantMortality(mortality_rate).to_dict()}
@@ -646,7 +654,8 @@ class DemographicsBase(BaseInputFile):
                                                   "Region": 1,
                                                   "Seaport": 1}
         if birth:
-            self.SetBirthRate(YearlyRate(math.log(1.03567)))
+            # raise Exception("This will be removed in a new issue/PR shortly. Do not use.")
+            self.SetBirthRate(birth_rate=math.log(1.03567))
 
     def SetDefaultProperties(self):
         """
@@ -677,26 +686,35 @@ class DemographicsBase(BaseInputFile):
 
     # TODO: is this useful in a way that warrants a special-case function in emodpy built around set_age_distribution?
     #  https://github.com/InstituteforDiseaseModeling/emod-api-old/issues/788
-    def SetEquilibriumAgeDistFromBirthAndMortRates(self, CrudeBirthRate=CrudeRate(40), CrudeMortRate=CrudeRate(20),
+    def SetEquilibriumAgeDistFromBirthAndMortRates(self, birth_rate: float = 40.0, mortality_rate: float = 20.0,
                                                    node_ids=None):
         """
-        Set the inital ages of the population to a sensible equilibrium profile based on the specified input birth and
-        death rates. Note this does not set the fertility and mortality rates.
-        """
-        warnings.warn('SetEquilibriumAgeDistFromBirthAndMortRates() is deprecated. Please use the emodpy Demographics method: '
-                      'set_age_distribution()', DeprecationWarning, stacklevel=2)
+            Set age distribution based on birth and death rates. Implicit function.
 
-        yearly_birth_rate = YearlyRate(CrudeBirthRate)
-        yearly_mortality_rate = YearlyRate(CrudeMortRate)
-        dist = DT._EquilibriumAgeDistFromBirthAndMortRates(yearly_birth_rate, yearly_mortality_rate)
+            Args:
+                birth_rate: (float) The birth rate in units of births/year/1000-women
+                mortality_rate: (float) The mortality rate in units of deaths/year/1000 people
+                node_ids: a list of node_ids. None or 0 indicates the default node.
+            Returns:
+                Nothing
+        """
+        warnings.warn(
+            'SetEquilibriumAgeDistFromBirthAndMortRates() is deprecated. Please use the emodpy Demographics method: '
+            'set_age_distribution()', DeprecationWarning, stacklevel=2)
+
+
+        dist = DT._EquilibriumAgeDistFromBirthAndMortRates(birth_rate=birth_rate,
+                                                           mortality_rate=mortality_rate)
         setter_fn = DT._set_age_complex
+
         if node_ids is None:
             self.SetDefaultFromTemplate(dist, setter_fn)
         else:
             new_dist = AgeDistribution()
             dist = new_dist.from_dict(dist["AgeDistribution"])
-            for node in node_ids:
-                self.get_node_by_id(node_id=node)._set_age_complex_distribution(dist)
+            nodes = self.get_nodes_by_id(node_ids=node_ids)
+            for _, node in nodes.items():
+                node._set_age_complex_distribution(dist)
             self.implicits.append(setter_fn)
 
     def SetInitialAgeExponential(self, rate=0.0001068, description=""):

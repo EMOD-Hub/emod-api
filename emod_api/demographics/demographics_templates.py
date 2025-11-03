@@ -25,34 +25,6 @@ class DemographicsTemplatesConstants:
                                        32849.6, 34679.5, 34679.6, 36509.5, 36509.6, 38339.5]
 
 
-class CrudeRate:  # would like to derive from float
-    def __init__(self, init_rate):
-        self._time_units = 365
-        self._people_units = 1000
-        self._rate = init_rate
-
-    def get_dtk_rate(self):
-        return self._rate / self._time_units / self._people_units
-
-
-class YearlyRate(CrudeRate):  # would like to derive from float
-    def __init__(self, init_rate):
-        self._time_units = 365
-        self._people_units = 1
-        if type(init_rate) is CrudeRate:
-            self._rate = init_rate._rate / 1000.
-        else:
-            self._rate = init_rate
-
-
-class DtkRate(CrudeRate):
-    def __init__(self, init_rate):
-        super().__init__(init_rate)
-        self._time_units = 1
-        self._people_units = 1
-        self._rate = init_rate
-
-
 # Migration
 def _set_migration_model_fixed_rate(config):
     config.parameters.Migration_Model = "FIXED_RATE_MIGRATION"
@@ -557,24 +529,40 @@ def AgeStructureUNWPP(demog):
     demog.SetDefaultFromTemplate(setting, _set_age_complex)
 
 
-def _EquilibriumAgeDistFromBirthAndMortRates(birth_rate=YearlyRate(40 / 1000.), mort_rate=YearlyRate(20 / 1000.)):
+# class CrudeRate:  # would like to derive from float
+#     def __init__(self, init_rate):
+#         self._time_units = 365
+#         self._people_units = 1000
+#         self._rate = init_rate
+#
+#     def get_dtk_rate(self):
+#         return self._rate / self._time_units / self._people_units
+
+
+def _EquilibriumAgeDistFromBirthAndMortRates(birth_rate=40.0, mortality_rate=20.0):
     """
-    Set age distribution based on birth and death rates.
+    Set age distribution based on birth and death rates. Implicit function.
 
     Args:
-        birth_rate: births per person per year.
-        mort_rate: deaths per person per year.
+        # birth_rate: births per person per year.
+        birth_rate: (float) The birth rate in units of births/year/1000-women
+        # mort_rate: deaths per person per year.
+        mortality_rate: (float) The mortality rate in units of deaths/year/1000 people
 
     Returns:
         dictionary which can be inserted into demographics object.
 
     """
-    BirthRate = math.log(1 + birth_rate.get_dtk_rate())
-    MortRate = -1 * math.log(1 - mort_rate.get_dtk_rate())
+    # convert to daily rate per person, EMOD units
+    birth_rate = (birth_rate / 1000) / 365 / 1  # what is actually used below
+    mortality_rate = (mortality_rate / 1000) / 365 / 1 # what is actually used below
+
+    birth_rate = math.log(1 + birth_rate)
+    mortality_rate = -1 * math.log(1 - mortality_rate)
 
     # It is important for the age distribution computation that the age-spacing be very fine; I've used 30 days here.
     # With coarse spacing, the computation in practice doesn't work as well.
-    ageDist = _computeAgeDist(BirthRate, [i * 30 for i in range(1200)], 1200 * [MortRate], 12 * [1.0])
+    ageDist = _computeAgeDist(birth_rate, [i * 30 for i in range(1200)], 1200 * [mortality_rate], 12 * [1.0])
 
     # The final demographics file, though, can use coarser binning interpolated from the finely-spaced computed distribution.
     EMODAgeBins = list(range(16)) + [20 + 5 * i for i in range(14)]
