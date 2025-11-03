@@ -363,7 +363,7 @@ class DemographicsBase(BaseInputFile):
                            if node_name in node_names}
         return requested_nodes
 
-    def set_demographics_filenames(self, file_names):
+    def set_demographics_filenames(self, file_names: List[str]):
         """
         Set paths to demographic file.
 
