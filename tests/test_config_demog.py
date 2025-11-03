@@ -19,20 +19,6 @@ class DemoConfigTest(unittest.TestCase):
     def reset_config(self):
         self.config = self.get_config_as_object()
 
-    # Tests that if overdispersion is set, Enable_Infection_Rate_Overdispersion is True
-    def test_age_dependent_transmission_config(self):
-        for index in range(2):
-            demog = Demographics.from_template_node()
-            demog.SetDefaultProperties()
-            if index:
-                demog.SetOverdispersion(0.75)
-            self.assertEqual(len(demog.implicits), 5 + index)
-            demog.implicits[-1](self.config)
-            if not index:
-                self.assertEqual(self.config.parameters.Enable_Infection_Rate_Overdispersion, 0)
-            else:
-                self.assertEqual(self.config.parameters.Enable_Infection_Rate_Overdispersion, 1)
-
     def test_set_birth_rate_config(self):
         demog = Demographics.from_template_node()
         self.config.parameters.Enable_Birth = 0  # since it is 1 by default

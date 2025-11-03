@@ -366,43 +366,7 @@ class DemographicsBase(BaseInputFile):
                            if node_name in node_names}
         return requested_nodes
 
-    def SetMigrationPattern(self, pattern: str = "rwd"):
-        """
-        Set migration pattern. Migration is enabled implicitly.
-        It's unusual for the user to need to set this directly; normally used by emodpy.
-
-        Args:
-            pattern: Possible values are "rwd" for Random Walk Diffusion and "srt" for Single Round Trips.
-        """
-        if self.implicits is not None:
-            if pattern.lower() == "srt":
-                self.implicits.append(DT._set_migration_pattern_srt)
-            elif pattern.lower() == "rwd":
-                self.implicits.append(DT._set_migration_pattern_rwd)
-            else:
-                raise ValueError('Unknown migration pattern: %s. Possible values are "rwd" and "srt".', pattern)
-
-    def _SetRegionalMigrationFileName(self, file_name):
-        """
-        Set path to migration file.
-
-        Args:
-            file_name: Path to migration file.
-        """
-        if self.implicits is not None:
-            self.implicits.append(partial(DT._set_regional_migration_filenames, file_name=file_name))
-
-    def _SetLocalMigrationFileName(self, file_name):
-        """
-        Set path to migration file.
-
-        Args:
-            file_name: Path to migration file.
-        """
-        if self.implicits is not None:
-            self.implicits.append(partial(DT._set_local_migration_filename, file_name=file_name))
-
-    def _SetDemographicFileNames(self, file_names):
+    def set_demographics_filenames(self, file_names):
         """
         Set paths to demographic file.
 
@@ -411,127 +375,6 @@ class DemographicsBase(BaseInputFile):
         """
         if self.implicits is not None:
             self.implicits.append(partial(DT._set_demographic_filenames, file_names=file_names))
-
-    def SetRoundTripMigration(self,
-                              gravity_factor: float,
-                              probability_of_return: float = 1.0,
-                              id_ref: str = 'short term commuting migration'):
-        """
-        Set commuter/seasonal/temporary/round-trip migration rates. You can use the x_Local_Migration configuration
-            parameter to tune/calibrate.
-
-        Args:
-            gravity_factor: 'Big G' in gravity equation. Combines with 1, 1, and -2 as the other exponents.
-            probability_of_return: Likelihood that an individual who 'commuter migrates' will return to the node
-                                   of origin during the next migration (not timestep). Defaults to 1.0. Aka, travel,
-                                   shed, return."
-            id_ref: Text string that appears in the migration file itself; needs to match corresponding demographics
-                file.
-        """
-        if gravity_factor < 0:
-            raise ValueError("gravity factor can't be negative.")
-
-        gravity_params = [gravity_factor, 1.0, 1.0, -2.0]
-        if probability_of_return < 0 or probability_of_return > 1.0:
-            raise ValueError(f"probability_of_return parameter passed by not a probability: {probability_of_return}")
-
-        mig = migration._from_demog_and_param_gravity(self, gravity_params=gravity_params,
-                                                      id_ref=id_ref,
-                                                      migration_type=migration.Migration.LOCAL)
-        migration_file_path = tempfile.NamedTemporaryFile().name + ".bin"
-        mig.to_file(migration_file_path)
-        self.migration_files.append(migration_file_path)
-
-        if self.implicits is not None:
-            self.implicits.append(partial(DT._set_local_migration_roundtrip_probability,
-                                          probability_of_return=probability_of_return))
-            self.implicits.append(partial(DT._set_local_migration_filename,
-                                          file_name=pathlib.PurePath(migration_file_path).name))
-        self.SetMigrationPattern("srt")
-
-    def SetOneWayMigration(self,
-                           rates_path: Union[str, os.PathLike],
-                           id_ref: str = 'long term migration'):
-        """
-        Set one way migration. You can use the x_Regional_Migration configuration parameter to tune/calibrate.
-
-        Args:
-            rates_path: Path to csv file with node-to-node migration rates. Format is: source (node id),destination
-                (node id),rate.
-            id_ref: Text string that appears in the migration file itself; needs to match corresponding demographics
-                file.
-        """
-
-        mig = migration.from_csv(pathlib.Path(rates_path), id_ref=id_ref, mig_type=migration.Migration.REGIONAL)
-        migration_file_path = tempfile.NamedTemporaryFile().name + ".bin"
-        mig.to_file(migration_file_path)
-        self.migration_files.append(migration_file_path)
-
-        if self.implicits is not None:
-            self.implicits.append(partial(DT._set_regional_migration_roundtrip_probability, probability_of_return=0.0))
-            self.implicits.append(partial(DT._set_regional_migration_filenames,
-                                          file_name=pathlib.PurePath(migration_file_path).name))
-        self.SetMigrationPattern("srt")
-
-    def SetSimpleVitalDynamics(self,
-                               crude_birth_rate: CrudeRate = CrudeRate(40),
-                               crude_death_rate: CrudeRate = CrudeRate(20),
-                               node_ids: List = None):
-        """
-        Set fertility, mortality, and initial age with single birth rate and single mortality rate.
-
-        Args:
-            crude_birth_rate: Birth rate, per year per kiloperson.
-            crude_death_rate: Mortality rate, per year per kiloperson.
-            node_ids: Optional list of nodes to limit these settings to.
-
-        """
-
-        self.SetBirthRate(crude_birth_rate, node_ids)
-        self.SetMortalityRate(crude_death_rate, node_ids)
-        self.SetEquilibriumAgeDistFromBirthAndMortRates(crude_birth_rate, crude_death_rate, node_ids)
-
-    # TODO: is this useful in a way that warrants a special-case function in emodpy?
-    #  https://github.com/InstituteforDiseaseModeling/emod-api-old/issues/790
-    def SetEquilibriumVitalDynamics(self,
-                                    crude_birth_rate: CrudeRate = CrudeRate(40),
-                                    node_ids: List = None):
-        """
-        Set fertility, mortality, and initial age with single rate and mortality to achieve steady state population.
-
-        Args:
-            crude_birth_rate: Birth rate. And mortality rate.
-            node_ids: Optional list of nodes to limit these settings to.
-
-        """
-
-        self.SetSimpleVitalDynamics(crude_birth_rate, crude_birth_rate, node_ids)
-
-    # TODO: is this useful in a way that warrants a special-case function in emodpy?
-    #  https://github.com/InstituteforDiseaseModeling/emod-api-old/issues/791
-    def SetEquilibriumVitalDynamicsFromWorldBank(self,
-                                                 wb_births_df: pd.DataFrame,
-                                                 country: str,
-                                                 year: int,
-                                                 node_ids: List = None):
-        """
-        Set steady-state fertility, mortality, and initial age with rates from world bank, for given country and year.
-
-        Args:
-            wb_births_df: Pandas dataframe with World Bank birth rate by country and year.
-            country: Country to pick from World Bank dataset.
-            year: Year to pick from World Bank dataset.
-            node_ids: Optional list of nodes to limit these settings to.
-
-        """
-
-        try:
-            birth_rate = CrudeRate(wb_births_df[wb_births_df['Country Name'] == country][str(year)].tolist()[0])
-            # result_scale_factor = 2.74e-06 # assuming world bank units for input
-            # birth_rate *= result_scale_factor # from births per 1000 pop per year to per person per day
-        except Exception as ex:
-            raise ValueError(f"Exception trying to find {year} and {country} in dataframe.\n{ex}")
-        self.SetEquilibriumVitalDynamics(birth_rate, node_ids)
 
     def SetDefaultIndividualAttributes(self):
         """
@@ -887,22 +730,6 @@ class DemographicsBase(BaseInputFile):
             description = "Setting initial age distribution like Sub Saharan Africa, drawing from exponential distribution."
 
         self.SetInitialAgeExponential(description=description)  # use default rate
-
-    def SetOverdispersion(self, new_overdispersion_value, nodes: List = None):
-        """
-        Set the overdispersion value for the specified nodes (all if empty).
-        """
-        if nodes is None:
-            nodes = []
-
-        def enable_overdispersion(config):
-            print("DEBUG: Setting 'Enable_Infection_Rate_Overdispersion' to 1.")
-            config.parameters.Enable_Infection_Rate_Overdispersion = 1
-            return config
-
-        if self.implicits is not None:
-            self.implicits.append(enable_overdispersion)
-        self.raw['Defaults']['NodeAttributes']["InfectivityOverdispersion"] = new_overdispersion_value
 
     def SetInitPrevFromUniformDraw(self, min_init_prev, max_init_prev, description=""):
         """
