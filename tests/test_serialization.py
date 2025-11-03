@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
 from __future__ import print_function
-import emod_api.serialization.dtkFileTools as dft
-import emod_api.serialization.dtkFileSupport as support
+import emod_api.serialization.dtk_file_tools as dft
+import emod_api.serialization.dtk_file_support as support
 import os
 import tempfile
 import unittest
@@ -1127,7 +1127,7 @@ class TestReadVersion5(TestReadVersionFour, TestReadWrite):
             'compressed': True,
             # 'date': None,  # date with seconds, might have changed at point of testing
             'engine': "LZ4",
-            'tool': "dtkFileTools.py",
+            'tool': "dtk_file_tools.py",
             'version': 5,
             'emod_info': {
                 'emod_sccs_date': "Mon Jan 1 00:00:00 1970",

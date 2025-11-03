@@ -7,7 +7,7 @@ import pandas as pd
 import json
 from copy import deepcopy
 
-from emod_api.demographics.Node import Node
+from emod_api.demographics.node import Node
 from emod_api.demographics.DemographicsFile import DemographicsFile
 
 ##Most everything in here needs to be updated or refactored for future purposes
