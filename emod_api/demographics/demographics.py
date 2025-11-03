@@ -11,9 +11,9 @@ import pandas as pd
 
 from typing import List, Dict
 
-from emod_api.demographics import DemographicsTemplates as DT
-from emod_api.demographics.Node import Node
-from emod_api.demographics.PropertiesAndAttributes import NodeAttributes
+from emod_api.demographics import demographics_templates as DT
+from emod_api.demographics.node import Node
+from emod_api.demographics.properties_and_attributes import NodeAttributes
 from emod_api.demographics.demographics_base import DemographicsBase
 from emod_api.demographics.service import service
 

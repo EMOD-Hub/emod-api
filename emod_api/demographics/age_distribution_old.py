@@ -1,6 +1,6 @@
 from typing import List
 
-from emod_api.demographics.Updateable import Updateable
+from emod_api.demographics.updateable import Updateable
 
 
 class AgeDistributionOld(Updateable):

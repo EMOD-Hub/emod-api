@@ -46,7 +46,7 @@ class EmodapiDemographicsImportTest(unittest.TestCase):
             'get_node_pops_from_params',
             '_node_id_from_lat_lon_res'
         ]
-        import emod_api.demographics.Demographics as eaddf
+        import emod_api.demographics.demographics as eaddf
         self.verify_expected_items_present(namespace=eaddf)
         pass
 
@@ -59,7 +59,7 @@ class EmodapiDemographicsImportTest(unittest.TestCase):
             'nodes_for_DTK',
             'xpix_ypix_from_lat_lon'
         ]
-        import emod_api.demographics.Node as eadn
+        import emod_api.demographics.node as eadn
         self.verify_expected_items_present(namespace=eadn)
         pass
 
@@ -72,6 +72,6 @@ class EmodapiDemographicsImportTest(unittest.TestCase):
             '_set_age_complex', '_set_age_simple', '_set_init_prev', '_set_suscept_complex',
             '_set_suscept_simple'
         ]
-        import emod_api.demographics.DemographicsTemplates as eaddt
+        import emod_api.demographics.demographics_templates as eaddt
         self.verify_expected_items_present(namespace=eaddt)
         pass

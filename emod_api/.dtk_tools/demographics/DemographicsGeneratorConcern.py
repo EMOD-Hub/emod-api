@@ -10,7 +10,7 @@ from scipy import integrate as spi
 # from dtk.generic.demographics import distribution_types
 # from dtk.tools.demographics.Node import Node
 from emod_api.demographics.demographics import distribution_types
-from emod_api.demographics.Node import Node
+from emod_api.demographics.node import Node
 
 
 class DemographicsGeneratorConcern:

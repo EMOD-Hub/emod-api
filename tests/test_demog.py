@@ -3,9 +3,9 @@ import json
 import unittest
 import csv
 import struct
-import emod_api.demographics.Demographics as Demographics
-import emod_api.demographics.Node as Node
-import emod_api.demographics.DemographicsTemplates as DT
+import emod_api.demographics.demographics as Demographics
+import emod_api.demographics.node as Node
+import emod_api.demographics.demographics_templates as DT
 from emod_api.demographics.demographics_overlay import DemographicsOverlay
 from emod_api.demographics.age_distribution_old import AgeDistributionOld as AgeDistribution
 from emod_api.demographics.mortality_distribution_old import MortalityDistributionOld as MortalityDistribution
@@ -19,8 +19,8 @@ import getpass
 import pandas as pd
 import numpy as np
 import pathlib
-from emod_api.demographics.PropertiesAndAttributes import IndividualAttributes, IndividualProperty, IndividualProperties, NodeAttributes
-import emod_api.demographics.PreDefinedDistributions as Distributions
+from emod_api.demographics.properties_and_attributes import IndividualAttributes, IndividualProperty, IndividualProperties, NodeAttributes
+import emod_api.demographics.pre_defined_distributions as Distributions
 import emod_api.demographics.demographic_exceptions as demog_ex
 import pprint
 

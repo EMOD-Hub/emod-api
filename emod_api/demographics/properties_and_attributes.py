@@ -6,7 +6,7 @@ from emod_api.demographics.mortality_distribution import MortalityDistribution
 from emod_api.demographics.mortality_distribution_old import MortalityDistributionOld
 from emod_api.demographics.susceptibility_distribution import SusceptibilityDistribution
 from emod_api.demographics.susceptibility_distribution_old import SusceptibilityDistributionOld
-from emod_api.demographics.Updateable import Updateable
+from emod_api.demographics.updateable import Updateable
 
 from typing import List, Union
 

@@ -1,6 +1,6 @@
 from typing import List, Any
 
-from emod_api.demographics.Updateable import Updateable
+from emod_api.demographics.updateable import Updateable
 
 
 class FertilityDistributionOld(Updateable):

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import argparse
-import emod_api.serialization.dtkFileTools as dft
+import emod_api.serialization.dtk_file_tools as dft
 import json
 import os
 import sys
