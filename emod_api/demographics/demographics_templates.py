@@ -529,16 +529,6 @@ def AgeStructureUNWPP(demog):
     demog.SetDefaultFromTemplate(setting, _set_age_complex)
 
 
-# class CrudeRate:  # would like to derive from float
-#     def __init__(self, init_rate):
-#         self._time_units = 365
-#         self._people_units = 1000
-#         self._rate = init_rate
-#
-#     def get_dtk_rate(self):
-#         return self._rate / self._time_units / self._people_units
-
-
 def _EquilibriumAgeDistFromBirthAndMortRates(birth_rate=40.0, mortality_rate=20.0):
     """
     Set age distribution based on birth and death rates. Implicit function.
