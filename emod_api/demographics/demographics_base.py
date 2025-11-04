@@ -399,7 +399,7 @@ class DemographicsBase(BaseInputFile):
     # DTK is births per person per day.
     def SetBirthRate(self,
                      birth_rate: float,
-                     node_ids: List = None):
+                     node_ids: List[int] = None) -> None:
         """
         Set Default birth rate to birth_rate. Turn on Vital Dynamics and Births implicitly.
 
