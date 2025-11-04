@@ -276,8 +276,7 @@ class Demographics(DemographicsBase):
     This class is a container of data necessary to produce a EMOD-valid demographics input file. It can be initialized
     from an existing valid demographics.joson type file or from an array of valid Nodes.
     """
-    def __init__(self, nodes: List[Node], idref: str = "Gridded world grump2.5arcmin", base_file: str = None,
-                 default_node: Node = None):
+    def __init__(self, nodes: List[Node], idref: str = "Gridded world grump2.5arcmin", default_node: Node = None):
         """
         A class to create demographics.
         :param nodes: list of Nodes
@@ -286,23 +285,6 @@ class Demographics(DemographicsBase):
         :default_node: An optional node to use for default settings.
         """
         super().__init__(nodes=nodes, idref=idref, default_node=default_node)
-
-        # HIV is expected to pass a default node. Malaria is not (for now).
-        if default_node is None:
-            if base_file:
-                with open(base_file, "rb") as src:
-                    self.raw = json.load(src)
-            else:
-                # adding and using this default configuration (True) as malaria may use it; I don't know. HIV does not.
-                self.SetMinimalNodeAttributes()
-                DT.NoInitialPrevalence(self)  # does this need to be called?
-                DT.InitAgeUniform(self)
-
-    def to_dict(self) -> Dict:
-        self.verify_demographics_integrity()
-        self.raw["Nodes"] = [node.to_dict() for node in self.nodes]
-        self.raw["Metadata"]["NodeCount"] = len(self.nodes)
-        return self.raw
 
     def generate_file(self, name="demographics.json"):
         """

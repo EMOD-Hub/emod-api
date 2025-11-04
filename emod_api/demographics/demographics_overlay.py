@@ -1,6 +1,7 @@
 import json
 
 from emod_api.demographics.demographics_base import DemographicsBase
+from emod_api.demographics.node import Node
 
 
 class DemographicsOverlay(DemographicsBase):
@@ -11,10 +12,10 @@ class DemographicsOverlay(DemographicsBase):
     passing node_id, individual attributes, and individual attributes to the constructor.
     """
 
-    def __init__(self, nodes: list = None,
+    def __init__(self,
+                 nodes: list = None,
                  idref: str = None,
-                 individual_attributes=None,
-                 node_attributes=None):
+                 default_node: Node = None):
         """
         A class to create demographic overlays.
         Args:
@@ -26,36 +27,10 @@ class DemographicsOverlay(DemographicsBase):
             node_attributes:  Object of type
                 :py:obj:`emod_api:emod_api.demographics.PropertiesAndAttributes.NodeAttributes
                 to overwrite individual attributes
+            default_node: (Node) An optional node to use for default settings.
+
         """
-        super(DemographicsOverlay, self).__init__(nodes=nodes, idref=idref)
-
-        self.individual_attributes = individual_attributes
-        self.node_attributes = node_attributes
-
-        if self.individual_attributes is not None:
-            self.raw["Defaults"]["IndividualAttributes"] = self.individual_attributes.to_dict()
-
-        if self.node_attributes is not None:
-            self.raw["Defaults"]["NodeAttributes"] = self.node_attributes.to_dict()
-
-    def to_dict(self):
-        self.verify_demographics_integrity()
-        d = {"Defaults": dict()}
-        if self.raw["Defaults"]["IndividualAttributes"]:
-            d["Defaults"]["IndividualAttributes"] = self.raw["Defaults"]["IndividualAttributes"]
-
-        if self.raw["Defaults"]["NodeAttributes"]:
-            d["Defaults"]["NodeAttributes"] = self.raw["Defaults"]["NodeAttributes"]
-
-        if self.raw["Metadata"]:
-            d["Metadata"] = self.raw["Metadata"]  # there is no metadata class
-            d["Metadata"]["NodeCount"] = len(self.nodes)
-        if self.raw["Defaults"]["IndividualProperties"]:
-            d["Defaults"]["IndividualProperties"] = self.raw["Defaults"]["IndividualProperties"]
-
-        d["Nodes"] = [{"NodeID": n.forced_id} for n in self.nodes]
-
-        return d
+        super(DemographicsOverlay, self).__init__(nodes=nodes, idref=idref, default_node=default_node)
 
     def to_file(self, file_name="demographics_overlay.json"):
         """
