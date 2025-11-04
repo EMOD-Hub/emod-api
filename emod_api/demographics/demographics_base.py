@@ -414,9 +414,6 @@ class DemographicsBase(BaseInputFile):
                       'objects and passed to the Demographics object during the constructor call. They can be modified '
                       'afterward, if needed.',
                       DeprecationWarning, stacklevel=2)
-        # if type(birth_rate) is float or type(birth_rate) is int:
-        #     birth_rate = CrudeRate(birth_rate)
-        # dtk_birthrate = birth_rate.get_dtk_rate()
         dtk_birthrate = birth_rate / 365 / 1000
 
         if node_ids is None:
@@ -436,13 +433,6 @@ class DemographicsBase(BaseInputFile):
         """
         warnings.warn('SetMortalityRate() is deprecated. Please use the emodpy Demographics method: '
                       'set_mortality_distribution()', DeprecationWarning, stacklevel=2)
-
-        # yearly_mortality_rate = YearlyRate(mortality_rate)
-        # if type(mortality_rate) is float or type(mortality_rate) is int:
-        #     mortality_rate = CrudeRate(mortality_rate)
-        # mortality_rate = mortality_rate.get_dtk_rate()
-        mortality_rate = mortality_rate #/ 365 / 1000
-
         if node_ids is None:
             # setting = {"MortalityDistribution": DT._ConstantMortality(yearly_mortality_rate).to_dict()}
             setting = {"MortalityDistribution": DT._ConstantMortality(mortality_rate).to_dict()}
