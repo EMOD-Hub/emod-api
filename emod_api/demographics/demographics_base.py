@@ -692,7 +692,6 @@ class DemographicsBase(BaseInputFile):
             'SetEquilibriumAgeDistFromBirthAndMortRates() is deprecated. Please use the emodpy Demographics method: '
             'set_age_distribution()', DeprecationWarning, stacklevel=2)
 
-
         dist = DT._EquilibriumAgeDistFromBirthAndMortRates(birth_rate=birth_rate,
                                                            mortality_rate=mortality_rate)
         setter_fn = DT._set_age_complex
