@@ -38,9 +38,10 @@ class DemographicsBase(BaseInputFile):
         pass
 
     def __init__(self, nodes: List[Node], idref: str, default_node: Node = None):
+        """
+        Passed-in default nodes are optional. If one is not passed in, one will be created.
+        """
         super().__init__(idref=idref)
-        # TODO: node ids should be required to be UNIQUE to prevent later failures when running EMOD. Any update to
-        #  self.nodes should trigger a check/error if needed.
         self.nodes = nodes
         self.implicits = list()
         self.migration_files = list()
@@ -50,32 +51,27 @@ class DemographicsBase(BaseInputFile):
             if node.id <= 0:
                 raise InvalidNodeIdException(f"Non-default nodes must have integer ids > 0 . Found id: {node.id}")
 
-        # Build the default node if not provided
-        metadata = self.generate_headers()
-        if default_node is None:  # use raw attribute, current malaria/other disease style
-            # currently all non-HIV disease route
-            self.default_node = None
-            self.metadata = None
-            self.raw = {"Defaults": dict(), "Metadata": metadata}
-            self.raw["Defaults"]["NodeAttributes"] = dict()
-            self.raw["Defaults"]["IndividualAttributes"] = dict()
-            self.raw["Defaults"]["NodeID"] = 0
-            self.raw["Defaults"]["IndividualProperties"] = list()
-            # TODO: remove the following setting of birth_rate on the default node once this EMOD binary issue is fixed
-            #  https://github.com/InstituteforDiseaseModeling/DtkTrunk/issues/4009
-            self.raw["Defaults"]["NodeAttributes"]["BirthRate"] = 0
-        else:  # HIV style
-            self.default_node = default_node
-            self.default_node.name = self.DEFAULT_NODE_NAME
-            if self.default_node.id != 0:
-                raise InvalidNodeIdException(f"Default nodes must have an id of 0. It is {self.default_node.id} .")
-            self.metadata = metadata
-            # TODO: remove the following setting of birth_rate on the default node once this EMOD binary issue is fixed
-            #  https://github.com/InstituteforDiseaseModeling/DtkTrunk/issues/4009
-            self.get_node_by_id(node_id=0).birth_rate = 0
+        # Build the default node if not provided and then perform some setup/verification
+        default_node = self._generate_default_node() if default_node is None else default_node
+        self.default_node = default_node
+        self.default_node.name = self.DEFAULT_NODE_NAME
+        if self.default_node.id != 0:
+            raise InvalidNodeIdException(f"Default nodes must have an id of 0. It is {self.default_node.id} .")
+        self.metadata = self.generate_headers()
+        # TODO: remove the following setting of birth_rate on the default node once this EMOD binary issue is fixed
+        #  https://github.com/InstituteforDiseaseModeling/DtkTrunk/issues/4009
+        if self.default_node.birth_rate is None:
+            self.default_node.birth_rate = 0
 
         # enforce unique node ids and names
         self.verify_demographics_integrity()
+
+    def _generate_default_node(self) -> Node:
+        default_node = Node(lat=0, lon=0, pop=0, name=self.DEFAULT_NODE_NAME, forced_id=0)
+        # TODO: remove the following setting of birth_rate on the default node once this EMOD binary issue is fixed
+        #  https://github.com/InstituteforDiseaseModeling/DtkTrunk/issues/4009
+        default_node.birth_rate = 0
+        return default_node
 
     def _select_node_dicts(self, node_ids=None):
         if node_ids is None:
@@ -1060,3 +1056,13 @@ class DemographicsBase(BaseInputFile):
                      }
         self.implicits.append(DT._set_mortality_age_gender_year)
         return dict_female, dict_male
+
+    def to_dict(self) -> Dict:
+        self.verify_demographics_integrity()
+        demographics_dict = {
+            'Defaults': self.default_node.to_dict(),
+            'Nodes': [node.to_dict() for node in self.nodes],
+            'Metadata': self.metadata
+        }
+        demographics_dict["Metadata"]["NodeCount"] = len(self.nodes)
+        return demographics_dict
