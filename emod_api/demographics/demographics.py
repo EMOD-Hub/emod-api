@@ -9,9 +9,8 @@ import numpy as np
 import os
 import pandas as pd
 
-from typing import List, Dict
+from typing import List
 
-from emod_api.demographics import demographics_templates as DT
 from emod_api.demographics.node import Node
 from emod_api.demographics.properties_and_attributes import NodeAttributes
 from emod_api.demographics.demographics_base import DemographicsBase
