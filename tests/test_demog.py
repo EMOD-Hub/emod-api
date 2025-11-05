@@ -264,7 +264,7 @@ class DemogTest(unittest.TestCase):
 
     def test_template_equilibrium_age_dist_from_birth_and_mort_rates(self):
         demog = Demographics.from_template_node()
-        demog.SetEquilibriumAgeDistFromBirthAndMortRates(CrudeBirthRate=20 / 1000, CrudeMortRate=10 / 1000)
+        demog.SetEquilibriumAgeDistFromBirthAndMortRates(birth_rate=20, mortality_rate=10)
         self.assertIn('AgeDistribution', demog.raw['Defaults']['IndividualAttributes'])
         self.assertEqual(len(demog.implicits), 2)
         print(demog.raw)
@@ -297,13 +297,14 @@ class DemogTest(unittest.TestCase):
         self.assertEqual(len(mort_rate), len(mort_dist['PopulationGroups'][1]))
         self.assertIn('MortalityDistribution', demog.raw['Defaults']['IndividualAttributes'])  # Can't use set_default_from_template_test since template is implicit
 
+    # TODO: restore/refactor after moving new distribution classes down into emod-api? Or is this duplicative?
     def test_set_default_from_template_constant_mortality(self):
         demog = Demographics.from_template_node()
         demog.implicits = []
-        mortality_rate = DT.DtkRate(0.0001)
+        mortality_rate = 0.0001
         demog.SetMortalityRate(mortality_rate=mortality_rate)  # ca
         self.assertIn('MortalityDistribution', demog.raw['Defaults']['IndividualAttributes'])  # Can't use set_default_from_template_test since template is implicit
-        expected_rate = [[-1 * (math.log(1 - mortality_rate.get_dtk_rate()))]] * 2
+        expected_rate = [[-1 * (math.log(1 - mortality_rate))]] * 2
         demog_rate = demog.raw['Defaults']['IndividualAttributes']['MortalityDistribution']['ResultValues']
         self.assertListEqual(expected_rate, demog_rate)
 
@@ -1088,13 +1089,13 @@ class DemogTest(unittest.TestCase):
     def test_mortality_rate_with_node_ids(self):
         input_file = os.path.join(manifest.demo_folder, 'nodes.csv')
         demog = Demographics.from_csv(input_file)
-        mortality_rate = 0.1234  # CrudeRate
+        mortality_rate = 0.1234 / 365 / 1000
         node_ids = [97, 99]
         demog.SetMortalityRate(mortality_rate, node_ids)
 
         set_mortality_dist_97 = demog.get_node_by_id(node_id=97).individual_attributes.mortality_distribution.to_dict()
         set_mortality_dist_99 = demog.get_node_by_id(node_id=99).individual_attributes.mortality_distribution.to_dict()
-        expected_mortality_dist = DT._ConstantMortality(DT.CrudeRate(mortality_rate).get_dtk_rate()).to_dict()
+        expected_mortality_dist = DT._ConstantMortality(mortality_rate).to_dict()
         self.assertDictEqual(set_mortality_dist_99, expected_mortality_dist)
         self.assertDictEqual(set_mortality_dist_97, expected_mortality_dist)
         self.assertIsNone(demog.get_node_by_id(node_id=96).individual_attributes.mortality_distribution)
