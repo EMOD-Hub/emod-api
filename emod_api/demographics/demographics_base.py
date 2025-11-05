@@ -676,8 +676,10 @@ class DemographicsBase(BaseInputFile):
 
     # TODO: is this useful in a way that warrants a special-case function in emodpy built around set_age_distribution?
     #  https://github.com/InstituteforDiseaseModeling/emod-api-old/issues/788
-    def SetEquilibriumAgeDistFromBirthAndMortRates(self, birth_rate: float = 40.0, mortality_rate: float = 20.0,
-                                                   node_ids=None):
+    def SetEquilibriumAgeDistFromBirthAndMortRates(self,
+                                                   birth_rate: float = 40.0,
+                                                   mortality_rate: float = 20.0,
+                                                   node_ids: List[int] = None):
         """
             Set age distribution based on birth and death rates. Implicit function.
 
