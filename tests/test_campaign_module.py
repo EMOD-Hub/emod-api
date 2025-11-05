@@ -7,6 +7,8 @@ from emod_api import schema_to_class as s2c
 from tests import manifest
 
 
+
+
 def generate_sample_campaign_event(my_campaign, schema_path):
     with open(schema_path) as fid01:
         schema_json = json.load(fid01)
