@@ -273,15 +273,13 @@ def from_pop_csv(pop_filename_in,
 
 class Demographics(DemographicsBase):
     """
-    This class is a container of data necessary to produce a EMOD-valid demographics input file. It can be initialized
-    from an existing valid demographics.joson type file or from an array of valid Nodes.
+    This class is a container of data necessary to produce a EMOD-valid demographics input file.
     """
     def __init__(self, nodes: List[Node], idref: str = "Gridded world grump2.5arcmin", default_node: Node = None):
         """
         A class to create demographics.
         :param nodes: list of Nodes
         :param idref: A name/reference
-        :param base_file: A demographics file in json format
         :default_node: An optional node to use for default settings.
         """
         super().__init__(nodes=nodes, idref=idref, default_node=default_node)
