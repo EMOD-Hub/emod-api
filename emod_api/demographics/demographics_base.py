@@ -395,7 +395,7 @@ class DemographicsBase(BaseInputFile):
     # DTK is births per person per day.
     def SetBirthRate(self,
                      birth_rate: float,
-                     node_ids: List = None):
+                     node_ids: List[int] = None) -> None:
         """
         Set Default birth rate to birth_rate. Turn on Vital Dynamics and Births implicitly.
 
@@ -410,9 +410,6 @@ class DemographicsBase(BaseInputFile):
                       'objects and passed to the Demographics object during the constructor call. They can be modified '
                       'afterward, if needed.',
                       DeprecationWarning, stacklevel=2)
-        # if type(birth_rate) is float or type(birth_rate) is int:
-        #     birth_rate = CrudeRate(birth_rate)
-        # dtk_birthrate = birth_rate.get_dtk_rate()
         dtk_birthrate = birth_rate / 365 / 1000
 
         if node_ids is None:
@@ -432,13 +429,6 @@ class DemographicsBase(BaseInputFile):
         """
         warnings.warn('SetMortalityRate() is deprecated. Please use the emodpy Demographics method: '
                       'set_mortality_distribution()', DeprecationWarning, stacklevel=2)
-
-        # yearly_mortality_rate = YearlyRate(mortality_rate)
-        # if type(mortality_rate) is float or type(mortality_rate) is int:
-        #     mortality_rate = CrudeRate(mortality_rate)
-        # mortality_rate = mortality_rate.get_dtk_rate()
-        mortality_rate = mortality_rate #/ 365 / 1000
-
         if node_ids is None:
             # setting = {"MortalityDistribution": DT._ConstantMortality(yearly_mortality_rate).to_dict()}
             setting = {"MortalityDistribution": DT._ConstantMortality(mortality_rate).to_dict()}
@@ -682,8 +672,10 @@ class DemographicsBase(BaseInputFile):
 
     # TODO: is this useful in a way that warrants a special-case function in emodpy built around set_age_distribution?
     #  https://github.com/InstituteforDiseaseModeling/emod-api-old/issues/788
-    def SetEquilibriumAgeDistFromBirthAndMortRates(self, birth_rate: float = 40.0, mortality_rate: float = 20.0,
-                                                   node_ids=None):
+    def SetEquilibriumAgeDistFromBirthAndMortRates(self,
+                                                   birth_rate: float = 40.0,
+                                                   mortality_rate: float = 20.0,
+                                                   node_ids: List[int] = None):
         """
             Set age distribution based on birth and death rates. Implicit function.
 
@@ -697,7 +689,6 @@ class DemographicsBase(BaseInputFile):
         warnings.warn(
             'SetEquilibriumAgeDistFromBirthAndMortRates() is deprecated. Please use the emodpy Demographics method: '
             'set_age_distribution()', DeprecationWarning, stacklevel=2)
-
 
         dist = DT._EquilibriumAgeDistFromBirthAndMortRates(birth_rate=birth_rate,
                                                            mortality_rate=mortality_rate)

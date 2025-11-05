@@ -544,8 +544,8 @@ def _EquilibriumAgeDistFromBirthAndMortRates(birth_rate=40.0, mortality_rate=20.
 
     """
     # convert to daily rate per person, EMOD units
-    birth_rate = (birth_rate / 1000) / 365 / 1  # what is actually used below
-    mortality_rate = (mortality_rate / 1000) / 365 / 1 # what is actually used below
+    birth_rate = (birth_rate / 1000) / 365  # what is actually used below
+    mortality_rate = (mortality_rate / 1000) / 365  # what is actually used below
 
     birth_rate = math.log(1 + birth_rate)
     mortality_rate = -1 * math.log(1 - mortality_rate)
