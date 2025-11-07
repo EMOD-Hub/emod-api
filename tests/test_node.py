@@ -16,7 +16,7 @@ class NodeTest(unittest.TestCase):
 
     def test_individual_properties_length_1(self):
         individual_property = IndividualProperty(property='deliciousness', initial_distribution=[0.1, 0.9], values=["a", "b"])
-        individual_properties = IndividualProperties(individual_property)
+        individual_properties = IndividualProperties([individual_property])
 
         self.assertEqual(len(individual_properties), 1)
         self.assertTrue(individual_properties)
@@ -84,9 +84,10 @@ class NodeTest(unittest.TestCase):
         self.assertEqual(individual_attributes.to_dict()["user_defined_2"], 2)
         self.assertNotIn("user_defined_2", individual_attributes_2.to_dict())
 
-        individual_properties = IndividualProperties(IndividualProperty(property='cloudy', values=["yes", "no"],
-                                                                        initial_distribution=[0.5, 0.5]))
-        individual_properties_2 = IndividualProperties(IndividualProperty(property='White House', values=["yes", "no"]))
+        ips = [IndividualProperty(property='cloudy', values=["yes", "no"], initial_distribution=[0.5, 0.5])]
+        individual_properties = IndividualProperties(ips)
+        ips = [IndividualProperty(property='White House', values=["yes", "no"])]
+        individual_properties_2 = IndividualProperties(ips)
         individual_properties[0].add_parameter("user_defined_3", 3)
         self.assertEqual(individual_properties[0].to_dict()["user_defined_3"], 3)
         self.assertNotIn("user_defined_3", individual_properties_2.to_dict())
@@ -112,8 +113,8 @@ class NodeTest(unittest.TestCase):
         self.assertEqual(node.to_dict()["NodeAttributes"]["InfectivityMultiplier"], infectivity_multiplier_val)
 
     def test_raise_error_add_parameter_to_individual_properties(self):
-        individual_properties = IndividualProperties(IndividualProperty(property='color', values=["red", "blue"],
-                                                                        initial_distribution=[0.5, 0.5]))
+        ips = [IndividualProperty(property='color', values=["red", "blue"], initial_distribution=[0.5, 0.5])]
+        individual_properties = IndividualProperties(ips)
         with self.assertRaises(NotImplementedError):
             individual_properties.add_parameter("transmission_route", "sexual")
 

@@ -1,5 +1,7 @@
 import os
 import json
+import shutil
+import tempfile
 import unittest
 from emod_api.demographics.demographics import Demographics
 import emod_api.demographics.node as Node
@@ -17,10 +19,20 @@ import emod_api.demographics.pre_defined_distributions as Distributions
 import emod_api.demographics.demographic_exceptions as demog_ex
 
 
-class DemogTest(unittest.TestCase):
+class DemographicsTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.keep_output = False
+        cls.out_folder = tempfile.mkdtemp()
+
+    @classmethod
+    def tearDownClass(cls):
+        if not cls.keep_output:
+            shutil.rmtree(cls.out_folder)
+
     def setUp(self) -> None:
         print(f"\n{self._testMethodName} started...")
-        self.out_folder = manifest.output_folder
+        # self.out_folder = manifest.output_folder
 
     def test_verify_default_node_obj_must_have_id_0(self):
         mars = Node.Node(lat=0, lon=0, pop=100, name='Mars', forced_id=1)
@@ -119,41 +131,62 @@ class DemogTest(unittest.TestCase):
         demographics.nodes[0].name = demographics.nodes[1].name  # make it invalid
         self.assertRaises(DemographicsBase.DuplicateNodeNameException, demographics.to_dict)  # check
 
-# TODO: restore in from_X() issue #30
-#     def test_demo_basic_node(self):
-#         out_filename = os.path.join(self.out_folder, "demographics_basic_node.json")
-#         demog = DemographicsModule.from_template_node()
-#         print(f"Writing out file: {out_filename}.")
-#         demog.generate_file(out_filename)
-#         self.assertTrue(os.path.isfile(out_filename), msg=f'{out_filename} is not generated.')
-#         with open(out_filename, 'r') as demo_file:
-#             demog_json = json.load(demo_file)
-#         self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['Latitude'], 0)
-#         self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['Longitude'], 0)
-#         self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['InitialPopulation'], 1e6)
-#         self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['FacilityName'], "Erewhon")
-#         self.assertEqual(demog_json['Nodes'][0]['NodeID'], 1)
+    def test_demographics_default_creation(self):
+        demographics = Demographics(nodes=[])
 
-# TODO: restore in from_X() issue #30
-#     def test_demo_basic_node_2(self):
-#         out_filename = os.path.join(self.out_folder, "demographics_basic_node_2.json")
-#         lat = 1111
-#         lon = 999
-#         pop = 888
-#         name = 'test_name'
-#         forced_id = 777
-#         demog = DemographicsModule.from_template_node(lat=lat, lon=lon, pop=pop, name=name, forced_id=forced_id)
-#         print(f"Writing out file: {out_filename}.")
-#         demog.generate_file(out_filename)
-#         self.assertTrue(os.path.isfile(out_filename), msg=f'{out_filename} is not generated.')
-#         with open(out_filename, 'r') as demo_file:
-#             demog_json = json.load(demo_file)
-#         self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['Latitude'], lat)
-#         self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['Longitude'], lon)
-#         self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['InitialPopulation'], pop)
-#         self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['FacilityName'], name)
-#         self.assertEqual(demog_json['Nodes'][0]['NodeID'], forced_id)
-#         self.assertEqual(len(demog.implicits), 1)
+        default_node = demographics.default_node
+
+        self.assertEqual(Demographics.DEFAULT_NODE_NAME, default_node.name)
+        self.assertEqual(0, default_node.id)
+
+        # check node attributes
+        self.assertEqual(0, default_node.node_attributes.birth_rate)
+        self.assertEqual(1, default_node.node_attributes.airport)
+        self.assertEqual(1, default_node.node_attributes.seaport)
+        self.assertEqual(1, default_node.node_attributes.region)
+        self.assertEqual(0, default_node.node_attributes.latitude)
+        self.assertEqual(0, default_node.node_attributes.longitude)
+        self.assertEqual(0, default_node.node_attributes.initial_population)
+        self.assertEqual(0, default_node.lat)  # testing property
+        self.assertEqual(0, default_node.lon)  # testing property
+        self.assertEqual(0, default_node.pop)  # testing property
+
+        # check individual properties and attributes
+        self.assertEqual(0, len(default_node.individual_properties))
+        self.assertEqual({}, default_node.individual_attributes.to_dict())
+
+    def test_demo_basic_node(self):
+        out_filename = os.path.join(self.out_folder, "demographics_basic_node.json")
+        demog = Demographics.from_template_node()
+        demog.generate_file(out_filename)
+        self.assertTrue(os.path.isfile(out_filename), msg=f'{out_filename} is not generated.')
+        with open(out_filename, 'r') as demo_file:
+            demog_json = json.load(demo_file)
+        self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['Latitude'], 0)
+        self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['Longitude'], 0)
+        self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['InitialPopulation'], 1e6)
+        self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['FacilityName'], "Erewhon")
+        self.assertEqual(demog_json['Nodes'][0]['NodeID'], 1)
+        self.assertEqual(len(demog.implicits), 0)
+
+    def test_demo_basic_node_2(self):
+        out_filename = os.path.join(self.out_folder, "demographics_basic_node_2.json")
+        lat = 1111
+        lon = 999
+        pop = 888
+        name = 'test_name'
+        forced_id = 777
+        demog = Demographics.from_template_node(lat=lat, lon=lon, pop=pop, name=name, forced_id=forced_id)
+        demog.generate_file(out_filename)
+        self.assertTrue(os.path.isfile(out_filename), msg=f'{out_filename} is not generated.')
+        with open(out_filename, 'r') as demo_file:
+            demog_json = json.load(demo_file)
+        self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['Latitude'], lat)
+        self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['Longitude'], lon)
+        self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['InitialPopulation'], pop)
+        self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['FacilityName'], name)
+        self.assertEqual(demog_json['Nodes'][0]['NodeID'], forced_id)
+        self.assertEqual(len(demog.implicits), 0)
 
     def test_demo_node(self):
         out_filename = os.path.join(self.out_folder, "demographics_node.json")
@@ -175,7 +208,7 @@ class DemogTest(unittest.TestCase):
         self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['InitialPopulation'], pop)
         self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['FacilityName'], name)
         self.assertEqual(demog_json['Nodes'][0]['NodeID'], forced_id)
-        self.assertEqual(len(demog.implicits), 0)  # TODO: was 1, from InitAgeUniform: _set_age_simple(),keep? ask.
+        self.assertEqual(len(demog.implicits), 0)
 
         metadata = demog_json['Metadata']
         today = date.today()
@@ -183,27 +216,14 @@ class DemogTest(unittest.TestCase):
         self.assertEqual(metadata['Tool'], "emod-api")
         self.assertEqual(metadata['NodeCount'], 1)
         self.assertEqual(metadata['Author'], getpass.getuser())
-        # todo: test area and density when they are ready
 
-    # TODO - remove for 2.0?
-    # def test_set_default_properties(self):
-    #     demog = DemographicsModule.from_template_node()
-    #     demog.SetDefaultProperties()
-    #     self.assertIn('BirthRate', demog.raw['Defaults']['NodeAttributes'])
-    #     self.assertIn('AgeDistribution', demog.raw['Defaults']['IndividualAttributes'])
-    #     self.assertIn('MortalityDistribution', demog.raw['Defaults']['IndividualAttributes'])
-    #     self.assertIn('SusceptibilityDistribution', demog.raw['Defaults']['IndividualAttributes'])
-    #     self.assertIn('IndividualProperties', demog.raw['Defaults'])
-    #     self.assertEqual(len(demog.implicits), 5)
+    @staticmethod
+    def demog_template_test(template, **kwargs):
+        demog = Demographics.from_template_node()
+        template(demog, **kwargs)
+        return demog
 
-    # TODO: restore in from_X() issue #30
-    # @staticmethod
-    # def demog_template_test(template, **kwargs):
-    #     demog = DemographicsModule.from_template_node()
-    #     template(demog, **kwargs)
-    #     return demog
-
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_template_simple_susceptibility_dist(self):
     #     mean_age_at_infection = 10
     #     template = DT.SimpleSusceptibilityDistribution
@@ -259,7 +279,7 @@ class DemogTest(unittest.TestCase):
     #     self.assertIn('AgeDistribution', demog.raw['Defaults']['IndividualAttributes'])
     #     self.assertEqual(len(demog.implicits), 2)
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_template_equilibrium_age_dist_from_birth_and_mort_rates(self):
     #     demog = DemographicsModule.from_template_node()
     #     demog.SetEquilibriumAgeDistFromBirthAndMortRates(birth_rate=20, mortality_rate=10)
@@ -275,7 +295,7 @@ class DemogTest(unittest.TestCase):
     #         self.assertEqual(value, demog.raw['Defaults']['IndividualAttributes'][key])
     #     return demog
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_set_default_from_template_full_risk(self):
     #     demog = DemographicsModule.from_template_node()
     #     DT.FullRisk(demog)
@@ -287,7 +307,7 @@ class DemogTest(unittest.TestCase):
     #         self.assertEqual(value, demog.raw['Defaults']['IndividualAttributes'][key])
     #     self.assertEqual(len(demog.implicits), 2)
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_set_default_from_template_mortality_rate_by_age(self):
     #     age_bin = [0, 10, 80]
     #     mort_rate = [0.00005, 0.00001, 0.0004]
@@ -298,7 +318,7 @@ class DemogTest(unittest.TestCase):
     #     self.assertEqual(len(mort_rate), len(mort_dist['PopulationGroups'][1]))
     #     self.assertIn('MortalityDistribution', demog.raw['Defaults']['IndividualAttributes'])  # Can't use set_default_from_template_test since template is implicit
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # TODO: restore/refactor after moving new distribution classes down into emod-api? Or is this duplicative?
     # def test_set_default_from_template_constant_mortality(self):
     #     demog = DemographicsModule.from_template_node()
@@ -310,7 +330,7 @@ class DemogTest(unittest.TestCase):
     #     demog_rate = demog.raw['Defaults']['IndividualAttributes']['MortalityDistribution']['ResultValues']
     #     self.assertListEqual(expected_rate, demog_rate)
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def skip_test_set_default_from_template_constant_mortality_list(self):
     #     # I don't think we need to support this anymore
     #     demog = DemographicsModule.from_template_node()
@@ -1019,7 +1039,7 @@ class DemogTest(unittest.TestCase):
     #                                        f"female_distribution['ResultValues'][{i}][{j}]), while it's "
     #                                        f"{expected_female_mortality_rate} in female csv file.\n")
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_set_initial_age_exponential(self):
     #     demog = DemographicsModule.from_template_node()
     #     rate = 0.0001
@@ -1030,7 +1050,7 @@ class DemogTest(unittest.TestCase):
     #     self.assertIn("exponential", demog.raw['Defaults']['IndividualAttributes']['AgeDistribution_Description'])
     #     self.assertEqual(len(demog.implicits), 2)
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_set_initial_age_like_SubSaharanAfrica(self):
     #     demog = DemographicsModule.from_template_node()
     #     rate = 0.0001068
@@ -1041,7 +1061,7 @@ class DemogTest(unittest.TestCase):
     #     self.assertIn("exponential", demog.raw['Defaults']['IndividualAttributes']['AgeDistribution_Description'])
     #     self.assertEqual(len(demog.implicits), 2)
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_set_initial_prev_from_uniform(self):
     #     demog = DemographicsModule.from_template_node()
     #     min_init_prev = 0.05
@@ -1053,7 +1073,7 @@ class DemogTest(unittest.TestCase):
     #     self.assertIn("uniform", demog.raw['Defaults']['IndividualAttributes']['PrevalenceDistribution_Description'])
     #     self.assertEqual(len(demog.implicits), 2)
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_set_predefined_mortality_distribution(self):
     #     demog = DemographicsModule.from_template_node()
     #     mortality_distribution = Distributions.SEAsia_Diag
@@ -1061,7 +1081,7 @@ class DemogTest(unittest.TestCase):
     #     self.assertDictEqual(demog.raw['Defaults']['IndividualAttributes']['MortalityDistribution'],
     #                          mortality_distribution.to_dict())
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_mortality_rate_with_node_ids(self):
     #     input_file = os.path.join(manifest.demo_folder, 'nodes.csv')
     #     demog = DemographicsModule.from_csv(input_file)
@@ -1076,7 +1096,7 @@ class DemogTest(unittest.TestCase):
     #     self.assertDictEqual(set_mortality_dist_97, expected_mortality_dist)
     #     self.assertIsNone(demog.get_node_by_id(node_id=96).individual_attributes.mortality_distribution)
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_set_predefined_age_distribution(self):
     #     demog = DemographicsModule.from_template_node()
     #     age_distribution = Distributions.SEAsia_Diag
@@ -1084,28 +1104,28 @@ class DemogTest(unittest.TestCase):
     #     self.assertDictEqual(demog.raw['Defaults']['IndividualAttributes']['AgeDistribution'],
     #                          age_distribution.to_dict())
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_set_predefined_age_distribution_SEAsia(self):
     #     demog = DemographicsModule.from_template_node()
     #     demog.SetAgeDistribution(Distributions.AgeDistribution_SEAsia)
     #     self.assertDictEqual(demog.raw['Defaults']['IndividualAttributes']['AgeDistribution'],
     #                          Distributions.AgeDistribution_SEAsia.to_dict())
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_set_predefined_age_distribution_Americas(self):
     #     demog = DemographicsModule.from_template_node()
     #     demog.SetAgeDistribution(Distributions.AgeDistribution_Americas)
     #     self.assertDictEqual(demog.raw['Defaults']['IndividualAttributes']['AgeDistribution'],
     #                          Distributions.AgeDistribution_Americas.to_dict())
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_set_predefined_age_distribution_Amelia_with_node_ids(self):
     #     demog = DemographicsModule.from_template_node()
     #     demog.SetAgeDistribution(Distributions.AgeDistribution_SSAfrica, node_ids=[1])
     #     self.assertDictEqual(demog.to_dict()['Nodes'][0]['IndividualAttributes']['AgeDistribution'],
     #                          Distributions.AgeDistribution_SSAfrica.to_dict())
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_set_predefined_mortality_distribution_with_node_ids(self):
     #     demog = DemographicsModule.from_template_node()
     #     demog.SetMortalityDistribution(Distributions.Constant_Mortality, node_ids=[1])
@@ -1134,7 +1154,7 @@ class DemogTest(unittest.TestCase):
             else:
                 self.assertAlmostEqual(d1[key], d2[key], places=places, msg=msg)
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_set_mortality_over_time_from_data(self):
     #     demog = DemographicsModule.from_template_node()
     #     demog.SetMortalityOverTimeFromData(manifest.mortality_data_age_year_csv, base_year=1950)
@@ -1145,7 +1165,7 @@ class DemogTest(unittest.TestCase):
     #     self.assertDictAlmostEqual(male_test, mort_ref)
     #     self.assertDictAlmostEqual(female_test, mort_ref)
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_demographic_json_integrity(self):
     #     df = pd.read_csv(manifest.mortality_data_age_year_csv)
     #
@@ -1167,7 +1187,7 @@ class DemogTest(unittest.TestCase):
     #     self.assertEqual(tot_years_female, years,
     #                      "Wrong number of processed years on MortalityDistributionFemale Node ")
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_mortality_over_time_reflected_in_json_output(self):
     #     # Adds a test of generating a node and adding mortality
     #     demog = DemographicsModule.from_template_node()
@@ -1265,7 +1285,7 @@ class DemogTest(unittest.TestCase):
     #         os.remove(filename_template_node)
     #         os.remove(filename_enhanced_node)
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_demographic_json_dataintegrity_eachvalue_male(self):
     #
     #     demog = DemographicsModule.from_template_node()
@@ -1303,7 +1323,7 @@ class DemogTest(unittest.TestCase):
     #                 print(f"PASS: {year},  Age_Bin: {age_bins.loc[j]} -- {a} - {b}")
     #     self.assertEqual(0, numerrors, "Data errors missing or different values were found")
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_set_fertility_over_time_from_params(self):
     #     demog = DemographicsModule.from_template_node()
     #     demog.SetFertilityOverTimeFromParams(years_region1=110, years_region2=60, start_rate=0.025, inflection_rate=0.025, end_rate=0.007)
@@ -1312,14 +1332,14 @@ class DemogTest(unittest.TestCase):
     #         fert_ref = json.load(fert_fp)
     #     self.assertDictEqual(fert_test, fert_ref)
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_set_female_mortality_distribution(self):
     #     demog = DemographicsModule.from_template_node()
     #     demog.SetMortalityDistributionFemale(Distributions.Constant_Mortality, node_ids=[1])
     #     self.assertDictEqual(demog.to_dict()['Nodes'][0]['IndividualAttributes']['MortalityDistributionFemale'],
     #                          Distributions.Constant_Mortality.to_dict())
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_set_male_mortality_distribution(self):
     #     demog = DemographicsModule.from_template_node()
     #     demog.SetMortalityDistributionMale(Distributions.Constant_Mortality, node_ids=[1])
@@ -1370,7 +1390,7 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
         print(f"\n{self._testMethodName} started...")
         self.out_folder = manifest.output_folder
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_setmortalityovertimefromdata_eh_filename(self):
     #     # SetMortalityOverTimeFromData
     #     # Test Type:   Error Handling
@@ -1400,7 +1420,7 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
     #         demog = DemographicsModule.from_template_node()
     #         demog.SetMortalityOverTimeFromData(data_csv='test_file.csv', base_year=1950)
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_setmortalityovertimefromdata_eh_base_year(self):
     #     # fn: SetMortalityOverTimeFromData
     #     # Test Type: Error handling
@@ -1413,7 +1433,7 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
     #         demog.SetMortalityOverTimeFromData(data_csv=manifest.mortality_data_age_year_csv, base_year=19511)
     #         pprint.pprint(demog.to_dict()['Defaults'])  # BUG: 549 - it should not reach this point.
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_setmortalityovertimefromdata_eh_base_node_id(self):
     #     # fn: SetMortalityOverTimeFromData
     #     # Test Type: Error handling
@@ -1426,7 +1446,7 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
     #         demog.SetMortalityOverTimeFromData(data_csv=manifest.mortality_data_age_year_csv, base_year=1950, node_ids=[2])
     #         pprint.pprint(demog.to_dict()['Defaults'])  # it should not reach this point.
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_01_setmortalityovertimefromdata(self):
     #     # fn: SetMortalityOverTimeFromData
     #     # Test type: Functional Test
@@ -1448,7 +1468,7 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
     #     self.assertEqual(len(demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionMale']['NumPopulationGroups']), 2)
     #     self.assertEqual(len(demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionMale']['PopulationGroups']), 2)
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_02_setmortalityovertimefromdata(self):
     #     # fn: SetMortalityOverTimeFromData
     #     # Test type: Functional Test
@@ -1470,7 +1490,7 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
     #         self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionFemale']), 0)
     #         self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionMale']), 0)
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_03_setmortalityovertimefromdata(self):
     #     # fn: SetMortalityOverTimeFromData
     #     # Test type: Functional Test
@@ -1495,7 +1515,7 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
     #     self.assertGreater(len(demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionFemale']), 0)
     #     self.assertGreater(len(demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionMale']), 0)
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_04_setmortalityovertimefromdata(self):
     #     # fn: SetMortalityOverTimeFromData
     #     # Test type: Functional Test
@@ -1530,7 +1550,7 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
     #             self.assertGreater(len(demog.to_dict()['Nodes'][j]['IndividualAttributes']['MortalityDistributionFemale']), 0)
     #             self.assertGreater(len(demog.to_dict()['Nodes'][j]['IndividualAttributes']['MortalityDistributionMale']), 0)
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_05_setmortalityovertimefromdata(self):
     #     # fn: SetMortalityOverTimeFromData
     #     # Test type: Functional Test
@@ -1554,7 +1574,7 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
     #     self.assertGreater(len(demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionFemale']), 0)
     #     self.assertGreater(len(demog.to_dict()['Defaults']['IndividualAttributes']['MortalityDistributionMale']), 0)
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_06_setmortalityovertimefromdata(self):
     #     # fn: SetMortalityOverTimeFromData
     #     # Test type: Functional Test
@@ -1583,7 +1603,7 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
     #             self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionFemale']), 0)
     #             self.assertGreater(len(demog.to_dict()['Nodes'][i]['IndividualAttributes']['MortalityDistributionMale']), 0)
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_07_setmortalityovertimefromdata(self):
     #     # fn: SetMortalityOverTimeFromData
     #     # Test type: Functional Test
@@ -1630,7 +1650,7 @@ class DemographicsComprehensiveTests_Fertility(unittest.TestCase):
         print(f"\n{self._testMethodName} started...")
         self.out_folder = manifest.output_folder
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_setfertilityovertimefromparams_eh_filename(self):
     #     # SetFertilityOverTimeFromParams
     #     # Test Type:   Error Handling
@@ -1670,7 +1690,7 @@ class DemographicsComprehensiveTests_Fertility(unittest.TestCase):
     #     except Exception:
     #         self.fail("should have taken the arguments")
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_01_SetFertilityOverTimeFromParams(self):
     #     # fn:  SetFertilityOverTimeFromParams
     #     # Test Type:   Functional Test
@@ -1693,7 +1713,7 @@ class DemographicsComprehensiveTests_Fertility(unittest.TestCase):
     #     demog.generate_file(out_filename)
     #     demog.generate_file(out_updated_filename)
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_02_SetFertilityOverTimeFromParams(self):
     #     # fn:  SetFertilityOverTimeFromParams
     #     # Test Type:   Functional Test
