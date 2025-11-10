@@ -1,5 +1,8 @@
 import os
 import json
+import numpy as np
+import pandas as pd
+import pathlib
 import shutil
 import tempfile
 import unittest
@@ -31,8 +34,57 @@ class DemographicsTest(unittest.TestCase):
             shutil.rmtree(cls.out_folder)
 
     def setUp(self) -> None:
-        print(f"\n{self._testMethodName} started...")
-        # self.out_folder = manifest.output_folder
+        pass
+
+    def test_to_dict_works_properly_in_mixed_case(self):
+        # setting various values on different nodes and verifying all is where it should be
+        default_node = Node.Node(lat=1, lon=1, pop=0, forced_id=0)
+        nodes = [Node.Node(lat=i+1, lon=i+1, pop=1000*(i+1), forced_id=i+1) for i in range(3)]
+        demographics = Demographics(default_node=default_node, nodes=nodes)
+        demographics.get_node_by_id(node_id=1).node_attributes = NodeAttributes(birth_rate=0.5)
+        demographics.get_node_by_id(node_id=2).individual_attributes = IndividualAttributes(age_distribution_flag=2,
+                                                                                            age_distribution1=3,
+                                                                                            age_distribution2=4)
+        ip = IndividualProperty(property='I like chocolate', values=["Yes", "No"])
+        demographics.get_node_by_id(node_id=3).individual_properties = IndividualProperties([ip])
+
+        data = demographics.to_dict()
+
+        # basic structure check
+        required_keys = ['Defaults', 'Nodes', 'Metadata']
+        for key in required_keys:
+            self.assertTrue(key in data)
+
+        # default node check
+        self.assertEqual(data['Defaults']['NodeID'], default_node.id)
+        self.assertEqual(data['Defaults']['NodeAttributes']['Latitude'], default_node.lat)
+        self.assertEqual(data['Defaults']['NodeAttributes']['Longitude'], default_node.lon)
+        self.assertEqual(data['Defaults']['NodeAttributes']['InitialPopulation'], default_node.pop)
+
+        # individual node checks
+        self.assertEqual(len(data['Nodes']), len(demographics.nodes))
+
+        # node 1
+        node_id = 1
+        node = demographics.get_node_by_id(node_id=node_id)
+        node_dict = data['Nodes'][node_id-1]
+        self.assertEqual(node_dict['NodeID'], node_id)
+        self.assertEqual(node_dict['NodeAttributes']['BirthRate'], node.node_attributes.birth_rate)
+
+        # node 2
+        node_id = 2
+        node = demographics.get_node_by_id(node_id=node_id)
+        node_dict = data['Nodes'][node_id-1]
+        self.assertEqual(node_dict['IndividualAttributes'],
+                         {'AgeDistributionFlag': 2, 'AgeDistribution1': 3, 'AgeDistribution2': 4})
+
+        # node 3
+        node_id = 3
+        node = demographics.get_node_by_id(node_id=node_id)
+        node_dict = data['Nodes'][node_id-1]
+        self.assertEqual(len(node_dict['IndividualProperties']), len(node.individual_properties))
+        self.assertEqual(node_dict['IndividualProperties'][0]['Property'], node.individual_properties[0].property)
+        self.assertEqual(node_dict['IndividualProperties'][0]['Values'], node.individual_properties[0].values)
 
     def test_verify_default_node_obj_must_have_id_0(self):
         mars = Node.Node(lat=0, lon=0, pop=100, name='Mars', forced_id=1)
@@ -287,7 +339,7 @@ class DemographicsTest(unittest.TestCase):
     #     self.assertEqual(len(demog.implicits), 2)
     #     print(demog.raw)
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def set_default_from_template_test(self, template):
     #     demog = DemographicsModule.from_template_node()
     #     demog.SetDefaultFromTemplate(template=template)
@@ -340,315 +392,167 @@ class DemographicsTest(unittest.TestCase):
     #     temp_result = demog.raw['Defaults']['IndividualAttributes']['MortalityDistribution']['ResultValues']
     #     np.testing.assert_almost_equal(expected_rate, np.array(temp_result))
 
-    # TODO: restore in from_X() issue #30
-    # def test_from_csv(self):
-    #     out_filename = os.path.join(self.out_folder, "demographics_from_csv.json")
-    #     manifest.delete_existing_file(out_filename)
-    #     id_ref = "from_csv_test"
-    #
-    #     input_file = os.path.join(manifest.demo_folder, 'demog_in.csv')
-    #     demog = DemographicsModule.from_csv(input_file, res=2 / 3600, id_ref=id_ref)
-    #     self.assertEqual(demog.idref, id_ref)
-    #     demog.SetDefaultProperties()
-    #     demog.generate_file(out_filename)
-    #     sorted_nodes = DemographicsModule.get_node_ids_from_file(out_filename)
-    #
-    #     self.assertEqual(demog.idref, id_ref)
-    #     self.assertGreater(len(sorted_nodes), 0)
-    #
-    #     self.assertTrue(os.path.isfile(out_filename), msg=f'{out_filename} is not generated.')
-    #     with open(out_filename, 'r') as demo_file:
-    #         demog_json = json.load(demo_file)
-    #
-    #     # Checking we can grab a node
-    #     inspect_node = demog.get_node_by_id(node_id=demog.nodes[15].id)
-    #     self.assertEqual(inspect_node.id, demog.nodes[15].id, msg=f"This node should have an id of {demog.nodes[15].id} but instead it is {inspect_node.id}")
-    #
-    #     # checking for a node/node_id that should not exist
-    #     with self.assertRaises(ValueError):
-    #         demog.get_node_by_id(node_id=161839)
-    #
-    #     self.assertEqual(demog_json['Metadata']['IdReference'], id_ref)
-    #
-    #     self.assertDictEqual(demog_json, demog.raw)
-    #
-    #     csv_df = pd.read_csv(input_file, encoding='iso-8859-1')
-    #
-    #     pop_threshold = 25000  # hardcoded value
-    #     csv_df = csv_df[(6 * csv_df['under5_pop']) >= pop_threshold]
-    #     self.assertEqual(len(csv_df), len(demog_json['Nodes']))
-    #
-    #     self.assertTrue(self.check_for_unique_node_id(demog.raw['Nodes']))
-    #
-    #     # Ensuring file-specified node names are honored
-    #     # location = pd.Series(["Seattle"]*4357)
-    #     locations = [f"Seattle{index}" for index in range(len(csv_df))]
-    #     csv_df['loc'] = locations
-    #     outfile_path = os.path.join(manifest.output_folder, "demographics_places_from_csv.csv")
-    #     csv_df.to_csv(outfile_path)
-    #     demog = DemographicsModule.from_csv(outfile_path, res=2 / 3600)
-    #     nodes = demog.nodes
-    #     for index, node in enumerate(nodes):
-    #         self.assertEqual(node.name, locations[index], msg=f"Bad node found: {node} on line {index + 2}")
+    def test_from_csv(self):
+        # node ids not in this csv file test, so cannot check exactness of match (csv <-> demographics obj), only count
+        id_ref = "from_csv_test"
 
-    # TODO: restore in from_X() issue #30
-    # def test_from_csv_detects_duplicate_auto_node_ids(self):
-    #     out_filename = os.path.join(self.out_folder, "demographics_from_csv.json")
-    #     manifest.delete_existing_file(out_filename)
-    #     id_ref = "test_from_csv_detects_duplicate_auto_node_ids"
-    #
-    #     input_file = os.path.join(manifest.demo_folder, 'demog_in.csv')
-    #     # We set the resolution too coarse for the data, so we should have a duplicate node_id (generated by
-    #     # lat/lon/resolution values)
-    #     self.assertRaises(DemographicsBase.DuplicateNodeIdException,
-    #                       DemographicsModule.from_csv, input_file, res=25 / 3600, id_ref=id_ref)
+        input_file = os.path.join(manifest.demo_folder, 'demog_in.csv')
+        demog = Demographics.from_csv(input_file, res=2 / 3600, id_ref=id_ref)
+        self.assertEqual(demog.idref, id_ref)
 
-    # TODO: restore in from_X() issue #30
-    # def test_from_csv_2(self):
-    #     out_filename = os.path.join(self.out_folder, "demographics_from_csv_2.json")
-    #     manifest.delete_existing_file(out_filename)
-    #
-    #     input_file = os.path.join(manifest.demo_folder, 'nodes.csv')
-    #     demog = DemographicsModule.from_csv(input_file, res=25 / 3600)
-    #     demog.SetDefaultProperties()
-    #     demog.generate_file(out_filename)
-    #     sorted_nodes = DemographicsModule.get_node_ids_from_file(out_filename)
-    #
-    #     self.assertGreater(len(sorted_nodes), 0)
-    #
-    #     self.assertTrue(os.path.isfile(out_filename), msg=f'{out_filename} is not generated.')
-    #
-    #     with open(out_filename, 'r') as demo_file:
-    #         demog_json = json.load(demo_file)
-    #
-    #     # Checking we can grab a node
-    #     inspect_node = demog.get_node_by_id(node_id=demog.nodes[0].id)
-    #     self.assertEqual(inspect_node.id, demog.nodes[0].id, msg=f"This node should have an id of {demog.nodes[0].id} "
-    #                                                              f"but instead it is {inspect_node.id}")
-    #
-    #     id_reference = 'from_csv'  # hardcoded value
-    #     self.assertEqual(demog_json['Metadata']['IdReference'], id_reference)
-    #
-    #     self.assertDictEqual(demog_json, demog.raw)
-    #
-    #     csv_df = pd.read_csv(input_file, encoding='iso-8859-1')
-    #
-    #     # checking if we have the same number of nodes and the number of rows in csv file
-    #     self.assertEqual(len(csv_df), len(demog_json['Nodes']))
-    #
-    #     self.assertTrue(self.check_for_unique_node_id(demog.raw['Nodes']))
-    #     for index, row in csv_df.iterrows():
-    #         pop = int(row['pop'])
-    #         lat = float(row['lat'])
-    #         lon = float(row['lon'])
-    #         node_id = int(row['node_id'])
-    #         self.assertEqual(pop, demog.nodes[index].node_attributes.initial_population)
-    #         self.assertEqual(lat, demog.nodes[index].node_attributes.latitude)
-    #         self.assertEqual(lon, demog.nodes[index].node_attributes.longitude)
-    #         self.assertEqual(node_id, demog.nodes[index].forced_id)
+        # Checking we can grab a node
+        inspect_node = demog.get_node_by_id(node_id=demog.nodes[15].id)
+        self.assertEqual(inspect_node.id, demog.nodes[15].id, msg=f"This node should have an id of {demog.nodes[15].id} but instead it is {inspect_node.id}")
 
-    # TODO: restore in from_X() issue #30
-    # def test_from_csv_bad_id(self):
-    #     input_file = os.path.join(manifest.demo_folder, 'demog_in_faulty.csv')
-    #
-    #     with self.assertRaises(ValueError):
-    #         DemographicsModule.from_csv(input_file, res=25 / 3600)
+        # checking for a node/node_id that should not exist
+        with self.assertRaises(ValueError):
+            demog.get_node_by_id(node_id=161839)
 
-    # TODO: restore in from_X() issue #30
-    # def test_from_pop_raster_csv(self):
-    #     out_filename = os.path.join(self.out_folder, "demographics_from_pop_raster_csv.json")
-    #     manifest.delete_existing_file(out_filename)
-    #
-    #     input_file = os.path.join(manifest.demo_folder, 'nodes.csv')
-    #     demog = DemographicsModule.from_pop_raster_csv(input_file, pop_filename_out=manifest.output_folder)
-    #
-    #     demog.SetDefaultProperties()
-    #     demog.generate_file(out_filename)
-    #     sorted_nodes = DemographicsModule.get_node_ids_from_file(out_filename)
-    #
-    #     self.assertGreater(len(sorted_nodes), 0)
-    #
-    #     self.assertTrue(os.path.isfile(out_filename), msg=f'{out_filename} is not generated.')
-    #     with open(out_filename, 'r') as demo_file:
-    #         demog_json = json.load(demo_file)
-    #
-    #     # Checking we can grab a node
-    #     inspect_node = demog.get_node_by_id(node_id=demog.nodes[0].id)
-    #     self.assertEqual(inspect_node.id, demog.nodes[0].id,
-    #                      msg=f"This node should have an id of {demog.nodes[0].id} but instead it is {inspect_node.id}")
-    #
-    #     with self.assertRaises(ValueError):
-    #         demog.get_node_by_id(node_id=161839)
-    #
-    #     id_reference = 'from_raster'  # hardcoded value
-    #     self.assertEqual(demog_json['Metadata']['IdReference'], id_reference)
-    #
-    #     self.assertDictEqual(demog_json, demog.raw)
-    #
-    #     # the following assertion fails, logged as https://github.com/InstituteforDiseaseModeling/emod-api/issues/367
-    #     # self.assertEqual(len(csv_df), len(demog_json['Nodes']))
-    #
-    #     self.assertTrue(self.check_for_unique_node_id(demog.raw['Nodes']))
+        csv_df = pd.read_csv(input_file, encoding='iso-8859-1')
 
-    # TODO: restore in from_X() issue #30
-    # def test_from_csv_birthrate(self):
-    #     input_file = os.path.join(manifest.demo_folder, 'nodes_with_birthrate.csv')
-    #     demog = DemographicsModule.from_csv(input_file)
-    #     data = pd.read_csv(input_file)
-    #     node_ids = list(data["node_id"])
-    #     for node_id in node_ids:
-    #         birth_rate = data[data["node_id"] == node_id]["birth_rate"].iloc[0]
-    #         self.assertAlmostEqual(demog.get_node_by_id(node_id=node_id).birth_rate, birth_rate)
-    #
-    #     bad_input = os.path.join(manifest.demo_folder, 'bad_nodes_with_birthrate.csv')
-    #     with self.assertRaises(ValueError):
-    #         DemographicsModule.from_csv(bad_input)
-    #
+        pop_threshold = 25000  # hardcoded value
+        csv_df = csv_df[(6 * csv_df['under5_pop']) >= pop_threshold]
+        self.assertEqual(len(csv_df), len(demog.nodes))
 
-    # TODO: restore in from_X() issue #30
-    # # now verify that if there is a duplicate node_id in the csv file we catch it.
-    # def test_from_csv_birthrate_duplicate_node_id(self):
-    #     input_file = os.path.join(manifest.demo_folder, 'nodes_with_birthrate_duplicate_node_id.csv')
-    #     self.assertRaises(DemographicsBase.DuplicateNodeIdException, DemographicsModule.from_csv, input_file=input_file)
-    #
-    # # now verify that if there is a duplicate node_name in the csv file we catch it.
-    # def test_from_csv_birthrate_duplicate_node_name(self):
-    #     input_file = os.path.join(manifest.demo_folder, 'nodes_with_birthrate_duplicate_node_name.csv')
-    #     self.assertRaises(DemographicsBase.DuplicateNodeNameException, DemographicsModule.from_csv, input_file=input_file)
+        # Ensuring file-specified node names are honored
+        # location = pd.Series(["Seattle"]*4357)
+        locations = [f"Seattle{index}" for index in range(len(csv_df))]
+        csv_df['loc'] = locations
+        outfile_path = os.path.join(manifest.output_folder, "demographics_places_from_csv.csv")
+        csv_df.to_csv(outfile_path)
+        demog = Demographics.from_csv(outfile_path, res=2 / 3600)
+        nodes = demog.nodes
+        for index, node in enumerate(nodes):
+            self.assertEqual(node.name, locations[index], msg=f"Bad node found: {node} on line {index + 2}")
 
-    # TODO: restore in from_X() issue #30
-    # def test_from_params(self):
-    #     out_filename = os.path.join(self.out_folder, "demographics_from_params.json")
-    #     manifest.delete_existing_file(out_filename)
-    #
-    #     totpop = 1e5
-    #     num_nodes = 250
-    #     frac_rural = 0.1
-    #     demog = DemographicsModule.from_params(tot_pop=totpop, num_nodes=num_nodes, frac_rural=frac_rural)
-    #     demog.SetDefaultProperties()
-    #     demog.generate_file(out_filename)
-    #
-    #     self.assertTrue(os.path.isfile(out_filename), msg=f'{out_filename} is not generated.')
-    #     with open(out_filename, 'r') as demo_file:
-    #         demog_json = json.load(demo_file)
-    #
-    #     id_reference = 'from_params'  # hardcoded value
-    #     self.assertEqual(demog_json['Metadata']['IdReference'], id_reference)
-    #
-    #     self.assertDictEqual(demog_json, demog.raw)
-    #
-    #     self.assertEqual(num_nodes, len(demog_json['Nodes']))
-    #
-    #     sum_pop = 0
-    #     for node in demog_json['Nodes']:
-    #         sum_pop += node['NodeAttributes']['InitialPopulation']
-    #     # Todo: add this assertion back when #112 is fixed.
-    #     # self.assertEqual(sum_pop, totpop)
-    #     if sum_pop != totpop:
-    #         print(f"Something went wrong, expected totpop is {totpop}, got {sum_pop} total population.")
-    #
-    #     self.assertTrue(self.check_for_unique_node_id(demog.raw['Nodes']))
+        self.assertEqual(4130, len(demog.nodes))
 
-    # TODO: restore in from_X() issue #30
-    # def test_from_params_node_grid_1d(self):
-    #     totpop = 1e5
-    #     num_nodes = 7
-    #     frac_rural = 0.1
-    #     demog = DemographicsModule.from_params(tot_pop=totpop, num_nodes=num_nodes, frac_rural=frac_rural)
-    #     demog_dict = demog.to_dict()
-    #     self.assertEqual(len(demog_dict["Nodes"]), 7)
-    #
-    #     expected_lon = [0, 1, 2, 3, 4, 5, 6]
-    #
-    #     for expected, node in zip(expected_lon, demog_dict["Nodes"]):
-    #         node_attributes = node["NodeAttributes"]
-    #         self.assertEqual(node_attributes["Latitude"], expected)
-    #         self.assertEqual(node_attributes["Longitude"], 0)
+    def test_from_csv_detects_duplicate_auto_node_ids(self):
+        id_ref = "test_from_csv_detects_duplicate_auto_node_ids"
 
-    # TODO: restore in from_X() issue #30
-    # def test_from_params_node_grid_2d(self):
-    #     totpop = 1e5
-    #     lat_grid = 3
-    #     lon_grid = 2
-    #     num_nodes = [lat_grid, lon_grid]
-    #     frac_rural = 0.1
-    #     demog = DemographicsModule.from_params(tot_pop=totpop, num_nodes=num_nodes, frac_rural=frac_rural)
-    #     demog_dict = demog.to_dict()
-    #     self.assertEqual(len(demog_dict["Nodes"]), lon_grid * lat_grid)
-    #
-    #     expected_lat_lon = [[0, 0], [0, 1], [1, 0],
-    #                         [1, 1], [2, 0], [2, 1]]
-    #
-    #     for expected, node in zip(expected_lat_lon, demog_dict["Nodes"]):
-    #         node_attributes = node["NodeAttributes"]
-    #         self.assertEqual(node_attributes["Latitude"], expected[0])
-    #         self.assertEqual(node_attributes["Longitude"], expected[1])
+        input_file = os.path.join(manifest.demo_folder, 'demog_in.csv')
+        # We set the resolution too coarse for the data, so we should have a duplicate node_id (generated by
+        # lat/lon/resolution values)
+        self.assertRaises(DemographicsBase.DuplicateNodeIdException,
+                          Demographics.from_csv, input_file, res=25 / 3600, id_ref=id_ref)
 
-    # TODO: restore in from_X() issue #30
-    # def test_from_params_node_random_grid_2d(self):
-    #     totpop = 1e5
-    #     num_nodes = 5
-    #     frac_rural = 0.1
-    #     demog = DemographicsModule.from_params(tot_pop=totpop, num_nodes=num_nodes, frac_rural=frac_rural, random_2d_grid=True)
-    #     self.assertEqual(len(demog.nodes), num_nodes)
-    #     for node_idx, node in enumerate(demog.nodes):
-    #         self.assertEqual(node_idx + 1, node.forced_id)
-    #         self.assertGreater(node.lat, -1)
-    #         self.assertLess(node.lat, num_nodes)
-    #         self.assertGreater(node.lon, -1)
-    #         self.assertLess(node.lon, 1)
+    def test_from_csv_2(self):
+        id_reference = 'from_csv'  # default value for .from_csv()
 
-    # TODO: restore in from_X() issue #30
-    # def test_from_params_produces_same_lat_long(self):
-    #     totpop = 1e5
-    #     lat_grid = 3
-    #     lon_grid = 2
-    #     num_nodes = [lat_grid, lon_grid]
-    #     frac_rural = 0.1
-    #     demog_1 = DemographicsModule.from_params(tot_pop=totpop, num_nodes=num_nodes, frac_rural=frac_rural).to_dict()
-    #     demog_2 = DemographicsModule.from_params(tot_pop=totpop, num_nodes=num_nodes, frac_rural=frac_rural).to_dict()
-    #     lat_long_1 = [(node["NodeAttributes"]["Latitude"], node["NodeAttributes"]["Longitude"]) for node in demog_1["Nodes"]]
-    #     lat_long_2 = [(node["NodeAttributes"]["Latitude"], node["NodeAttributes"]["Longitude"]) for node in demog_2["Nodes"]]
-    #     self.assertListEqual(lat_long_1, lat_long_2)
-    #
-    #     # Todo: assert frac_rural after we figure out the definition of this parameter
+        input_file = os.path.join(manifest.demo_folder, 'nodes.csv')
+        demog = Demographics.from_csv(input_file, res=25 / 3600)
+        self.assertEqual(id_reference, demog.idref)
 
-    # TODO: restore in from_X() issue #30
-    # def test_overlay_node_attributes(self):
-    #     # create simple demographics
-    #     temp = {'node_id': [1, 2, 5, 10],
-    #             'loc': ["loc1", "loc2", "loc3", "loc4"],
-    #             'pop': [123, 234, 345, 678],
-    #             'lon': [10, 11, 12, 13],
-    #             'lat': [21, 22, 23, 24]}
-    #     csv_file = pathlib.Path("test_overlay_population.csv")
-    #     pd.DataFrame.from_dict(temp).to_csv(csv_file)
-    #     demo = DemographicsModule.from_csv(csv_file)
-    #
-    #     airport_dont_override = 123
-    #     demo.nodes[1].node_attributes.airport = airport_dont_override  # Change one item, it should not change after override
-    #     node_attr_before_override = demo.nodes[3].node_attributes.to_dict()
-    #     csv_file.unlink()
-    #
-    #     # create overlay and update
-    #     overlay_nodes = []
-    #     new_population = 999
-    #     new_name = "Test NodeAttributes"
-    #     new_node_attributes = NodeAttributes(name=new_name, initial_population=new_population)
-    #     empty_node_attributes = NodeAttributes()
-    #
-    #     overlay_nodes.append(Node.OverlayNode(node_id=1, node_attributes=new_node_attributes))
-    #     overlay_nodes.append(Node.OverlayNode(node_id=2, node_attributes=new_node_attributes))
-    #     overlay_nodes.append(Node.OverlayNode(node_id=10, node_attributes=empty_node_attributes))
-    #     demo.apply_overlay(overlay_nodes)
-    #
-    #     # test if new values are used
-    #     self.assertEqual(demo.nodes[0].node_attributes.initial_population, new_population)
-    #     self.assertEqual(demo.nodes[0].node_attributes.name, new_name)
-    #
-    #     # overriding with empty object does not change attributes
-    #     temp1 = demo.nodes[3].node_attributes.to_dict()
-    #     self.assertDictEqual(temp1, node_attr_before_override)
+        # Checking we can grab a node
+        inspect_node = demog.get_node_by_id(node_id=demog.nodes[0].id)
+        self.assertEqual(inspect_node.id, demog.nodes[0].id, msg=f"This node should have an id of {demog.nodes[0].id} "
+                                                                 f"but instead it is {inspect_node.id}")
+
+        csv_df = pd.read_csv(input_file, encoding='iso-8859-1')
+
+        # checking if we have the same number of nodes and the number of rows in csv file
+        self.assertEqual(len(csv_df), len(demog.nodes))
+
+        for index, row in csv_df.iterrows():
+            pop = int(row['pop'])
+            lat = float(row['lat'])
+            lon = float(row['lon'])
+            node_id = int(row['node_id'])
+            self.assertEqual(pop, demog.nodes[index].node_attributes.initial_population)
+            self.assertEqual(lat, demog.nodes[index].node_attributes.latitude)
+            self.assertEqual(lon, demog.nodes[index].node_attributes.longitude)
+            self.assertEqual(node_id, demog.nodes[index].forced_id)
+
+        self.assertEqual(3, len(demog.nodes))
+        csv_node_ids = sorted(list(csv_df['node_id']))
+        demog_ids = sorted([node.id for node in demog.nodes])
+        self.assertEqual(csv_node_ids, demog_ids)
+
+    def test_from_csv_bad_id(self):
+        input_file = os.path.join(manifest.demo_folder, 'demog_in_faulty.csv')
+
+        with self.assertRaises(ValueError):
+            Demographics.from_csv(input_file, res=25 / 3600)
+
+    def test_from_pop_raster_csv(self):
+        id_reference = 'from_raster'  # default value for .from_pop_raster_csv()
+
+        input_file = os.path.join(manifest.demo_folder, 'nodes.csv')
+        demog = Demographics.from_pop_raster_csv(input_file, pop_filename_out=manifest.output_folder)
+        self.assertEqual(id_reference, demog.idref)
+
+        self.assertEqual(1, len(demog.nodes))
+
+        # Checking we can grab a node
+        inspect_node = demog.get_node_by_id(node_id=demog.nodes[0].id)
+        self.assertEqual(inspect_node.id, demog.nodes[0].id,
+                         msg=f"This node should have an id of {demog.nodes[0].id} but instead it is {inspect_node.id}")
+
+        with self.assertRaises(ValueError):
+            demog.get_node_by_id(node_id=161839)
+
+        self.assertEqual(1, len(demog.nodes))
+
+    def test_from_csv_birthrate(self):
+        input_file = os.path.join(manifest.demo_folder, 'nodes_with_birthrate.csv')
+        demog = Demographics.from_csv(input_file)
+        data = pd.read_csv(input_file)
+        node_ids = list(data["node_id"])
+        for node_id in node_ids:
+            birth_rate = data[data["node_id"] == node_id]["birth_rate"].iloc[0]
+            self.assertAlmostEqual(demog.get_node_by_id(node_id=node_id).birth_rate, birth_rate)
+
+        bad_input = os.path.join(manifest.demo_folder, 'bad_nodes_with_birthrate.csv')
+        with self.assertRaises(ValueError):
+            Demographics.from_csv(bad_input)
+
+    # now verify that if there is a duplicate node_id in the csv file we catch it.
+    def test_from_csv_birthrate_duplicate_node_id(self):
+        input_file = os.path.join(manifest.demo_folder, 'nodes_with_birthrate_duplicate_node_id.csv')
+        self.assertRaises(DemographicsBase.DuplicateNodeIdException, Demographics.from_csv, input_file=input_file)
+
+    # now verify that if there is a duplicate node_name in the csv file we catch it.
+    def test_from_csv_birthrate_duplicate_node_name(self):
+        input_file = os.path.join(manifest.demo_folder, 'nodes_with_birthrate_duplicate_node_name.csv')
+        self.assertRaises(DemographicsBase.DuplicateNodeNameException, Demographics.from_csv, input_file=input_file)
+
+    def test_overlay_node_attributes(self):
+        # create simple demographics
+        temp = {'node_id': [1, 2, 5, 10],
+                'loc': ["loc1", "loc2", "loc3", "loc4"],
+                'pop': [123, 234, 345, 678],
+                'lon': [10, 11, 12, 13],
+                'lat': [21, 22, 23, 24]}
+        csv_file = pathlib.Path("test_overlay_population.csv")
+        pd.DataFrame.from_dict(temp).to_csv(csv_file)
+        demo = Demographics.from_csv(csv_file)
+
+        airport_dont_override = 123
+        demo.get_node_by_id(node_id=2).node_attributes.airport = airport_dont_override  # Change one item, it should not change after override
+        node_attr_before_override = demo.get_node_by_id(node_id=10).node_attributes.to_dict()
+        csv_file.unlink()
+
+        # create overlay and update
+        overlay_nodes = []
+        new_population = 999
+        new_name = "Test NodeAttributes"
+        new_node_attributes = NodeAttributes(name=new_name, initial_population=new_population)
+        empty_node_attributes = NodeAttributes()
+
+        overlay_nodes.append(Node.OverlayNode(node_id=1, node_attributes=new_node_attributes))
+        overlay_nodes.append(Node.OverlayNode(node_id=2, node_attributes=new_node_attributes))
+        overlay_nodes.append(Node.OverlayNode(node_id=10, node_attributes=empty_node_attributes))
+        demo.apply_overlay(overlay_nodes)
+
+        # test if new values are used
+        for node_id in [1, 2]:
+            node = demo.get_node_by_id(node_id=node_id)
+            self.assertEqual(node.node_attributes.initial_population, new_population)
+            self.assertEqual(node.node_attributes.name, new_name)
+
+        # overriding with empty object does not change attributes
+        temp1 = demo.get_node_by_id(node_id=10).node_attributes.to_dict()
+        self.assertDictEqual(temp1, node_attr_before_override)
 
     def test_all_members_to_dict(self):
         node_attributes = NodeAttributes(airport=1,
@@ -678,7 +582,7 @@ class DemographicsTest(unittest.TestCase):
         node_attributes_from_dict = node_attributes.from_dict(node_attributes.to_dict())
         self.assertDictEqual(node_attributes_from_dict.to_dict(), node_attributes.to_dict())
 
-    # TODO: restore in from_X() issue #30
+    # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_overlay_list_of_nodes(self):
     #     # create simple demographics
     #     temp = {'node_id': [1, 2, 5, 10],
@@ -688,7 +592,7 @@ class DemographicsTest(unittest.TestCase):
     #             'lat': [21, 22, 23, 24]}
     #     csv_file = pathlib.Path("test_overlay_population.csv")
     #     pd.DataFrame.from_dict(temp).to_csv(csv_file)
-    #     demo = DemographicsModule.from_csv(csv_file)
+    #     demo = Demographics.from_csv(csv_file)
     #     csv_file.unlink()
     #
     #     overlay_nodes = []  # list of all overlay nodes
@@ -718,124 +622,122 @@ class DemographicsTest(unittest.TestCase):
     #     self.assertDictEqual(demo.nodes[2].individual_attributes.to_dict(), new_individual_attributes_2.to_dict())
     #     self.assertDictEqual(demo.nodes[3].individual_attributes.to_dict(), new_individual_attributes_2.to_dict())
 
-    # TODO: restore in from_X() issue #30
-    # def test_add_individual_properties(self):
-    #     # create simple demographics
-    #     temp = {'NodeID': [1, 2, 5],
-    #             'loc': ["loc1", "loc2", "loc3"],
-    #             'pop': [123, 234, 345],
-    #             'lon': [10, 11, 12],
-    #             'lat': [21, 22, 23]}
-    #     csv_file = pathlib.Path("test_overlay_population.csv")
-    #     pd.DataFrame.from_dict(temp).to_csv(csv_file)
-    #     demo = DemographicsModule.from_csv(csv_file)
-    #     csv_file.unlink()
-    #
-    #     initial_distribution = [0.1, 0.3, 0.6]
-    #     property = "Property"
-    #     values = ["1", "2", "3"]
-    #     transitions = [{}, {}, {}]
-    #     transmission_matrix = [[0.0, 0.0, 0.2], [0.0, 0.0, 1.2], [0.0, 0.0, 0.0]]
-    #     node = demo.nodes[0]
-    #     node.individual_properties.add(IndividualProperty(initial_distribution=initial_distribution,
-    #                                                       property=property,
-    #                                                       values=values,
-    #                                                       transitions=transitions,
-    #                                                       transmission_matrix=transmission_matrix
-    #                                                       ))
-    #     node = demo.nodes[2]
-    #     node.individual_properties.add(IndividualProperty(property='I like chocolate', values=values))
-    #     node.individual_properties[0].initial_distribution = initial_distribution
-    #     node.individual_properties[0].property = property
-    #     node.individual_properties[0].values = values
-    #     node.individual_properties[0].transitions = transitions
-    #     node.individual_properties[0].transmission_matrix = transmission_matrix
-    #
-    #     individual_properties_reference = {
-    #         "Initial_Distribution": initial_distribution,
-    #         "Property": property,
-    #         "Values": values,
-    #         "Transitions": transitions,
-    #         "TransmissionMatrix": {'Matrix': transmission_matrix, 'Route': 'Contact'}}
-    #
-    #     self.assertDictEqual(demo.nodes[0].individual_properties[0].to_dict(), individual_properties_reference)
-    #     self.assertDictEqual(demo.nodes[2].individual_properties[0].to_dict(), individual_properties_reference)
+    def test_add_individual_properties(self):
+        # create simple demographics
+        temp = {'node_id': [1, 2, 5],
+                'loc': ["loc1", "loc2", "loc3"],
+                'pop': [123, 234, 345],
+                'lon': [10, 11, 12],
+                'lat': [21, 22, 23]}
+        csv_file = pathlib.Path("test_overlay_population.csv")
+        pd.DataFrame.from_dict(temp).to_csv(csv_file)
+        demo = Demographics.from_csv(csv_file)
+        csv_file.unlink()
+
+        initial_distribution = [0.1, 0.3, 0.6]
+        property = "Property"
+        values = ["1", "2", "3"]
+        transitions = [{}, {}, {}]
+        transmission_matrix = [[0.0, 0.0, 0.2], [0.0, 0.0, 1.2], [0.0, 0.0, 0.0]]
+        node = demo.get_node_by_id(node_id=1)
+        node.individual_properties.add(IndividualProperty(initial_distribution=initial_distribution,
+                                                          property=property,
+                                                          values=values,
+                                                          transitions=transitions,
+                                                          transmission_matrix=transmission_matrix
+                                                          ))
+        node = demo.get_node_by_id(node_id=5)
+        node.individual_properties.add(IndividualProperty(property='I like chocolate', values=values))
+        node.individual_properties[-1].initial_distribution = initial_distribution
+        node.individual_properties[-1].property = property
+        node.individual_properties[-1].values = values
+        node.individual_properties[-1].transitions = transitions
+        node.individual_properties[-1].transmission_matrix = transmission_matrix
+
+        individual_properties_reference = {
+            "Initial_Distribution": initial_distribution,
+            "Property": property,
+            "Values": values,
+            "Transitions": transitions,
+            "TransmissionMatrix": {'Matrix': transmission_matrix, 'Route': 'Contact'}
+        }
+
+        self.assertDictEqual(demo.get_node_by_id(node_id=1).individual_properties[-1].to_dict(), individual_properties_reference)
+        self.assertDictEqual(demo.get_node_by_id(node_id=5).individual_properties[-1].to_dict(), individual_properties_reference)
 
     def test_default_individual_property_parameters_to_dict(self):
         individual_property = IndividualProperty(property='very meaningful', values=["wow", "thanks"])
         self.assertDictEqual(individual_property.to_dict(), {'Property': 'very meaningful', 'Values': ["wow", "thanks"]})  # empty, no keys/values added
 
-    # TODO: restore in from_X() issue #30
-    # def test_overlay_individual_properties(self):
-    #     # create simple demographics
-    #     temp = {'NodeID': [1, 2, 5],
-    #             'loc': ["loc1", "loc2", "loc3"],
-    #             'pop': [123, 234, 345],
-    #             'lon': [10, 11, 12],
-    #             'lat': [21, 22, 23]}
-    #     csv_file = pathlib.Path("test_overlay_population.csv")
-    #     pd.DataFrame.from_dict(temp).to_csv(csv_file)
-    #     demo = DemographicsModule.from_csv(csv_file)
-    #     csv_file.unlink()
-    #
-    #     initial_distribution = [0, 0.3, 0.7]
-    #     property = "Property"
-    #     values = [1, 2, 3]
-    #     transitions = [{}, {}, {}]
-    #     transmission_matrix = [[1, 2, 3], [3, 4, 5], [3, 4, 5]]
-    #
-    #     node = demo.nodes[0]
-    #     node.individual_properties.add(IndividualProperty(initial_distribution=initial_distribution,
-    #                                                       property=property,
-    #                                                       values=values,
-    #                                                       transitions=transitions,
-    #                                                       transmission_matrix=transmission_matrix))
-    #     # create overlay and update
-    #     new_population = 999
-    #     new_property = "Test_Property"
-    #
-    #     ip_overlay = IndividualProperty(property='yet another one', values=values)
-    #     ip_overlay.initial_distribution = new_population
-    #     ip_overlay.property = new_property
-    #     node.individual_properties[0].update(ip_overlay)
-    #
-    #     self.assertEqual(demo.nodes[0].individual_properties[0].initial_distribution, new_population)
-    #     self.assertEqual(demo.nodes[0].individual_properties[0].property, new_property)
-    #     self.assertEqual(demo.nodes[0].individual_properties[0].values, values)
-    #     self.assertEqual(demo.nodes[0].individual_properties[0].transitions, transitions)
+    def test_overlay_individual_properties(self):
+        # create simple demographics
+        temp = {'node_id': [1, 2, 5],
+                'loc': ["loc1", "loc2", "loc3"],
+                'pop': [123, 234, 345],
+                'lon': [10, 11, 12],
+                'lat': [21, 22, 23]}
+        csv_file = pathlib.Path("test_overlay_population.csv")
+        pd.DataFrame.from_dict(temp).to_csv(csv_file)
+        demo = Demographics.from_csv(csv_file)
+        csv_file.unlink()
 
-    # TODO: restore in from_X() issue #30
-    # def test_add_individual_attributes(self):
-    #     # create simple demographics
-    #     temp = {'NodeID': [1, 2, 5],
-    #             'loc': ["loc1", "loc2", "loc3"],
-    #             'pop': [123, 234, 345],
-    #             'lon': [10, 11, 12],
-    #             'lat': [21, 22, 23]}
-    #     csv_file = pathlib.Path("test_overlay_population.csv")
-    #     pd.DataFrame.from_dict(temp).to_csv(csv_file)
-    #     demo = DemographicsModule.from_csv(csv_file)
-    #     csv_file.unlink()
-    #
-    #     node = demo.nodes[0]
-    #     node._set_individual_attributes(IndividualAttributes(age_distribution_flag=3,
-    #                                                          age_distribution1=0.1,
-    #                                                          age_distribution2=0.2))
-    #
-    #     node = demo.nodes[2]
-    #     node._set_individual_attributes(IndividualAttributes())
-    #     node.individual_attributes.age_distribution_flag = 3
-    #     node.individual_attributes.age_distribution1 = 0.1
-    #     node.individual_attributes.age_distribution2 = 0.2
-    #
-    #     individual_attributes = {
-    #         "AgeDistributionFlag": 3,
-    #         "AgeDistribution1": 0.1,
-    #         "AgeDistribution2": 0.2
-    #     }
-    #
-    #     self.assertDictEqual(demo.nodes[0].individual_attributes.to_dict(), individual_attributes)
-    #     self.assertDictEqual(demo.nodes[2].individual_attributes.to_dict(), individual_attributes)
+        initial_distribution = [0, 0.3, 0.7]
+        property = "Property"
+        values = [1, 2, 3]
+        transitions = [{}, {}, {}]
+        transmission_matrix = [[1, 2, 3], [3, 4, 5], [3, 4, 5]]
+
+        node = demo.get_node_by_id(node_id=1)
+        node.individual_properties.add(IndividualProperty(initial_distribution=initial_distribution,
+                                                          property=property,
+                                                          values=values,
+                                                          transitions=transitions,
+                                                          transmission_matrix=transmission_matrix))
+        # create overlay and update
+        new_population = 999
+        new_property = "Test_Property"
+
+        ip_overlay = IndividualProperty(property='yet another one', values=values)
+        ip_overlay.initial_distribution = new_population
+        ip_overlay.property = new_property
+        ip = node.individual_properties[-1]
+        ip.update(ip_overlay)
+
+        self.assertEqual(ip.initial_distribution, new_population)
+        self.assertEqual(ip.property, new_property)
+        self.assertEqual(ip.values, values)
+        self.assertEqual(ip.transitions, transitions)
+
+    def test_add_individual_attributes(self):
+        # create simple demographics
+        temp = {'node_id': [1, 2, 5],
+                'loc': ["loc1", "loc2", "loc3"],
+                'pop': [123, 234, 345],
+                'lon': [10, 11, 12],
+                'lat': [21, 22, 23]}
+        csv_file = pathlib.Path("test_overlay_population.csv")
+        pd.DataFrame.from_dict(temp).to_csv(csv_file)
+        demo = Demographics.from_csv(csv_file)
+        csv_file.unlink()
+
+        node = demo.get_node_by_id(node_id=1)
+        node._set_individual_attributes(IndividualAttributes(age_distribution_flag=3,
+                                                             age_distribution1=0.1,
+                                                             age_distribution2=0.2))
+
+        node = demo.get_node_by_id(node_id=5)
+        node.individual_attributes.age_distribution_flag = 3
+        node.individual_attributes.age_distribution1 = 0.1
+        node.individual_attributes.age_distribution2 = 0.2
+
+        individual_attributes = {
+            "AgeDistributionFlag": 3,
+            "AgeDistribution1": 0.1,
+            "AgeDistribution2": 0.2
+        }
+
+        self.assertDictEqual(demo.get_node_by_id(node_id=1).individual_attributes.to_dict(), individual_attributes)
+        self.assertDictEqual(demo.get_node_by_id(node_id=5).individual_attributes.to_dict(), individual_attributes)
 
     def test_applyoverlay_individual_properties(self):
         node_attributes_1 = NodeAttributes(name="test_demo1")
@@ -951,93 +853,81 @@ class DemographicsTest(unittest.TestCase):
         self.assertEqual(node_1_md_f['ResultValues'], [[111], [222]])
         self.assertEqual(node_1_md_m['ResultValues'], [[333], [444]])
 
-    @staticmethod
-    def check_for_unique_node_id(nodes):
-        node_ids = list()
-        for node in nodes:
-            node_id = node['NodeID']
-            if node_id not in node_ids:
-                node_ids.append(node_id)
-            else:
-                return False
-        return True
+    def test_infer_natural_mortality(self):
+        demog = Demographics.from_template_node(lat=0, lon=0, pop=100000, name=1, forced_id=1)
+        male_input_file = os.path.join(manifest.demo_folder, "Malawi_male_mortality.csv")
+        female_input_file = os.path.join(manifest.demo_folder, "Malawi_female_mortality.csv")
+        predict_horizon = 2060
+        results_scale_factor = 1.0 / 340.0
+        female_distribution, male_distribution = demog.infer_natural_mortality(file_male=male_input_file,
+                                                                               file_female=female_input_file,
+                                                                               predict_horizon=predict_horizon,
+                                                                               results_scale_factor=results_scale_factor,
+                                                                               csv_out=False)
+        male_input = pd.read_csv(male_input_file)
+        female_input = pd.read_csv(female_input_file)
 
-    # TODO: restore in from_X() issue #30
-    # def test_infer_natural_mortality(self):
-    #     demog = DemographicsModule.from_template_node(lat=0, lon=0, pop=100000, name=1, forced_id=1)
-    #     male_input_file = os.path.join(manifest.demo_folder, "Malawi_male_mortality.csv")
-    #     female_input_file = os.path.join(manifest.demo_folder, "Malawi_female_mortality.csv")
-    #     predict_horizon = 2060
-    #     results_scale_factor = 1.0 / 340.0
-    #     female_distribution, male_distribution = demog.infer_natural_mortality(file_male=male_input_file,
-    #                                                                            file_female=female_input_file,
-    #                                                                            predict_horizon=predict_horizon,
-    #                                                                            results_scale_factor=results_scale_factor,
-    #                                                                            csv_out=False)
-    #     male_input = pd.read_csv(male_input_file)
-    #     female_input = pd.read_csv(female_input_file)
-    #
-    #     # Check age group
-    #     n_male_age_groups = len(male_distribution['PopulationGroups'][0])
-    #     # Get age groups information male from csv file
-    #     expected_male_age_group = np.append(male_input['Age (x)'].unique(), 100).tolist()
-    #     self.assertListEqual(expected_male_age_group[1:], male_distribution['PopulationGroups'][0])
-    #
-    #     n_female_age_groups = len(female_distribution['PopulationGroups'][0])
-    #     # Get age groups information from female csv file
-    #     expected_female_age_group = np.append(female_input['Age (x)'].unique(), 100).tolist()
-    #     self.assertListEqual(expected_female_age_group[1:], female_distribution['PopulationGroups'][0])
-    #
-    #     # Check Year
-    #     n_male_year_groups = len(male_distribution['PopulationGroups'][1])
-    #     # Get year groups information male from csv file
-    #     expected_male_year_group = male_input['Ave_Year'].unique().tolist()
-    #     # Up to year = predict_horizon
-    #     expected_male_year_group = [x for x in expected_male_year_group if x < predict_horizon]
-    #     self.assertListEqual(expected_male_year_group, male_distribution['PopulationGroups'][1])
-    #
-    #     n_female_year_groups = len(female_distribution['PopulationGroups'][1])
-    #     expected_female_year_group = expected_male_year_group
-    #     self.assertListEqual(expected_female_year_group, female_distribution['PopulationGroups'][1])
-    #
-    #     # Check prediction horizon is honored
-    #     self.assertLessEqual(max(male_distribution['PopulationGroups'][1]), 2060)
-    #     self.assertLessEqual(max(female_distribution['PopulationGroups'][1]), 2060)
-    #
-    #     # Check results scale factor is consistent with parameters
-    #     self.assertEqual(male_distribution['ResultScaleFactor'], results_scale_factor)
-    #     self.assertEqual(female_distribution['ResultScaleFactor'], results_scale_factor)
-    #
-    #     # Check result values array length
-    #     self.assertEqual(len(male_distribution['ResultValues']), n_male_age_groups)
-    #     for m_y in male_distribution['ResultValues']:
-    #         self.assertEqual(len(m_y), n_male_year_groups)
-    #     self.assertEqual(len(female_distribution['ResultValues']), n_female_age_groups)
-    #     for f_y in female_distribution['ResultValues']:
-    #         self.assertEqual(len(f_y), n_female_year_groups)
-    #
-    #     # Check result values consistency with reference files
-    #     male_reference = pd.read_csv(os.path.join(manifest.demo_folder, "MaleTrue"))
-    #     female_reference = pd.read_csv(os.path.join(manifest.demo_folder, "FemaleTrue"))
-    #     for i in range(n_male_age_groups):
-    #         for j in range(n_male_year_groups):
-    #             male_mortality_rate = male_distribution['ResultValues'][i][j]
-    #             expected_male_mortality_rate = male_reference[male_reference['Age'] == expected_male_age_group[i + 1]][
-    #                 str(expected_male_year_group[j])].iloc[0]
-    #             self.assertAlmostEqual(expected_male_mortality_rate, male_mortality_rate, delta=1e-5,
-    #                                    msg=f"at year {expected_male_year_group[j]} age {expected_male_age_group[i + 1]}"
-    #                                        f", male mortality rate is set to {male_mortality_rate} (please see "
-    #                                        f"male_distribution['ResultValues'][{i}][{j}]), while it's "
-    #                                        f"{expected_male_mortality_rate} in male csv file.\n")
-    #
-    #             female_mortality_rate = female_distribution['ResultValues'][i][j]
-    #             expected_female_mortality_rate = female_reference[female_reference['Age'] == expected_female_age_group[i + 1]][str(expected_female_year_group[j])].iloc[0]
-    #             self.assertAlmostEqual(expected_female_mortality_rate, female_mortality_rate, delta=1e-5,
-    #                                    msg=f"at year {expected_female_year_group[j]} age "
-    #                                        f"{expected_female_age_group[i + 1]},"
-    #                                        f" female mortality rate is set to {female_mortality_rate} (please see "
-    #                                        f"female_distribution['ResultValues'][{i}][{j}]), while it's "
-    #                                        f"{expected_female_mortality_rate} in female csv file.\n")
+        # Check age group
+        n_male_age_groups = len(male_distribution['PopulationGroups'][0])
+        # Get age groups information male from csv file
+        expected_male_age_group = np.append(male_input['Age (x)'].unique(), 100).tolist()
+        self.assertListEqual(expected_male_age_group[1:], male_distribution['PopulationGroups'][0])
+
+        n_female_age_groups = len(female_distribution['PopulationGroups'][0])
+        # Get age groups information from female csv file
+        expected_female_age_group = np.append(female_input['Age (x)'].unique(), 100).tolist()
+        self.assertListEqual(expected_female_age_group[1:], female_distribution['PopulationGroups'][0])
+
+        # Check Year
+        n_male_year_groups = len(male_distribution['PopulationGroups'][1])
+        # Get year groups information male from csv file
+        expected_male_year_group = male_input['Ave_Year'].unique().tolist()
+        # Up to year = predict_horizon
+        expected_male_year_group = [x for x in expected_male_year_group if x < predict_horizon]
+        self.assertListEqual(expected_male_year_group, male_distribution['PopulationGroups'][1])
+
+        n_female_year_groups = len(female_distribution['PopulationGroups'][1])
+        expected_female_year_group = expected_male_year_group
+        self.assertListEqual(expected_female_year_group, female_distribution['PopulationGroups'][1])
+
+        # Check prediction horizon is honored
+        self.assertLessEqual(max(male_distribution['PopulationGroups'][1]), 2060)
+        self.assertLessEqual(max(female_distribution['PopulationGroups'][1]), 2060)
+
+        # Check results scale factor is consistent with parameters
+        self.assertEqual(male_distribution['ResultScaleFactor'], results_scale_factor)
+        self.assertEqual(female_distribution['ResultScaleFactor'], results_scale_factor)
+
+        # Check result values array length
+        self.assertEqual(len(male_distribution['ResultValues']), n_male_age_groups)
+        for m_y in male_distribution['ResultValues']:
+            self.assertEqual(len(m_y), n_male_year_groups)
+        self.assertEqual(len(female_distribution['ResultValues']), n_female_age_groups)
+        for f_y in female_distribution['ResultValues']:
+            self.assertEqual(len(f_y), n_female_year_groups)
+
+        # Check result values consistency with reference files
+        male_reference = pd.read_csv(os.path.join(manifest.demo_folder, "MaleTrue"))
+        female_reference = pd.read_csv(os.path.join(manifest.demo_folder, "FemaleTrue"))
+        for i in range(n_male_age_groups):
+            for j in range(n_male_year_groups):
+                male_mortality_rate = male_distribution['ResultValues'][i][j]
+                expected_male_mortality_rate = male_reference[male_reference['Age'] == expected_male_age_group[i + 1]][
+                    str(expected_male_year_group[j])].iloc[0]
+                self.assertAlmostEqual(expected_male_mortality_rate, male_mortality_rate, delta=1e-5,
+                                       msg=f"at year {expected_male_year_group[j]} age {expected_male_age_group[i + 1]}"
+                                           f", male mortality rate is set to {male_mortality_rate} (please see "
+                                           f"male_distribution['ResultValues'][{i}][{j}]), while it's "
+                                           f"{expected_male_mortality_rate} in male csv file.\n")
+
+                female_mortality_rate = female_distribution['ResultValues'][i][j]
+                expected_female_mortality_rate = female_reference[female_reference['Age'] == expected_female_age_group[i + 1]][str(expected_female_year_group[j])].iloc[0]
+                self.assertAlmostEqual(expected_female_mortality_rate, female_mortality_rate, delta=1e-5,
+                                       msg=f"at year {expected_female_year_group[j]} age "
+                                           f"{expected_female_age_group[i + 1]},"
+                                           f" female mortality rate is set to {female_mortality_rate} (please see "
+                                           f"female_distribution['ResultValues'][{i}][{j}]), while it's "
+                                           f"{expected_female_mortality_rate} in female csv file.\n")
 
     # TODO: restore in distribution class migration from emodpy->api issue #43
     # def test_set_initial_age_exponential(self):
@@ -1346,11 +1236,10 @@ class DemographicsTest(unittest.TestCase):
     #     self.assertDictEqual(demog.to_dict()['Nodes'][0]['IndividualAttributes']['MortalityDistributionMale'],
     #                          Distributions.Constant_Mortality.to_dict())
 
-    # TODO: restore in from_X() issue #30
-    # def test_get_node_and_set_property(self):
-    #     demog = DemographicsModule.from_template_node(lat=0, lon=0, pop=100000, name=1, forced_id=1)
-    #     demog.get_node_by_id(node_id=1).birth_rate = 0.123
-    #     self.assertEqual(demog.to_dict()['Nodes'][0]['NodeAttributes']['BirthRate'], 0.123)
+    def test_get_node_and_set_property(self):
+        demog = Demographics.from_template_node(lat=0, lon=0, pop=100000, name=1, forced_id=1)
+        demog.get_node_by_id(node_id=1).birth_rate = 0.123
+        self.assertEqual(demog.to_dict()['Nodes'][0]['NodeAttributes']['BirthRate'], 0.123)
 
     def test_setting_value_throws_exception_distribution_const(self):
         # Trying to set/change a value of a predefined distribution raises an Exception
@@ -1905,7 +1794,7 @@ class DemographicsOverlayTest(unittest.TestCase):
         overlay_dict = overlay.to_dict()
         self.assertDictEqual(reference["Defaults"], overlay_dict["Defaults"])
 
-    # TODO: restore when working on issue #43 dealing with moving emodpy distribuiton classes down to emod-api
+    # TODO: restore when working on issue #43 dealing with moving emodpy distribution classes down to emod-api
     # def test_create_overlay_for_Kurt(self):
     #     # ***** Write vital dynamics and susceptibility initialization overlays *****
     #     vd_over_dict = dict()

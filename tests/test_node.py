@@ -15,24 +15,29 @@ class NodeTest(unittest.TestCase):
         self.assertFalse(individual_properties)
 
     def test_individual_properties_length_1(self):
+        # adding the step of node.to_dict() before value checking to ensure proper to_dict() behavior
         individual_property = IndividualProperty(property='deliciousness', initial_distribution=[0.1, 0.9], values=["a", "b"])
         individual_properties = IndividualProperties([individual_property])
+        node = Node.Node(lat=0, lon=0, pop=100, individual_properties=individual_properties)
+        ip_dict = node.to_dict()["IndividualProperties"]
 
-        self.assertEqual(len(individual_properties), 1)
-        self.assertTrue(individual_properties)
-        self.assertDictEqual(individual_properties[0].to_dict(), individual_property.to_dict())
+        self.assertEqual(len(ip_dict), 1)
+        self.assertDictEqual(ip_dict[0], individual_property.to_dict())
 
     def test_individual_properties_iter(self):
+        # adding the step of node.to_dict() before value checking to ensure proper to_dict() behavior
         individual_property1 = IndividualProperty(property='something', initial_distribution=[0.1, 0.9], values=["a", "b"])
         individual_property2 = IndividualProperty(property='else', initial_distribution=[0.3, 0.7], values=["c", "d"])
         individual_properties = IndividualProperties()
         individual_properties.add(individual_property1)
         individual_properties.add(individual_property2)
+        node = Node.Node(lat=0, lon=0, pop=100, individual_properties=individual_properties)
+        ip_dict = node.to_dict()["IndividualProperties"]
 
-        ip = individual_properties[0]
-        self.assertEqual(ip.initial_distribution, [0.1, 0.9])
-        ip2 = individual_properties[1]
-        self.assertEqual(ip2.values, ["c", "d"])
+        ip = ip_dict[0]
+        self.assertEqual(ip["Initial_Distribution"], [0.1, 0.9])
+        ip2 = ip_dict[1]
+        self.assertEqual(ip2["Values"], ["c", "d"])
 
     def test_basicNode(self):
         latitude = 123
@@ -72,27 +77,39 @@ class NodeTest(unittest.TestCase):
         self.assertEqual(basic_node.to_tuple(), expected_tuple)
 
     def test_set_user_parameter(self):
-        node_attributes = NodeAttributes()
+        # adding the step of node.to_dict() before value checking to ensure proper to_dict() behavior
+        node_attributes_1 = NodeAttributes()
         node_attributes_2 = NodeAttributes()
-        node_attributes.add_parameter("user_defined_1", 1)
-        self.assertEqual(node_attributes.to_dict()["user_defined_1"], 1)
-        self.assertNotIn("user_defined_1", node_attributes_2.to_dict())
+        node_attributes_1.add_parameter("user_defined_1", 1)
 
-        individual_attributes = IndividualAttributes()
+        node = Node.Node(lat=0,lon=0,pop=100, node_attributes=node_attributes_1)
+        self.assertEqual(node.to_dict()["NodeAttributes"]["user_defined_1"], 1)
+        node = Node.Node(lat=0,lon=0,pop=100, node_attributes=node_attributes_2)
+        self.assertNotIn("user_defined_1", node.to_dict()["NodeAttributes"])
+
+        individual_attributes_1 = IndividualAttributes()
         individual_attributes_2 = IndividualAttributes()
-        individual_attributes.add_parameter("user_defined_2", 2)
-        self.assertEqual(individual_attributes.to_dict()["user_defined_2"], 2)
-        self.assertNotIn("user_defined_2", individual_attributes_2.to_dict())
+        individual_attributes_1.add_parameter("user_defined_2", 2)
+
+        node = Node.Node(lat=0,lon=0,pop=100, individual_attributes=individual_attributes_1)
+        self.assertEqual(node.to_dict()["IndividualAttributes"]["user_defined_2"], 2)
+        node = Node.Node(lat=0,lon=0,pop=100, individual_attributes=individual_attributes_2)
+        self.assertNotIn("user_defined_2", node.to_dict()["IndividualAttributes"])
 
         ips = [IndividualProperty(property='cloudy', values=["yes", "no"], initial_distribution=[0.5, 0.5])]
-        individual_properties = IndividualProperties(ips)
+        individual_properties_1 = IndividualProperties(ips)
         ips = [IndividualProperty(property='White House', values=["yes", "no"])]
         individual_properties_2 = IndividualProperties(ips)
-        individual_properties[0].add_parameter("user_defined_3", 3)
-        self.assertEqual(individual_properties[0].to_dict()["user_defined_3"], 3)
-        self.assertNotIn("user_defined_3", individual_properties_2.to_dict())
+        individual_properties_1[0].add_parameter("user_defined_3", 3)
+
+        node = Node.Node(lat=0,lon=0,pop=100, individual_properties=individual_properties_1)
+        self.assertEqual(node.to_dict()["IndividualProperties"][0]["user_defined_3"], 3)
+        node = Node.Node(lat=0,lon=0,pop=100, individual_properties=individual_properties_2)
+        self.assertNotIn("user_defined_3", node.to_dict()["IndividualProperties"][0])
 
     def test_extra_node_attributes(self):
+        # ensuring individual and node attributes are isolated between nodes
+        # adding the step of node.to_dict() before value checking to ensure proper to_dict() behavior
         node_attributes = NodeAttributes()
         node_attributes.add_parameter("Test_1", 1)
         individual_attributes = IndividualAttributes()
@@ -102,9 +119,20 @@ class NodeTest(unittest.TestCase):
         node_3 = Node.Node(lat=1, lon=2, pop=100, node_attributes=node_attributes, individual_attributes=individual_attributes)
 
         self.assertEqual(node_1.to_dict()["NodeAttributes"]["Test_1"], 1)
+        self.assertTrue("Test_2" not in node_1.to_dict()["IndividualAttributes"])
+
+        self.assertTrue("Test_1" not in node_2.to_dict()["NodeAttributes"])
         self.assertEqual(node_2.to_dict()["IndividualAttributes"]["Test_2"], 2)
+
         self.assertEqual(node_3.to_dict()["NodeAttributes"]["Test_1"], 1)
         self.assertEqual(node_3.to_dict()["IndividualAttributes"]["Test_2"], 2)
+
+    def test_ensure_metadata_is_written(self):
+        # adding the step of node.to_dict() before value checking to ensure proper to_dict() behavior
+        metadata = {"I am": "metadata"}
+        node = Node.Node(lat=0, lon=0, pop=100, meta=metadata)
+        self.assertTrue("I am" in node.to_dict())
+        self.assertEqual(node.to_dict()["I am"], "metadata")
 
     def test_infectivity_multiplier(self):
         infectivity_multiplier_val = 0.5

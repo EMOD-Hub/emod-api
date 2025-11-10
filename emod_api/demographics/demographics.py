@@ -11,34 +11,6 @@ from emod_api.demographics.demographics_base import DemographicsBase
 from emod_api.demographics.service import service
 
 
-# TODO: needed?
-def from_file(base_file):
-    """
-    Create a :py:class:`Demographics` instance from an existing demographics file.
-    """
-    raise Exception("Not ported into Demograhpics class method yet, if ever.")
-    with open(base_file, "rb") as src:
-        raw = json.load(src)
-        nodes = []
-
-        # Load the nodes
-        for node in raw["Nodes"]:
-            nodes.append(Node.from_data(node))
-
-        # Load the idref
-        idref = raw["Metadata"]["IdReference"]
-
-    # Create the file
-    return Demographics(nodes, idref, base_file)
-
-
-# TODO: needed?
-def get_node_ids_from_file(demographics_file):
-    """
-    Get a list of node ids from a demographics file.
-    """
-    d = from_file(demographics_file)
-    return sorted(d.node_ids)
 
 
 class Demographics(DemographicsBase):
@@ -81,96 +53,6 @@ class Demographics(DemographicsBase):
         """
         new_nodes = [Node(lat=lat, lon=lon, pop=pop, forced_id=forced_id, name=name)]
         return cls(nodes=new_nodes)
-
-    @staticmethod
-    def _get_node_pops_from_params(tot_pop,
-                                   num_nodes,
-                                   frac_rural) -> list:
-        """
-        Get a list of node populations from the params used to create a sparsely
-        parameterized multi-node :py:class:`Demographics` instance. The first population
-        in the list is the "urban" population and remaning populations are roughly drawn from a
-        log-uniform distribution.
-
-        Args:
-            tot_pop (int): Sum of all node populations (not guaranteed)
-            num_nodes (int): The total number of nodes.
-            frac_rural (float): The fraction of the total population that is to be distributed across the
-                `num_nodes`-1 "rural" nodes.
-
-        Returns:
-            A list containing the urban node population followed by the rural nodes.
-        """
-
-        # Draw from a log-uniform or reciprocal distribution (support from (1, \infty))
-        nsizes = np.exp(-np.log(np.random.rand(num_nodes - 1)))
-        # normalize to frac_rural
-        nsizes = frac_rural * nsizes / np.sum(nsizes)
-        # require atleast 100 people
-        nsizes = np.minimum(nsizes, 100 / tot_pop)
-        # normalize to frac_rural
-        nsizes = frac_rural * nsizes / np.sum(nsizes)
-        # add the urban node
-        nsizes = np.insert(nsizes, 0, 1 - frac_rural)
-        # round the populations to the nearest integer and change type to list
-        npops = ((np.round(tot_pop * nsizes, 0)).astype(int)).tolist()
-        return npops
-
-
-    @classmethod
-    def from_params(cls,
-                    tot_pop: int = 1000000,
-                    num_nodes: int = 100,
-                    frac_rural: float = 0.3,
-                    id_ref: str = "from_params",
-                    random_2d_grid: bool = False):
-        """
-        Create an EMOD-compatible :py:class:`Demographics` object with the population and numbe of nodes specified.
-
-        Args:
-            tot_pop: The total population.
-            num_nodes: Number of nodes. Can be defined as a two-dimensional grid  of nodes [longitude, latitude].
-                The distance to the next neighbouring node is 1.
-            frac_rural: Determines what fraction of the population gets put in the 'rural' nodes, which means all nodes
-                besides node 1. Node 1 is the 'urban' node.
-            id_ref:  Facility name
-            random_2d_grid: Create a random distanced grid with num_nodes nodes.
-
-        Returns:
-            (Demographics): New Demographics object
-        """
-        if frac_rural > 1.0:
-            raise ValueError("frac_rural can't be greater than 1.0")
-        if frac_rural < 0.0:
-            raise ValueError("frac_rural can't be less than 0")
-        if frac_rural == 0.0:
-            frac_rural = 1e-09
-
-        if random_2d_grid:
-            total_nodes = num_nodes
-            ucellb = np.array([[1.0, 0.0], [-0.5, 0.86603]])
-            nlocs = np.random.rand(num_nodes, 2)
-            nlocs[0, :] = 0.5
-            nlocs = np.round(np.matmul(nlocs, ucellb), 4)
-        else:
-            if isinstance(num_nodes, int):
-                lon_grid = num_nodes
-                lat_grid = 1
-            else:
-                lon_grid = num_nodes[0]  # east/west
-                lat_grid = num_nodes[1]  # north/south
-
-            total_nodes = lon_grid * lat_grid
-            nlocs = [[i, j] for i in range(lon_grid) for j in range(lat_grid)]
-
-        nodes = []
-        npops = cls._get_node_pops_from_params(tot_pop, total_nodes, frac_rural)
-
-        # Add nodes to demographics
-        for idx, lat_lon in enumerate(nlocs):
-            nodes.append(Node(lat=lat_lon[0], lon=lat_lon[1], pop=npops[idx], forced_id=idx + 1))
-
-        return cls(nodes=nodes, idref=id_ref)
 
 
     # The below implements the standard naming convention for DTK nodes based on latitude and longitude.

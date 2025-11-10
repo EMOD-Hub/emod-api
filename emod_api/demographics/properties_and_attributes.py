@@ -207,8 +207,6 @@ class IndividualProperties(Updateable):
         return self.individual_properties[index]
 
     def __len__(self):
-        if not self.individual_properties:
-            return 0
         return len(self.individual_properties)
 
 

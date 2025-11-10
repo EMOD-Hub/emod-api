@@ -19,7 +19,7 @@ class DemoConfigTest(unittest.TestCase):
     def reset_config(self):
         self.config = self.get_config_as_object()
 
-    # TODO: restore when working on issue #43 dealing with moving emodpy distribuiton classes down to emod-api
+    # TODO: restore when working on issue #43 dealing with moving emodpy distribution classes down to emod-api
     # def test_set_birth_rate_config(self):
     #     demog = Demographics.from_template_node()
     #     self.config.parameters.Enable_Birth = 0  # since it is 1 by default
@@ -28,7 +28,7 @@ class DemoConfigTest(unittest.TestCase):
     #     demog.implicits[-1](self.config)
     #     self.assertEqual(self.config.parameters.Birth_Rate_Dependence, "POPULATION_DEP_RATE")
 
-    # TODO: restore when working on issue #43 dealing with moving emodpy distribuiton classes down to emod-api
+    # TODO: restore when working on issue #43 dealing with moving emodpy distribution classes down to emod-api
     # def test_set_mortality_rate_config(self):
     #     for index in range(2):
     #         demog = Demographics.from_template_node()
@@ -36,7 +36,7 @@ class DemoConfigTest(unittest.TestCase):
     #             demog.SetMortalityRate(0.75)
     #         demog.implicits[-1](self.config)
 
-    # TODO: restore when working on issue #43 dealing with moving emodpy distribuiton classes down to emod-api
+    # TODO: restore when working on issue #43 dealing with moving emodpy distribution classes down to emod-api
     # def test_set_mortality_distribution(self):
     #     demog = Demographics.from_template_node()
     #
@@ -47,7 +47,7 @@ class DemoConfigTest(unittest.TestCase):
     #     demog.implicits[-2](self.config)
     #     self.assertEqual(self.config.parameters.Death_Rate_Dependence, "NONDISEASE_MORTALITY_BY_AGE_AND_GENDER")
 
-    # TODO: restore when working on issue #43 dealing with moving emodpy distribuiton classes down to emod-api
+    # TODO: restore when working on issue #43 dealing with moving emodpy distribution classes down to emod-api
     # def test_set_age_distribution(self):
     #     demog = Demographics.from_template_node()
     #     self.assertEqual(self.config.parameters.Age_Initialization_Distribution_Type, "DISTRIBUTION_OFF")
