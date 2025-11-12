@@ -11,8 +11,6 @@ from emod_api.demographics.demographics_base import DemographicsBase
 from emod_api.demographics.service import service
 
 
-
-
 class Demographics(DemographicsBase):
     """
     This class is a container of data necessary to produce a EMOD-valid demographics input file.
@@ -31,7 +29,6 @@ class Demographics(DemographicsBase):
             node.node_attributes.airport = 1
             node.node_attributes.seaport = 1
             node.node_attributes.region = 1
-
 
     def generate_file(self, name="demographics.json"):
         """
@@ -54,7 +51,6 @@ class Demographics(DemographicsBase):
         new_nodes = [Node(lat=lat, lon=lon, pop=pop, forced_id=forced_id, name=name)]
         return cls(nodes=new_nodes)
 
-
     # The below implements the standard naming convention for DTK nodes based on latitude and longitude.
     # The node ID encodes both lat and long at a specified pixel resolution, and I've maintained this
     # convention even when running on spatial setups that are not non-uniform grids.
@@ -67,7 +63,7 @@ class Demographics(DemographicsBase):
     def from_csv(cls,
                  input_file,
                  res=30 / 3600,
-                 id_ref="from_csv"):
+                 id_ref="from_csv") -> "Demographics":
         """
         Create an EMOD-compatible :py:class:`Demographics` instance from a csv population-by-node file.
 
@@ -75,16 +71,14 @@ class Demographics(DemographicsBase):
             input_file (str): Filename
             res (float, optional): Resolution of the nodes in arc-seconds
             id_ref (str, optional): Description of the source of the file.
+
+        Returns: A Demographics object
         """
         def get_value(row, headers):
             for h in headers:
                 if row.get(h) is not None:
                     return float(row.get(h))
             return None
-
-        if not os.path.exists(input_file):
-            print(f"{input_file} not found.")
-            return
 
         print(f"{input_file} found and being read for demographics.json file creation.")
         node_info = pd.read_csv(input_file, encoding='iso-8859-1')
@@ -133,7 +127,6 @@ class Demographics(DemographicsBase):
             out_nodes.append(node)
         return cls(nodes=out_nodes, idref=id_ref)
 
-
     # This will be the long-term API for this function.
     @classmethod
     def from_pop_raster_csv(cls,
@@ -143,11 +136,11 @@ class Demographics(DemographicsBase):
                             pop_filename_out="spatial_gridded_pop_dir",
                             site="No_Site"):
         """
-            Take a csv of a population-counts raster and build a grid for use with EMOD simulations.
-            Grid size is specified by grid resolution in arcs or in kilometers. The population counts
-            from the raster csv are then assigned to their nearest grid center and a new intermediate
-            grid file is generated with latitude, longitude and population. This file is then fed to
-            from_csv to generate a demographics object.
+        Take a csv of a population-counts raster and build a grid for use with EMOD simulations.
+        Grid size is specified by grid resolution in arcs or in kilometers. The population counts
+        from the raster csv are then assigned to their nearest grid center and a new intermediate
+        grid file is generated with latitude, longitude and population. This file is then fed to
+        from_csv to generate a demographics object.
 
         Args:
             pop_filename_in (str): The filename of the population-counts raster in CSV format.
@@ -166,7 +159,6 @@ class Demographics(DemographicsBase):
         grid_file_path = service._create_grid_files(pop_filename_in, pop_filename_out, site)
         print(f"{grid_file_path} grid file created.")
         return cls.from_csv(grid_file_path, res, id_ref)
-
 
     @classmethod
     def from_pop_csv(cls,
