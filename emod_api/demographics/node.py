@@ -1,7 +1,7 @@
 import json
 import math
-from emod_api.demographics.Updateable import Updateable
-from emod_api.demographics.PropertiesAndAttributes import IndividualAttributes, IndividualProperty, IndividualProperties, NodeAttributes
+from emod_api.demographics.updateable import Updateable
+from emod_api.demographics.properties_and_attributes import IndividualAttributes, IndividualProperty, IndividualProperties, NodeAttributes
 from emod_api.demographics.age_distribution_old import AgeDistributionOld as AgeDistribution
 from emod_api.demographics.fertility_distribution_old import FertilityDistributionOld as FertilityDistribution
 from emod_api.demographics.mortality_distribution_old import MortalityDistributionOld as MortalityDistribution

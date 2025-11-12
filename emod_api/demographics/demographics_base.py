@@ -1,9 +1,7 @@
 import json
 import math
 import os
-import pathlib
 import sys
-import tempfile
 import warnings
 from collections import Counter
 from functools import partial
@@ -14,14 +12,13 @@ import pandas as pd
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from emod_api.demographics import DemographicsTemplates as DT
-from emod_api.demographics.BaseInputFile import BaseInputFile
-from emod_api.demographics.DemographicsTemplates import CrudeRate, YearlyRate
-from emod_api.demographics.Node import Node
+import emod_api.demographics.implicit_functions
+from emod_api.demographics import demographics_templates as DT
+from emod_api.demographics.base_input_file import BaseInputFile
+from emod_api.demographics.node import Node
 from emod_api.demographics.age_distribution_old import AgeDistributionOld as AgeDistribution
 from emod_api.demographics.demographic_exceptions import InvalidNodeIdException
 from emod_api.demographics.mortality_distribution_old import MortalityDistributionOld as MortalityDistribution
-from emod_api.migration import migration
 
 
 class DemographicsBase(BaseInputFile):
@@ -42,9 +39,10 @@ class DemographicsBase(BaseInputFile):
         pass
 
     def __init__(self, nodes: List[Node], idref: str, default_node: Node = None):
+        """
+        Passed-in default nodes are optional. If one is not passed in, one will be created.
+        """
         super().__init__(idref=idref)
-        # TODO: node ids should be required to be UNIQUE to prevent later failures when running EMOD. Any update to
-        #  self.nodes should trigger a check/error if needed.
         self.nodes = nodes
         self.implicits = list()
         self.migration_files = list()
@@ -54,32 +52,27 @@ class DemographicsBase(BaseInputFile):
             if node.id <= 0:
                 raise InvalidNodeIdException(f"Non-default nodes must have integer ids > 0 . Found id: {node.id}")
 
-        # Build the default node if not provided
-        metadata = self.generate_headers()
-        if default_node is None:  # use raw attribute, current malaria/other disease style
-            # currently all non-HIV disease route
-            self.default_node = None
-            self.metadata = None
-            self.raw = {"Defaults": dict(), "Metadata": metadata}
-            self.raw["Defaults"]["NodeAttributes"] = dict()
-            self.raw["Defaults"]["IndividualAttributes"] = dict()
-            self.raw["Defaults"]["NodeID"] = 0
-            self.raw["Defaults"]["IndividualProperties"] = list()
-            # TODO: remove the following setting of birth_rate on the default node once this EMOD binary issue is fixed
-            #  https://github.com/InstituteforDiseaseModeling/DtkTrunk/issues/4009
-            self.raw["Defaults"]["NodeAttributes"]["BirthRate"] = 0
-        else:  # HIV style
-            self.default_node = default_node
-            self.default_node.name = self.DEFAULT_NODE_NAME
-            if self.default_node.id != 0:
-                raise InvalidNodeIdException(f"Default nodes must have an id of 0. It is {self.default_node.id} .")
-            self.metadata = metadata
-            # TODO: remove the following setting of birth_rate on the default node once this EMOD binary issue is fixed
-            #  https://github.com/InstituteforDiseaseModeling/DtkTrunk/issues/4009
-            self.get_node_by_id(node_id=0).birth_rate = 0
+        # Build the default node if not provided and then perform some setup/verification
+        default_node = self._generate_default_node() if default_node is None else default_node
+        self.default_node = default_node
+        self.default_node.name = self.DEFAULT_NODE_NAME
+        if self.default_node.id != 0:
+            raise InvalidNodeIdException(f"Default nodes must have an id of 0. It is {self.default_node.id} .")
+        self.metadata = self.generate_headers()
+        # TODO: remove the following setting of birth_rate on the default node once this EMOD binary issue is fixed
+        #  https://github.com/InstituteforDiseaseModeling/DtkTrunk/issues/4009
+        if self.default_node.birth_rate is None:
+            self.default_node.birth_rate = 0
 
         # enforce unique node ids and names
         self.verify_demographics_integrity()
+
+    def _generate_default_node(self) -> Node:
+        default_node = Node(lat=0, lon=0, pop=0, name=self.DEFAULT_NODE_NAME, forced_id=0)
+        # TODO: remove the following setting of birth_rate on the default node once this EMOD binary issue is fixed
+        #  https://github.com/InstituteforDiseaseModeling/DtkTrunk/issues/4009
+        default_node.birth_rate = 0
+        return default_node
 
     def _select_node_dicts(self, node_ids=None):
         if node_ids is None:
@@ -269,10 +262,7 @@ class DemographicsBase(BaseInputFile):
 
     @property
     def _all_nodes(self) -> List[Node]:
-        # only HIV is using a default node object right now, malaria currently uses self.raw
-        # None protection if users are using self.raw default node access
-        default_node = [] if self.default_node is None else [self.default_node]
-        all_nodes = self.nodes + default_node
+        all_nodes = self.nodes + [self.default_node]
         return all_nodes
 
     @property
@@ -366,43 +356,7 @@ class DemographicsBase(BaseInputFile):
                            if node_name in node_names}
         return requested_nodes
 
-    def SetMigrationPattern(self, pattern: str = "rwd"):
-        """
-        Set migration pattern. Migration is enabled implicitly.
-        It's unusual for the user to need to set this directly; normally used by emodpy.
-
-        Args:
-            pattern: Possible values are "rwd" for Random Walk Diffusion and "srt" for Single Round Trips.
-        """
-        if self.implicits is not None:
-            if pattern.lower() == "srt":
-                self.implicits.append(DT._set_migration_pattern_srt)
-            elif pattern.lower() == "rwd":
-                self.implicits.append(DT._set_migration_pattern_rwd)
-            else:
-                raise ValueError('Unknown migration pattern: %s. Possible values are "rwd" and "srt".', pattern)
-
-    def _SetRegionalMigrationFileName(self, file_name):
-        """
-        Set path to migration file.
-
-        Args:
-            file_name: Path to migration file.
-        """
-        if self.implicits is not None:
-            self.implicits.append(partial(DT._set_regional_migration_filenames, file_name=file_name))
-
-    def _SetLocalMigrationFileName(self, file_name):
-        """
-        Set path to migration file.
-
-        Args:
-            file_name: Path to migration file.
-        """
-        if self.implicits is not None:
-            self.implicits.append(partial(DT._set_local_migration_filename, file_name=file_name))
-
-    def _SetDemographicFileNames(self, file_names):
+    def set_demographics_filenames(self, file_names: List[str]):
         """
         Set paths to demographic file.
 
@@ -410,128 +364,7 @@ class DemographicsBase(BaseInputFile):
             file_names: Paths to demographic files.
         """
         if self.implicits is not None:
-            self.implicits.append(partial(DT._set_demographic_filenames, file_names=file_names))
-
-    def SetRoundTripMigration(self,
-                              gravity_factor: float,
-                              probability_of_return: float = 1.0,
-                              id_ref: str = 'short term commuting migration'):
-        """
-        Set commuter/seasonal/temporary/round-trip migration rates. You can use the x_Local_Migration configuration
-            parameter to tune/calibrate.
-
-        Args:
-            gravity_factor: 'Big G' in gravity equation. Combines with 1, 1, and -2 as the other exponents.
-            probability_of_return: Likelihood that an individual who 'commuter migrates' will return to the node
-                                   of origin during the next migration (not timestep). Defaults to 1.0. Aka, travel,
-                                   shed, return."
-            id_ref: Text string that appears in the migration file itself; needs to match corresponding demographics
-                file.
-        """
-        if gravity_factor < 0:
-            raise ValueError("gravity factor can't be negative.")
-
-        gravity_params = [gravity_factor, 1.0, 1.0, -2.0]
-        if probability_of_return < 0 or probability_of_return > 1.0:
-            raise ValueError(f"probability_of_return parameter passed by not a probability: {probability_of_return}")
-
-        mig = migration._from_demog_and_param_gravity(self, gravity_params=gravity_params,
-                                                      id_ref=id_ref,
-                                                      migration_type=migration.Migration.LOCAL)
-        migration_file_path = tempfile.NamedTemporaryFile().name + ".bin"
-        mig.to_file(migration_file_path)
-        self.migration_files.append(migration_file_path)
-
-        if self.implicits is not None:
-            self.implicits.append(partial(DT._set_local_migration_roundtrip_probability,
-                                          probability_of_return=probability_of_return))
-            self.implicits.append(partial(DT._set_local_migration_filename,
-                                          file_name=pathlib.PurePath(migration_file_path).name))
-        self.SetMigrationPattern("srt")
-
-    def SetOneWayMigration(self,
-                           rates_path: Union[str, os.PathLike],
-                           id_ref: str = 'long term migration'):
-        """
-        Set one way migration. You can use the x_Regional_Migration configuration parameter to tune/calibrate.
-
-        Args:
-            rates_path: Path to csv file with node-to-node migration rates. Format is: source (node id),destination
-                (node id),rate.
-            id_ref: Text string that appears in the migration file itself; needs to match corresponding demographics
-                file.
-        """
-
-        mig = migration.from_csv(pathlib.Path(rates_path), id_ref=id_ref, mig_type=migration.Migration.REGIONAL)
-        migration_file_path = tempfile.NamedTemporaryFile().name + ".bin"
-        mig.to_file(migration_file_path)
-        self.migration_files.append(migration_file_path)
-
-        if self.implicits is not None:
-            self.implicits.append(partial(DT._set_regional_migration_roundtrip_probability, probability_of_return=0.0))
-            self.implicits.append(partial(DT._set_regional_migration_filenames,
-                                          file_name=pathlib.PurePath(migration_file_path).name))
-        self.SetMigrationPattern("srt")
-
-    def SetSimpleVitalDynamics(self,
-                               crude_birth_rate: CrudeRate = CrudeRate(40),
-                               crude_death_rate: CrudeRate = CrudeRate(20),
-                               node_ids: List = None):
-        """
-        Set fertility, mortality, and initial age with single birth rate and single mortality rate.
-
-        Args:
-            crude_birth_rate: Birth rate, per year per kiloperson.
-            crude_death_rate: Mortality rate, per year per kiloperson.
-            node_ids: Optional list of nodes to limit these settings to.
-
-        """
-
-        self.SetBirthRate(crude_birth_rate, node_ids)
-        self.SetMortalityRate(crude_death_rate, node_ids)
-        self.SetEquilibriumAgeDistFromBirthAndMortRates(crude_birth_rate, crude_death_rate, node_ids)
-
-    # TODO: is this useful in a way that warrants a special-case function in emodpy?
-    #  https://github.com/InstituteforDiseaseModeling/emod-api-old/issues/790
-    def SetEquilibriumVitalDynamics(self,
-                                    crude_birth_rate: CrudeRate = CrudeRate(40),
-                                    node_ids: List = None):
-        """
-        Set fertility, mortality, and initial age with single rate and mortality to achieve steady state population.
-
-        Args:
-            crude_birth_rate: Birth rate. And mortality rate.
-            node_ids: Optional list of nodes to limit these settings to.
-
-        """
-
-        self.SetSimpleVitalDynamics(crude_birth_rate, crude_birth_rate, node_ids)
-
-    # TODO: is this useful in a way that warrants a special-case function in emodpy?
-    #  https://github.com/InstituteforDiseaseModeling/emod-api-old/issues/791
-    def SetEquilibriumVitalDynamicsFromWorldBank(self,
-                                                 wb_births_df: pd.DataFrame,
-                                                 country: str,
-                                                 year: int,
-                                                 node_ids: List = None):
-        """
-        Set steady-state fertility, mortality, and initial age with rates from world bank, for given country and year.
-
-        Args:
-            wb_births_df: Pandas dataframe with World Bank birth rate by country and year.
-            country: Country to pick from World Bank dataset.
-            year: Year to pick from World Bank dataset.
-            node_ids: Optional list of nodes to limit these settings to.
-
-        """
-
-        try:
-            birth_rate = CrudeRate(wb_births_df[wb_births_df['Country Name'] == country][str(year)].tolist()[0])
-            # result_scale_factor = 2.74e-06 # assuming world bank units for input
-            # birth_rate *= result_scale_factor # from births per 1000 pop per year to per person per day
-        except Exception as ex:
-            raise ValueError(f"Exception trying to find {year} and {country} in dataframe.\n{ex}")
-        self.SetEquilibriumVitalDynamics(birth_rate, node_ids)
+            self.implicits.append(partial(emod_api.demographics.implicits._set_demographic_filenames, file_names=file_names))
 
     def SetDefaultIndividualAttributes(self):
         """
@@ -560,38 +393,40 @@ class DemographicsBase(BaseInputFile):
     # DTK is births per person per day.
     def SetBirthRate(self,
                      birth_rate: float,
-                     node_ids: List = None):
+                     node_ids: List[int] = None) -> None:
         """
         Set Default birth rate to birth_rate. Turn on Vital Dynamics and Births implicitly.
+
+        Args:
+            birth_rate: (float) The birth rate in units of births/year/1000-women
+            node_ids: a list of node_ids. None or 0 indicates the default node.
+
+        Returns:
+            Nothing
         """
         warnings.warn('SetBirthRate() is deprecated. Default nodes should now be represented by Node '
                       'objects and passed to the Demographics object during the constructor call. They can be modified '
                       'afterward, if needed.',
                       DeprecationWarning, stacklevel=2)
-        if type(birth_rate) is float or type(birth_rate) is int:
-            birth_rate = CrudeRate(birth_rate)
-        dtk_birthrate = birth_rate.get_dtk_rate()
+        dtk_birthrate = birth_rate / 365 / 1000
+
         if node_ids is None:
             self.raw['Defaults']['NodeAttributes'].update({
                 "BirthRate": dtk_birthrate
             })
         else:
-            for node_id in node_ids:
-                self.get_node_by_id(node_id=node_id).birth_rate = dtk_birthrate
-        self.implicits.append(DT._set_population_dependent_birth_rate)
+            nodes = self.get_nodes_by_id(node_ids=node_ids)
+            for _, node in nodes.items():
+                node.birth_rate = dtk_birthrate
+        self.implicits.append(emod_api.demographics.implicits._set_population_dependent_birth_rate)
 
     def SetMortalityRate(self,
-                         mortality_rate: CrudeRate, node_ids: List[int] = None):
+                         mortality_rate: float, node_ids: List[int] = None):
         """
         Set constant mortality rate to mort_rate. Turn on Enable_Natural_Mortality implicitly.
         """
         warnings.warn('SetMortalityRate() is deprecated. Please use the emodpy Demographics method: '
                       'set_mortality_distribution()', DeprecationWarning, stacklevel=2)
-
-        # yearly_mortality_rate = YearlyRate(mortality_rate)
-        if type(mortality_rate) is float or type(mortality_rate) is int:
-            mortality_rate = CrudeRate(mortality_rate)
-        mortality_rate = mortality_rate.get_dtk_rate()
         if node_ids is None:
             # setting = {"MortalityDistribution": DT._ConstantMortality(yearly_mortality_rate).to_dict()}
             setting = {"MortalityDistribution": DT._ConstantMortality(mortality_rate).to_dict()}
@@ -603,7 +438,7 @@ class DemographicsBase(BaseInputFile):
                 self.get_node_by_id(node_id=node_id)._set_mortality_complex_distribution(distribution)
 
         if self.implicits is not None:
-            self.implicits.append(DT._set_mortality_age_gender)
+            self.implicits.append(emod_api.demographics.implicits._set_mortality_age_gender)
 
     def SetMortalityDistribution(self, distribution: MortalityDistribution = None,
                                  node_ids: List[int] = None):
@@ -626,7 +461,7 @@ class DemographicsBase(BaseInputFile):
                 self.get_node_by_id(node_id=node_id)._set_mortality_complex_distribution(distribution)
 
         if self.implicits is not None:
-            self.implicits.append(DT._set_mortality_age_gender)
+            self.implicits.append(emod_api.demographics.implicits._set_mortality_age_gender)
 
     def SetMortalityDistributionFemale(self, distribution: MortalityDistribution = None,
                                        node_ids: List[int] = None):
@@ -651,7 +486,7 @@ class DemographicsBase(BaseInputFile):
                 self.get_node_by_id(node_id=node_id)._set_mortality_female_complex_distribution(distribution)
 
         if self.implicits is not None:
-            self.implicits.append(DT._set_mortality_age_gender)
+            self.implicits.append(emod_api.demographics.implicits._set_mortality_age_gender)
 
     def SetMortalityDistributionMale(self, distribution: MortalityDistribution = None,
                                      node_ids: List[int] = None):
@@ -676,7 +511,7 @@ class DemographicsBase(BaseInputFile):
                 self.get_node_by_id(node_id=node_id)._set_mortality_male_complex_distribution(distribution)
 
         if self.implicits is not None:
-            self.implicits.append(DT._set_mortality_age_gender)
+            self.implicits.append(emod_api.demographics.implicits._set_mortality_age_gender)
 
     def SetMortalityOverTimeFromData(self,
                                      data_csv: Union[str, os.PathLike],
@@ -766,7 +601,7 @@ class DemographicsBase(BaseInputFile):
                 self.get_node_by_id(node_id=node_id)._set_mortality_female_complex_distribution(distrib)
 
         if self.implicits is not None:
-            self.implicits.append(DT._set_mortality_age_gender_year)
+            self.implicits.append(emod_api.demographics.implicits._set_mortality_age_gender_year)
 
     def SetAgeDistribution(self, distribution: AgeDistribution, node_ids: List[int] = None):
         """
@@ -787,7 +622,7 @@ class DemographicsBase(BaseInputFile):
                 self.get_node_by_id(node_id=node_id)._set_age_complex_distribution(distribution)
 
         if self.implicits is not None:
-            self.implicits.append(DT._set_age_complex)
+            self.implicits.append(emod_api.demographics.implicits._set_age_complex)
 
     def SetDefaultNodeAttributes(self, birth=True):
         """
@@ -803,7 +638,8 @@ class DemographicsBase(BaseInputFile):
                                                   "Region": 1,
                                                   "Seaport": 1}
         if birth:
-            self.SetBirthRate(YearlyRate(math.log(1.03567)))
+            # raise Exception("This will be removed in a new issue/PR shortly. Do not use.")
+            self.SetBirthRate(birth_rate=math.log(1.03567))
 
     def SetDefaultProperties(self):
         """
@@ -834,26 +670,36 @@ class DemographicsBase(BaseInputFile):
 
     # TODO: is this useful in a way that warrants a special-case function in emodpy built around set_age_distribution?
     #  https://github.com/InstituteforDiseaseModeling/emod-api-old/issues/788
-    def SetEquilibriumAgeDistFromBirthAndMortRates(self, CrudeBirthRate=CrudeRate(40), CrudeMortRate=CrudeRate(20),
-                                                   node_ids=None):
+    def SetEquilibriumAgeDistFromBirthAndMortRates(self,
+                                                   birth_rate: float = 40.0,
+                                                   mortality_rate: float = 20.0,
+                                                   node_ids: List[int] = None):
         """
-        Set the inital ages of the population to a sensible equilibrium profile based on the specified input birth and
-        death rates. Note this does not set the fertility and mortality rates.
-        """
-        warnings.warn('SetEquilibriumAgeDistFromBirthAndMortRates() is deprecated. Please use the emodpy Demographics method: '
-                      'set_age_distribution()', DeprecationWarning, stacklevel=2)
+            Set age distribution based on birth and death rates. Implicit function.
 
-        yearly_birth_rate = YearlyRate(CrudeBirthRate)
-        yearly_mortality_rate = YearlyRate(CrudeMortRate)
-        dist = DT._EquilibriumAgeDistFromBirthAndMortRates(yearly_birth_rate, yearly_mortality_rate)
-        setter_fn = DT._set_age_complex
+            Args:
+                birth_rate: (float) The birth rate in units of births/year/1000-women
+                mortality_rate: (float) The mortality rate in units of deaths/year/1000 people
+                node_ids: a list of node_ids. None or 0 indicates the default node.
+            Returns:
+                Nothing
+        """
+        warnings.warn(
+            'SetEquilibriumAgeDistFromBirthAndMortRates() is deprecated. Please use the emodpy Demographics method: '
+            'set_age_distribution()', DeprecationWarning, stacklevel=2)
+
+        dist = DT._EquilibriumAgeDistFromBirthAndMortRates(birth_rate=birth_rate,
+                                                           mortality_rate=mortality_rate)
+        setter_fn = emod_api.demographics.implicits._set_age_complex
+
         if node_ids is None:
             self.SetDefaultFromTemplate(dist, setter_fn)
         else:
             new_dist = AgeDistribution()
             dist = new_dist.from_dict(dist["AgeDistribution"])
-            for node in node_ids:
-                self.get_node_by_id(node_id=node)._set_age_complex_distribution(dist)
+            nodes = self.get_nodes_by_id(node_ids=node_ids)
+            for _, node in nodes.items():
+                node._set_age_complex_distribution(dist)
             self.implicits.append(setter_fn)
 
     def SetInitialAgeExponential(self, rate=0.0001068, description=""):
@@ -872,7 +718,7 @@ class DemographicsBase(BaseInputFile):
                    "AgeDistribution1": rate,
                    "AgeDistribution2": 0,
                    "AgeDistribution_Description": description}
-        self.SetDefaultFromTemplate(setting, DT._set_age_simple)
+        self.SetDefaultFromTemplate(setting, emod_api.demographics.implicits._set_age_simple)
 
     def SetInitialAgeLikeSubSaharanAfrica(self, description=""):
         """
@@ -887,22 +733,6 @@ class DemographicsBase(BaseInputFile):
             description = "Setting initial age distribution like Sub Saharan Africa, drawing from exponential distribution."
 
         self.SetInitialAgeExponential(description=description)  # use default rate
-
-    def SetOverdispersion(self, new_overdispersion_value, nodes: List = None):
-        """
-        Set the overdispersion value for the specified nodes (all if empty).
-        """
-        if nodes is None:
-            nodes = []
-
-        def enable_overdispersion(config):
-            print("DEBUG: Setting 'Enable_Infection_Rate_Overdispersion' to 1.")
-            config.parameters.Enable_Infection_Rate_Overdispersion = 1
-            return config
-
-        if self.implicits is not None:
-            self.implicits.append(enable_overdispersion)
-        self.raw['Defaults']['NodeAttributes']["InfectivityOverdispersion"] = new_overdispersion_value
 
     def SetInitPrevFromUniformDraw(self, min_init_prev, max_init_prev, description=""):
         """
@@ -972,7 +802,7 @@ class DemographicsBase(BaseInputFile):
         self.SetMortalityDistributionFemale(mort_distr_female)
 
         if self.implicits is not None:
-            self.implicits.append(DT._set_mortality_age_gender_year)
+            self.implicits.append(emod_api.demographics.implicits._set_mortality_age_gender_year)
 
     def SetFertilityOverTimeFromParams(self,
                                        years_region1: int,
@@ -1003,6 +833,7 @@ class DemographicsBase(BaseInputFile):
         Returns:
             rates array (Just in case user wants to do something with them like inspect or plot.)
         """
+        from emod_api.demographics.implicit_functions import _set_fertility_age_year
         warnings.warn('SetFertilityOverTimeFromParams() is deprecated. Please use the emodpy-hiv Demographics method: '
                       'set_fertility_distribution()', DeprecationWarning, stacklevel=2)
         if node_ids is None:
@@ -1032,14 +863,14 @@ class DemographicsBase(BaseInputFile):
                 full_dict = {"FertilityDistribution": dist.to_dict()}
             else:
                 full_dict = dist_dict
-            self.SetDefaultFromTemplate(full_dict, DT._set_fertility_age_year)
+            self.SetDefaultFromTemplate(full_dict, _set_fertility_age_year)
         else:
             if len(self.nodes) == 1 and len(node_ids) > 1:
                 raise ValueError("User specified several node ids for single node demographics setup.")
             for node_id in node_ids:
                 self.get_node_by_id(node_id=node_id)._set_fertility_complex_distribution(dist)
             if self.implicits is not None:
-                self.implicits.append(DT._set_fertility_age_year)
+                self.implicits.append(_set_fertility_age_year)
         return rates
 
     def infer_natural_mortality(self,
@@ -1058,7 +889,7 @@ class DemographicsBase(BaseInputFile):
         from collections import OrderedDict
         from sklearn.linear_model import LinearRegression
         from functools import reduce
-
+        from emod_api.demographics.implicit_functions import _set_mortality_age_gender_year
         warnings.warn('infer_natural_mortality() is deprecated. Please use modern country model loading.',
                       DeprecationWarning, stacklevel=2)
 
@@ -1222,5 +1053,15 @@ class DemographicsBase(BaseInputFile):
                      'ResultUnits': 'annual deaths per capita',
                      'ResultValues': male_output.tolist()
                      }
-        self.implicits.append(DT._set_mortality_age_gender_year)
+        self.implicits.append(_set_mortality_age_gender_year)
         return dict_female, dict_male
+
+    def to_dict(self) -> Dict:
+        self.verify_demographics_integrity()
+        demographics_dict = {
+            'Defaults': self.default_node.to_dict(),
+            'Nodes': [node.to_dict() for node in self.nodes],
+            'Metadata': self.metadata
+        }
+        demographics_dict["Metadata"]["NodeCount"] = len(self.nodes)
+        return demographics_dict

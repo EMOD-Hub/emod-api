@@ -5,6 +5,8 @@ import scipy.sparse as sp
 import scipy.sparse.linalg as la
 
 from emod_api.demographics.fertility_distribution_old import FertilityDistributionOld as FertilityDistribution
+from emod_api.demographics.implicit_functions import _set_suscept_complex, _set_suscept_simple, _set_age_simple, \
+    _set_age_complex, _set_init_prev, _set_mortality_age_gender, _set_enable_demog_risk
 from emod_api.demographics.mortality_distribution_old import MortalityDistributionOld as MortalityDistribution
 
 
@@ -23,156 +25,6 @@ class DemographicsTemplatesConstants:
                                        21899.6, 23729.5, 23729.6, 25559.5, 25559.6, 27389.5,
                                        27389.6, 29189.5, 29189.6, 31019.5, 31019.6, 32849.5,
                                        32849.6, 34679.5, 34679.6, 36509.5, 36509.6, 38339.5]
-
-
-class CrudeRate:  # would like to derive from float
-    def __init__(self, init_rate):
-        self._time_units = 365
-        self._people_units = 1000
-        self._rate = init_rate
-
-    def get_dtk_rate(self):
-        return self._rate / self._time_units / self._people_units
-
-
-class YearlyRate(CrudeRate):  # would like to derive from float
-    def __init__(self, init_rate):
-        self._time_units = 365
-        self._people_units = 1
-        if type(init_rate) is CrudeRate:
-            self._rate = init_rate._rate / 1000.
-        else:
-            self._rate = init_rate
-
-
-class DtkRate(CrudeRate):
-    def __init__(self, init_rate):
-        super().__init__(init_rate)
-        self._time_units = 1
-        self._people_units = 1
-        self._rate = init_rate
-
-
-# Migration
-def _set_migration_model_fixed_rate(config):
-    config.parameters.Migration_Model = "FIXED_RATE_MIGRATION"
-    return config
-
-
-def _set_enable_migration_model_heterogeneity(config):
-    config.parameters.Enable_Migration_Heterogeneity = 1
-    return config
-
-
-def _set_migration_pattern_srt(config):
-    config.parameters.Migration_Pattern = "SINGLE_ROUND_TRIPS"
-    return config
-
-
-def _set_migration_pattern_rwd(config):
-    config.parameters.Migration_Pattern = "RANDOM_WALK_DIFFUSION"
-    return config
-
-
-def _set_regional_migration_filenames(config, file_name):
-    config.parameters.Regional_Migration_Filename = file_name
-    return config
-
-
-def _set_local_migration_filename(config, file_name):
-    config.parameters.Local_Migration_Filename = file_name
-    return config
-
-
-def _set_demographic_filenames(config, file_names):
-    config.parameters.Demographics_Filenames = file_names
-    return config
-
-
-def _set_local_migration_roundtrip_probability(config, probability_of_return):
-    config.parameters.Local_Migration_Roundtrip_Probability = probability_of_return
-    return config
-
-
-def _set_regional_migration_roundtrip_probability(config, probability_of_return):
-    config.parameters.Regional_Migration_Roundtrip_Probability = probability_of_return
-    return config
-
-
-# Susceptibility
-def _set_suscept_complex(config):
-    config.parameters.Susceptibility_Initialization_Distribution_Type = "DISTRIBUTION_COMPLEX"
-    return config
-
-
-def _set_suscept_simple(config):
-    config.parameters.Susceptibility_Initialization_Distribution_Type = "DISTRIBUTION_SIMPLE"
-    return config
-
-
-# Age Structure
-def _set_age_simple(config):
-    config.parameters.Age_Initialization_Distribution_Type = "DISTRIBUTION_SIMPLE"
-    return config
-
-
-def _set_age_complex(config):
-    config.parameters.Age_Initialization_Distribution_Type = "DISTRIBUTION_COMPLEX"
-    return config
-
-
-# Initial Prevalence
-def _set_init_prev(config):
-    config.parameters.Enable_Initial_Prevalence = 1
-    return config
-
-
-# Mortality
-def _set_enable_natural_mortality(config):
-    config.parameters.Enable_Natural_Mortality = 1
-    return config
-
-
-def _set_mortality_age_gender(config):
-    config.parameters.Death_Rate_Dependence = "NONDISEASE_MORTALITY_BY_AGE_AND_GENDER"
-    return config
-
-
-def _set_mortality_age_gender_year(config):
-    config.parameters.Death_Rate_Dependence = "NONDISEASE_MORTALITY_BY_YEAR_AND_AGE_FOR_EACH_GENDER"
-    return config
-
-
-# Fertility
-def _set_fertility_age_year(config):
-    config.parameters.Birth_Rate_Dependence = "INDIVIDUAL_PREGNANCIES_BY_AGE_AND_YEAR"
-    return config
-
-
-def _set_population_dependent_birth_rate(config):
-    config.parameters.Birth_Rate_Dependence = "POPULATION_DEP_RATE"
-    return config
-
-
-# Risk
-def _set_enable_demog_risk(config):
-    config.parameters.Enable_Demographics_Risk = 1
-    return config
-
-
-# Innate immunity (malaria support)
-# TODO: Move to emodpy-malaria?
-#  https://github.com/InstituteforDiseaseModeling/emodpy-malaria-old/issues/707
-def _set_immune_variation_type_cytokine_killing(config):
-    config.parameters.Innate_Immune_Variation_Type = 'CYTOKINE_KILLING'
-    return config
-
-
-# TODO: Move to emodpy-malaria?
-#  https://github.com/InstituteforDiseaseModeling/emodpy-malaria-old/issues/707
-def _set_immune_variation_type_pyrogenic_threshold(config):
-    config.parameters.Innate_Immune_Variation_Type = 'PYROGENIC_THRESHOLD'
-    return config
 
 
 #
@@ -557,24 +409,30 @@ def AgeStructureUNWPP(demog):
     demog.SetDefaultFromTemplate(setting, _set_age_complex)
 
 
-def _EquilibriumAgeDistFromBirthAndMortRates(birth_rate=YearlyRate(40 / 1000.), mort_rate=YearlyRate(20 / 1000.)):
+def _EquilibriumAgeDistFromBirthAndMortRates(birth_rate=40.0, mortality_rate=20.0):
     """
-    Set age distribution based on birth and death rates.
+    Set age distribution based on birth and death rates. Implicit function.
 
     Args:
-        birth_rate: births per person per year.
-        mort_rate: deaths per person per year.
+        # birth_rate: births per person per year.
+        birth_rate: (float) The birth rate in units of births/year/1000-women
+        # mort_rate: deaths per person per year.
+        mortality_rate: (float) The mortality rate in units of deaths/year/1000 people
 
     Returns:
         dictionary which can be inserted into demographics object.
 
     """
-    BirthRate = math.log(1 + birth_rate.get_dtk_rate())
-    MortRate = -1 * math.log(1 - mort_rate.get_dtk_rate())
+    # convert to daily rate per person, EMOD units
+    birth_rate = (birth_rate / 1000) / 365  # what is actually used below
+    mortality_rate = (mortality_rate / 1000) / 365  # what is actually used below
+
+    birth_rate = math.log(1 + birth_rate)
+    mortality_rate = -1 * math.log(1 - mortality_rate)
 
     # It is important for the age distribution computation that the age-spacing be very fine; I've used 30 days here.
     # With coarse spacing, the computation in practice doesn't work as well.
-    ageDist = _computeAgeDist(BirthRate, [i * 30 for i in range(1200)], 1200 * [MortRate], 12 * [1.0])
+    ageDist = _computeAgeDist(birth_rate, [i * 30 for i in range(1200)], 1200 * [mortality_rate], 12 * [1.0])
 
     # The final demographics file, though, can use coarser binning interpolated from the finely-spaced computed distribution.
     EMODAgeBins = list(range(16)) + [20 + 5 * i for i in range(14)]

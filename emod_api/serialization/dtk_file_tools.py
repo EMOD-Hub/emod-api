@@ -9,7 +9,7 @@ Support for three formats of serialized population files:
 """
 
 import copy
-import emod_api.serialization.dtkFileSupport as support
+import emod_api.serialization.dtk_file_support as support
 import json
 import os
 import time

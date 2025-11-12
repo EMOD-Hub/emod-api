@@ -1,6 +1,6 @@
 import unittest
 
-from emod_api.demographics.PropertiesAndAttributes import IndividualProperties, IndividualProperty
+from emod_api.demographics.properties_and_attributes import IndividualProperties, IndividualProperty
 
 
 class IndividualPropertiesTest(unittest.TestCase):

@@ -1,6 +1,6 @@
 from typing import List, Dict
 
-from emod_api.demographics.Updateable import Updateable
+from emod_api.demographics.updateable import Updateable
 
 
 class SusceptibilityDistributionOld(Updateable):

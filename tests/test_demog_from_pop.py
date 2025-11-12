@@ -1,4 +1,4 @@
-import emod_api.demographics.Demographics as Dem
+import emod_api.demographics.demographics as Dem
 import os
 import pandas as pd
 import json

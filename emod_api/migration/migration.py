@@ -13,7 +13,7 @@ import csv
 
 # for from_params()
 import scipy.spatial.distance as spspd
-from emod_api.demographics import Demographics as Demog
+from emod_api.demographics import demographics as Demog
 
 # for from_demog_and_param_gravity()
 from geographiclib.geodesic import Geodesic

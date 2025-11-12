@@ -33,22 +33,18 @@ class EmodapiDemographicsImportTest(unittest.TestCase):
         '''
         import emod_api.demographics.demographics_utils as eaddu
         self.verify_expected_items_present(namespace=eaddu)
-        pass
 
-    def test_demog_demog_import(self):
+    def test_demographics_class_api(self):
         self.expected_items = [
-            'Demographics',
-            'Node',
             'from_csv',
-            'from_file',
-            'from_params',
-            'get_node_ids_from_file',
-            'get_node_pops_from_params',
-            '_node_id_from_lat_lon_res'
+            'from_pop_raster_csv',
+            'from_template_node',
+            '_node_id_from_lat_lon_res',
+            'to_file',
+            'to_dict'  # from DemographicsBase
         ]
-        import emod_api.demographics.Demographics as eaddf
-        self.verify_expected_items_present(namespace=eaddf)
-        pass
+        from emod_api.demographics.demographics import Demographics
+        self.verify_expected_items_present(namespace=Demographics)
 
     def test_demog_node_import(self):
         self.expected_items = [
@@ -59,9 +55,8 @@ class EmodapiDemographicsImportTest(unittest.TestCase):
             'nodes_for_DTK',
             'xpix_ypix_from_lat_lon'
         ]
-        import emod_api.demographics.Node as eadn
+        import emod_api.demographics.node as eadn
         self.verify_expected_items_present(namespace=eadn)
-        pass
 
     def test_demog_templates_import(self):
         self.expected_items = [
@@ -72,6 +67,5 @@ class EmodapiDemographicsImportTest(unittest.TestCase):
             '_set_age_complex', '_set_age_simple', '_set_init_prev', '_set_suscept_complex',
             '_set_suscept_simple'
         ]
-        import emod_api.demographics.DemographicsTemplates as eaddt
+        import emod_api.demographics.demographics_templates as eaddt
         self.verify_expected_items_present(namespace=eaddt)
-        pass

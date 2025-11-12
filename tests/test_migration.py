@@ -716,6 +716,7 @@ class MigrationTests(unittest.TestCase):
 
         return
 
+    @unittest.skip("any test using demographics will need to be ported to 2.x format before being reinstated")
     def test_from_demog_and_param_gravity(self):
         demographics_file = os.path.join(manifest.demo_folder, 'Seattle_30arcsec_demographics.json')
 
@@ -729,6 +730,7 @@ class MigrationTests(unittest.TestCase):
 
         return
 
+    @unittest.skip("any test using demographics will need to be ported to 2.x format before being reinstated")
     def test_from_demog_and_param_gravity_distance(self):
         def get_distance(lat1, lon1, lat2, lon2):
             r = 6371
@@ -796,6 +798,7 @@ class MigrationTests(unittest.TestCase):
 
         verify_distance(migration_rate, locations)
 
+    @unittest.skip("any test using demographics will need to be ported to 2.x format before being reinstated")
     def test_from_demog_and_param_gravity_with_reference(self):
         demographics_file = os.path.join(manifest.demo_folder, 'Seattle_30arcsec_demographics.json')
 

@@ -6,7 +6,7 @@ from emod_api.demographics.mortality_distribution import MortalityDistribution
 from emod_api.demographics.mortality_distribution_old import MortalityDistributionOld
 from emod_api.demographics.susceptibility_distribution import SusceptibilityDistribution
 from emod_api.demographics.susceptibility_distribution_old import SusceptibilityDistributionOld
-from emod_api.demographics.Updateable import Updateable
+from emod_api.demographics.updateable import Updateable
 
 from typing import List, Union
 
@@ -151,15 +151,15 @@ class IndividualProperties(Updateable):
     # TODO: this constructor call is WEIRD. it should take a list of IndividualProperties instead and remove
     #  "if is None" checks on self.individual_properties (None should auto goes to [] in constructor)
     #  https://github.com/InstituteforDiseaseModeling/emod-api/issues/685
-    def __init__(self, individual_property: IndividualProperty = None):
+    def __init__(self, individual_properties: List[IndividualProperty] = None):
         """
         https://docs.idmod.org/projects/emod-generic/en/latest/model-properties.html
 
         Args:
-            individual_property:
+            individual_properties:
         """
         super().__init__()
-        self.individual_properties = [individual_property] if individual_property else None
+        self.individual_properties = individual_properties if individual_properties else []
 
     def add(self, individual_property: IndividualProperty, overwrite=False) -> None:
         if self.individual_properties is None:
@@ -207,8 +207,6 @@ class IndividualProperties(Updateable):
         return self.individual_properties[index]
 
     def __len__(self):
-        if not self.individual_properties:
-            return 0
         return len(self.individual_properties)
 
 
