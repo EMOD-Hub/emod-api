@@ -478,7 +478,7 @@ class DemographicsTest(unittest.TestCase):
         id_reference = 'from_raster'  # default value for .from_pop_raster_csv()
 
         input_file = os.path.join(manifest.demo_folder, 'nodes.csv')
-        demog = Demographics.from_pop_raster_csv(input_file, pop_filename_out=manifest.output_folder)
+        demog = Demographics.from_pop_raster_csv(pop_filename_in=input_file, pop_dirname_out=manifest.output_folder)
         self.assertEqual(id_reference, demog.idref)
 
         self.assertEqual(1, len(demog.nodes))

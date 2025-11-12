@@ -4,9 +4,9 @@ import pandas as pd
 
 from typing import List
 
+from emod_api.demographics.demographics_base import DemographicsBase
 from emod_api.demographics.node import Node
 from emod_api.demographics.properties_and_attributes import NodeAttributes
-from emod_api.demographics.demographics_base import DemographicsBase
 from emod_api.demographics.service import service
 
 
@@ -16,10 +16,13 @@ class Demographics(DemographicsBase):
     """
     def __init__(self, nodes: List[Node], idref: str = "Gridded world grump2.5arcmin", default_node: Node = None):
         """
-        A class to create demographics.
-        :param nodes: list of Nodes
-        :param idref: A name/reference
-        :default_node: An optional node to use for default settings.
+        Object representation of an EMOD Demographics input (json) file.
+
+        Args:
+            nodes: list(Node) nodes to include in the Demographics object.
+            idref: (string) an identifier for the Demographics file. Used to co-identify sets of Demographics/overlay
+                files.
+            default_node: (Node) Represents default values for all nodes, unless overridden on a per-node basis.
         """
         super().__init__(nodes=nodes, idref=idref, default_node=default_node)
 
@@ -29,23 +32,43 @@ class Demographics(DemographicsBase):
             node.node_attributes.seaport = 1
             node.node_attributes.region = 1
 
-    def generate_file(self, name="demographics.json"):
+    def to_file(self, name: str = "demographics.json"):
         """
-        Write the contents of the object to an EMOD-compatible (JSON) file.
+        Write the Demographics object to an EMOD demograhpics json file.
+
+        Args:
+            name: (str) the filepath to write the file to. Default is "demographics.json".
+
+        Returns:
+            Nothing
         """
         with open(name, "w") as output:
             json.dump(self.to_dict(), output, indent=3, sort_keys=True)
-        return name
+
+    def generate_file(self, name: str = "demographics.json"):
+        import warnings
+        warnings.warn("generate_file() is deprecated. Please use to_file()", DeprecationWarning, stacklevel=2)
+        return self.to_file(name=name)
 
     @classmethod
     def from_template_node(cls,
-                           lat=0,
-                           lon=0,
-                           pop=1000000,
-                           name="Erewhon",
-                           forced_id=1):
+                           lat: float = 0,
+                           lon: float = 0,
+                           pop: int = 1000000,
+                           name: str = "Erewhon",
+                           forced_id: int = 1) -> "Demographics":
         """
-        Create a single-node Demographics object from a few parameters.
+        Creates a basic, single-node Demographics object.
+
+        Args:
+            lat: (float, optional) latitude of node to be created. Default is 0.
+            lon: (float, optional) longitude of node to be created. Default is 0.
+            pop: (int, optional) number of people in the node to be created. Default is 1000000.
+            name: (str, optional) name of node to be created. Default is Erewhon.
+            forced_id: (int, optional) id of node to be created. Default is 1.
+
+        Returns:
+            A Demographics object
         """
         new_nodes = [Node(lat=lat, lon=lon, pop=pop, forced_id=forced_id, name=name)]
         return cls(nodes=new_nodes)
@@ -60,18 +83,19 @@ class Demographics(DemographicsBase):
 
     @classmethod
     def from_csv(cls,
-                 input_file,
-                 res=30 / 3600,
-                 id_ref="from_csv") -> "Demographics":
+                 input_file: str,
+                 res: float = 30 / 3600,
+                 id_ref: str = "from_csv") -> "Demographics":
         """
         Create an EMOD-compatible :py:class:`Demographics` instance from a csv population-by-node file.
 
         Args:
-            input_file (str): Filename
-            res (float, optional): Resolution of the nodes in arc-seconds
-            id_ref (str, optional): Description of the source of the file.
+            input_file (str): the csv filepath to read from.
+            res (float, optional): spatial resolution of the nodes in arc-seconds
+            id_ref (str, optional): Description of the file source for co-identification of demographics objects/files.
 
-        Returns: A Demographics object
+        Returns:
+            A Demographics object
         """
         def get_value(row, headers):
             for h in headers:
@@ -129,11 +153,11 @@ class Demographics(DemographicsBase):
     # This will be the long-term API for this function.
     @classmethod
     def from_pop_raster_csv(cls,
-                            pop_filename_in,
-                            res=1 / 120,
-                            id_ref="from_raster",
-                            pop_filename_out="spatial_gridded_pop_dir",
-                            site="No_Site"):
+                            pop_filename_in: str,
+                            res: float = 1/120,
+                            id_ref: str = "from_raster",
+                            pop_dirname_out: str = "spatial_gridded_pop_dir",
+                            site: str = "No_Site"):
         """
         Take a csv of a population-counts raster and build a grid for use with EMOD simulations.
         Grid size is specified by grid resolution in arcs or in kilometers. The population counts
@@ -142,30 +166,36 @@ class Demographics(DemographicsBase):
         from_csv to generate a demographics object.
 
         Args:
-            pop_filename_in (str): The filename of the population-counts raster in CSV format.
+            pop_filename_in (str): The filepath of the population-counts raster in CSV format.
             res (float, optional): The grid resolution in arcs or kilometers. Default is 1/120.
             id_ref (str, optional): Identifier reference for the grid. Default is "from_raster".
-            pop_filename_out (str, optional): The output filename for the intermediate grid file.
+            pop_dirname_out (str, optional): The output directory name to hold the intermediate grid file.
                 Default is "spatial_gridded_pop_dir".
             site (str, optional): The site name or identifier. Default is "No_Site".
 
         Returns:
-            (Demographics): New Demographics object based on the grid file.
+            A Demographics object based on the input grid file.
 
         Raises:
 
         """
-        grid_file_path = service._create_grid_files(pop_filename_in, pop_filename_out, site)
+        grid_file_path = service._create_grid_files(point_records_file_in=pop_filename_in,
+                                                    final_grid_files_dir=pop_dirname_out,
+                                                    site=site)
         print(f"{grid_file_path} grid file created.")
-        return cls.from_csv(grid_file_path, res, id_ref)
+        return cls.from_csv(input_file=grid_file_path, res=res, id_ref=id_ref)
 
     @classmethod
     def from_pop_csv(cls,
-                     pop_filename_in,
-                     res=1 / 120,
-                     id_ref="from_raster",
-                     pop_filename_out="spatial_gridded_pop_dir",
-                     site="No_Site"):
+                     pop_filename_in: str,
+                     res: float = 1/120,
+                     id_ref: str = "from_raster",
+                     pop_dirname_out: str = "spatial_gridded_pop_dir",
+                     site: str = "No_Site"):
         import warnings
         warnings.warn("from_pop_csv is deprecated. Please use from_pop_csv.", DeprecationWarning, stacklevel=2)
-        return cls.from_pop_raster_csv(pop_filename_in, res, id_ref, pop_filename_out, site)
+        return cls.from_pop_raster_csv(pop_filename_in=pop_filename_in,
+                                       res=res,
+                                       id_ref=id_ref,
+                                       pop_dirname_out=pop_dirname_out,
+                                       site=site)
