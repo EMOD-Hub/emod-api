@@ -27,7 +27,7 @@ class DemographicsOverlay(DemographicsBase):
         nodes = [] if nodes is None else nodes
         super().__init__(nodes=nodes, idref=idref, default_node=default_node)
 
-    def to_file(self, file_name="demographics_overlay.json"):
+    def to_file(self, file_name: str = "demographics_overlay.json"):
         """
         Writes the DemographicsOverlay to an EMOD-compatible json file.
 
