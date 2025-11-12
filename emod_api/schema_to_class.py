@@ -267,7 +267,6 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
     ret_json = dict()
 
     schema_idm = schema["idmTypes"]
-    abstract_key0 = "idmType:AdditionalRestrictions"
     abstract_key1 = "idmAbstractType:CampaignEvent"
     abstract_key2 = "idmAbstractType:EventCoordinator"
     abstract_key3a = "idmAbstractType:IReport"
@@ -275,34 +274,31 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
     abstract_key4 = "idmAbstractType:NodeSet"
     abstract_key5a = "idmAbstractType:WaningEffect"
     abstract_key5b = "idmType:WaningEffect"
-    abstract_key6 = "idmAbstractType:Intervention"
+    abstract_key6a = "idmAbstractType:AdditionalRestrictions"
+    abstract_key6b = "idmType:AdditionalRestrictions"
+    abstract_key9 = "idmAbstractType:Intervention"
 
     # Abstract types get initialized to empty object
     if (classname.startswith("idmAbstractType")):
         ret_json = dict()
 
     # IReport is an abstract type, but incorrectly named
+    # abstract_key3b = "idmType:IReport"
     elif (classname == abstract_key3b):
         ret_json = dict()
 
     # Waning effect (old style) is an abstract type, but incorrectly named
+    # abstract_key5b = "idmType:WaningEffect"
     elif (classname == abstract_key5b and uses_old_waning(schema_idm)):
         ret_json = dict()
 
-    # AdditionalRestriction is NOT abstract, but needs to be handled like it is
-    elif (classname == abstract_key0):
+    # AdditionalRestriction is an abstract type, but incorrectly named
+    # abstract_key6b = "idmType:AdditionalRestrictions"
+    elif (classname == abstract_key6b):
         ret_json = dict()
 
-    # AdditionalRestriction is NOT abstract, but needs to be handled like it is
-    elif (abstract_key0 in schema_idm and classname in schema_idm[abstract_key0]):
-        schema_blob = schema_idm[abstract_key0][classname]
-        ret_json["class"] = schema_blob["class"]
-        for key_str in schema_blob.keys():
-            if key_str in ["class", "Sim_Types", "Vector2d idmType:AdditionalRestrictions"]:
-                continue
-            ret_json[key_str] = get_default(schema_blob[key_str], schema)
-
     # Check if class is CampaignEvent type
+    # abstract_key1 = "idmAbstractType:CampaignEvent"
     elif (abstract_key1 in schema_idm and classname in schema_idm[abstract_key1]):
         schema_blob = schema_idm[abstract_key1][classname]
         ret_json["class"] = schema_blob["class"]
@@ -312,6 +308,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
             ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
     # Check if class is EventCoordinator type
+    # abstract_key2 = "idmAbstractType:EventCoordinator"
     elif (abstract_key2 in schema_idm and classname in schema_idm[abstract_key2]):
         schema_blob = schema_idm[abstract_key2][classname]
         ret_json["class"] = schema_blob["class"]
@@ -321,6 +318,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
             ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
     # Check if class is IReport type
+    # abstract_key3a = "idmAbstractType:IReport"
     elif (abstract_key3a in schema_idm and classname in schema_idm[abstract_key3a]):
         schema_blob = schema_idm[abstract_key3a][classname]
         ret_json["class"] = schema_blob["class"]
@@ -329,6 +327,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
                 continue
             ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
+    # abstract_key3b = "idmType:IReport"
     elif (abstract_key3b in schema_idm and classname in schema_idm[abstract_key3b]):
         schema_blob = schema_idm[abstract_key3b][classname]
         ret_json["class"] = schema_blob["class"]
@@ -338,6 +337,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
             ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
     # Check if class is NodeSet type
+    # abstract_key4 = "idmAbstractType:NodeSet"
     elif (abstract_key4 in schema_idm and classname in schema_idm[abstract_key4]):
         schema_blob = schema_idm[abstract_key4][classname]
         ret_json["class"] = schema_blob["class"]
@@ -347,6 +347,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
             ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
     # Check if class is WaningEffect (old style) type
+    # abstract_key5a = "idmAbstractType:WaningEffect"
     elif (abstract_key5a in schema_idm and classname in schema_idm[abstract_key5a]):
         schema_blob = schema_idm[abstract_key5a][classname]
         ret_json["class"] = schema_blob["class"]
@@ -355,11 +356,31 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
                 continue
             ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
+    # abstract_key5b = "idmType:WaningEffect"
     elif (abstract_key5b in schema_idm and classname in schema_idm[abstract_key5b]):
         schema_blob = schema_idm[abstract_key5b][classname]
         ret_json["class"] = schema_blob["class"]
         for key_str in schema_blob.keys():
             if key_str in ["class"]:
+                continue
+            ret_json[key_str] = get_default(schema_blob[key_str], schema)
+
+    # Check if class is AdditionalRestriction type
+    # abstract_key6a = "idmAbstractType:AdditionalRestrictions"
+    elif (abstract_key6a in schema_idm and classname in schema_idm[abstract_key6a]):
+        schema_blob = schema_idm[abstract_key6a][classname]
+        ret_json["class"] = schema_blob["class"]
+        for key_str in schema_blob.keys():
+            if key_str in ["class", "Sim_Types", "Vector2d idmType:AdditionalRestrictions"]:
+                continue
+            ret_json[key_str] = get_default(schema_blob[key_str], schema)
+
+    # abstract_key6b = "idmType:AdditionalRestrictions"
+    elif (abstract_key6b in schema_idm and classname in schema_idm[abstract_key6b]):
+        schema_blob = schema_idm[abstract_key6b][classname]
+        ret_json["class"] = schema_blob["class"]
+        for key_str in schema_blob.keys():
+            if key_str in ["class", "Sim_Types", "Vector2d idmType:AdditionalRestrictions"]:
                 continue
             ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
@@ -396,10 +417,11 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
             raise ValueError(f"ERROR: '{classname}' not found in schema.")
 
     # Looking for NodeIntervention or IndividualIntervention
+    # abstract_key9 = "idmAbstractType:Intervention"
     else:
-        for iv_type in schema_idm[abstract_key6].keys():
-            if classname in schema_idm[abstract_key6][iv_type].keys():
-                schema_blob = schema_idm[abstract_key6][iv_type][classname]
+        for iv_type in schema_idm[abstract_key9].keys():
+            if classname in schema_idm[abstract_key9][iv_type].keys():
+                schema_blob = schema_idm[abstract_key9][iv_type][classname]
                 ret_json["class"] = schema_blob["class"]
                 for iv_key in schema_blob.keys():
                     if iv_key in ["class"]:
