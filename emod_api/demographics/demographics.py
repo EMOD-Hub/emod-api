@@ -154,10 +154,10 @@ class Demographics(DemographicsBase):
     @classmethod
     def from_pop_raster_csv(cls,
                             pop_filename_in: str,
-                            res: float = 1/120,
+                            res: float = 1 / 120,
                             id_ref: str = "from_raster",
                             pop_dirname_out: str = "spatial_gridded_pop_dir",
-                            site: str = "No_Site"):
+                            site: str = "No_Site") -> "Demographics":
         """
         Take a csv of a population-counts raster and build a grid for use with EMOD simulations.
         Grid size is specified by grid resolution in arcs or in kilometers. The population counts
@@ -188,10 +188,10 @@ class Demographics(DemographicsBase):
     @classmethod
     def from_pop_csv(cls,
                      pop_filename_in: str,
-                     res: float = 1/120,
+                     res: float = 1 / 120,
                      id_ref: str = "from_raster",
                      pop_dirname_out: str = "spatial_gridded_pop_dir",
-                     site: str = "No_Site"):
+                     site: str = "No_Site") -> "Demographics":
         import warnings
         warnings.warn("from_pop_csv is deprecated. Please use from_pop_csv.", DeprecationWarning, stacklevel=2)
         return cls.from_pop_raster_csv(pop_filename_in=pop_filename_in,
