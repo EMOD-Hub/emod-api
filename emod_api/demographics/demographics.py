@@ -48,7 +48,7 @@ class Demographics(DemographicsBase):
     def generate_file(self, name: str = "demographics.json"):
         import warnings
         warnings.warn("generate_file() is deprecated. Please use to_file()", DeprecationWarning, stacklevel=2)
-        return self.to_file(name=name)
+        self.to_file(name=name)
 
     @classmethod
     def from_template_node(cls,
