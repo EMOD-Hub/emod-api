@@ -12,6 +12,7 @@ import pandas as pd
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
+import emod_api.demographics.implicit_functions
 from emod_api.demographics import demographics_templates as DT
 from emod_api.demographics.base_input_file import BaseInputFile
 from emod_api.demographics.node import Node
@@ -363,7 +364,7 @@ class DemographicsBase(BaseInputFile):
             file_names: Paths to demographic files.
         """
         if self.implicits is not None:
-            self.implicits.append(partial(DT._set_demographic_filenames, file_names=file_names))
+            self.implicits.append(partial(emod_api.demographics.implicits._set_demographic_filenames, file_names=file_names))
 
     def SetDefaultIndividualAttributes(self):
         """
@@ -417,7 +418,7 @@ class DemographicsBase(BaseInputFile):
             nodes = self.get_nodes_by_id(node_ids=node_ids)
             for _, node in nodes.items():
                 node.birth_rate = dtk_birthrate
-        self.implicits.append(DT._set_population_dependent_birth_rate)
+        self.implicits.append(emod_api.demographics.implicits._set_population_dependent_birth_rate)
 
     def SetMortalityRate(self,
                          mortality_rate: float, node_ids: List[int] = None):
@@ -437,7 +438,7 @@ class DemographicsBase(BaseInputFile):
                 self.get_node_by_id(node_id=node_id)._set_mortality_complex_distribution(distribution)
 
         if self.implicits is not None:
-            self.implicits.append(DT._set_mortality_age_gender)
+            self.implicits.append(emod_api.demographics.implicits._set_mortality_age_gender)
 
     def SetMortalityDistribution(self, distribution: MortalityDistribution = None,
                                  node_ids: List[int] = None):
@@ -460,7 +461,7 @@ class DemographicsBase(BaseInputFile):
                 self.get_node_by_id(node_id=node_id)._set_mortality_complex_distribution(distribution)
 
         if self.implicits is not None:
-            self.implicits.append(DT._set_mortality_age_gender)
+            self.implicits.append(emod_api.demographics.implicits._set_mortality_age_gender)
 
     def SetMortalityDistributionFemale(self, distribution: MortalityDistribution = None,
                                        node_ids: List[int] = None):
@@ -485,7 +486,7 @@ class DemographicsBase(BaseInputFile):
                 self.get_node_by_id(node_id=node_id)._set_mortality_female_complex_distribution(distribution)
 
         if self.implicits is not None:
-            self.implicits.append(DT._set_mortality_age_gender)
+            self.implicits.append(emod_api.demographics.implicits._set_mortality_age_gender)
 
     def SetMortalityDistributionMale(self, distribution: MortalityDistribution = None,
                                      node_ids: List[int] = None):
@@ -510,7 +511,7 @@ class DemographicsBase(BaseInputFile):
                 self.get_node_by_id(node_id=node_id)._set_mortality_male_complex_distribution(distribution)
 
         if self.implicits is not None:
-            self.implicits.append(DT._set_mortality_age_gender)
+            self.implicits.append(emod_api.demographics.implicits._set_mortality_age_gender)
 
     def SetMortalityOverTimeFromData(self,
                                      data_csv: Union[str, os.PathLike],
@@ -600,7 +601,7 @@ class DemographicsBase(BaseInputFile):
                 self.get_node_by_id(node_id=node_id)._set_mortality_female_complex_distribution(distrib)
 
         if self.implicits is not None:
-            self.implicits.append(DT._set_mortality_age_gender_year)
+            self.implicits.append(emod_api.demographics.implicits._set_mortality_age_gender_year)
 
     def SetAgeDistribution(self, distribution: AgeDistribution, node_ids: List[int] = None):
         """
@@ -621,7 +622,7 @@ class DemographicsBase(BaseInputFile):
                 self.get_node_by_id(node_id=node_id)._set_age_complex_distribution(distribution)
 
         if self.implicits is not None:
-            self.implicits.append(DT._set_age_complex)
+            self.implicits.append(emod_api.demographics.implicits._set_age_complex)
 
     def SetDefaultNodeAttributes(self, birth=True):
         """
@@ -689,7 +690,7 @@ class DemographicsBase(BaseInputFile):
 
         dist = DT._EquilibriumAgeDistFromBirthAndMortRates(birth_rate=birth_rate,
                                                            mortality_rate=mortality_rate)
-        setter_fn = DT._set_age_complex
+        setter_fn = emod_api.demographics.implicits._set_age_complex
 
         if node_ids is None:
             self.SetDefaultFromTemplate(dist, setter_fn)
@@ -717,7 +718,7 @@ class DemographicsBase(BaseInputFile):
                    "AgeDistribution1": rate,
                    "AgeDistribution2": 0,
                    "AgeDistribution_Description": description}
-        self.SetDefaultFromTemplate(setting, DT._set_age_simple)
+        self.SetDefaultFromTemplate(setting, emod_api.demographics.implicits._set_age_simple)
 
     def SetInitialAgeLikeSubSaharanAfrica(self, description=""):
         """
@@ -801,7 +802,7 @@ class DemographicsBase(BaseInputFile):
         self.SetMortalityDistributionFemale(mort_distr_female)
 
         if self.implicits is not None:
-            self.implicits.append(DT._set_mortality_age_gender_year)
+            self.implicits.append(emod_api.demographics.implicits._set_mortality_age_gender_year)
 
     def SetFertilityOverTimeFromParams(self,
                                        years_region1: int,
@@ -832,6 +833,7 @@ class DemographicsBase(BaseInputFile):
         Returns:
             rates array (Just in case user wants to do something with them like inspect or plot.)
         """
+        from emod_api.demographics.implicit_functions import _set_fertility_age_year
         warnings.warn('SetFertilityOverTimeFromParams() is deprecated. Please use the emodpy-hiv Demographics method: '
                       'set_fertility_distribution()', DeprecationWarning, stacklevel=2)
         if node_ids is None:
@@ -861,14 +863,14 @@ class DemographicsBase(BaseInputFile):
                 full_dict = {"FertilityDistribution": dist.to_dict()}
             else:
                 full_dict = dist_dict
-            self.SetDefaultFromTemplate(full_dict, DT._set_fertility_age_year)
+            self.SetDefaultFromTemplate(full_dict, _set_fertility_age_year)
         else:
             if len(self.nodes) == 1 and len(node_ids) > 1:
                 raise ValueError("User specified several node ids for single node demographics setup.")
             for node_id in node_ids:
                 self.get_node_by_id(node_id=node_id)._set_fertility_complex_distribution(dist)
             if self.implicits is not None:
-                self.implicits.append(DT._set_fertility_age_year)
+                self.implicits.append(_set_fertility_age_year)
         return rates
 
     def infer_natural_mortality(self,
@@ -887,7 +889,7 @@ class DemographicsBase(BaseInputFile):
         from collections import OrderedDict
         from sklearn.linear_model import LinearRegression
         from functools import reduce
-
+        from emod_api.demographics.implicit_functions import _set_mortality_age_gender_year
         warnings.warn('infer_natural_mortality() is deprecated. Please use modern country model loading.',
                       DeprecationWarning, stacklevel=2)
 
@@ -1051,7 +1053,7 @@ class DemographicsBase(BaseInputFile):
                      'ResultUnits': 'annual deaths per capita',
                      'ResultValues': male_output.tolist()
                      }
-        self.implicits.append(DT._set_mortality_age_gender_year)
+        self.implicits.append(_set_mortality_age_gender_year)
         return dict_female, dict_male
 
     def to_dict(self) -> Dict:
