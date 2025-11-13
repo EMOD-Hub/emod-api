@@ -3,9 +3,12 @@ import sys
 import json
 import unittest
 import emod_api.demographics.demographics as Demog
+from emod_api.demographics.demographics import Demographics
 import emod_api.demographics.pre_defined_distributions as Distributions
 import tempfile
 import copy
+
+from emod_api.demographics.node import Node
 
 thisplatform = sys.platform
 
@@ -19,11 +22,10 @@ class DemographicsTestMisc(unittest.TestCase):
         cls.create_large_demog(cls)
 
     def create_large_demog(cls):
-        print('called once before any tests in class')
-        # Large demographics object.
         num_node = 1000
-        print("Creating big complex demographics.")
-        cls.large_demog = Demog.from_params(tot_pop=10000000, num_nodes=num_node)
+        nodes = [Node(lat=0, lon=0, pop=10000, forced_id=i+1) for i in range(num_node)]
+        cls.large_demog = Demographics(nodes=nodes)
+
 
         for node_id in range(num_node):
             cls.large_demog.SetFertilityOverTimeFromParams(years_region1=100, years_region2=10, start_rate=0.3, inflection_rate=0.25, end_rate=0.1, node_ids=[node_id + 1])
@@ -32,7 +34,6 @@ class DemographicsTestMisc(unittest.TestCase):
 
         # Large Expected Results Dictionary
         cls.large_expected = cls.large_demog.to_dict()
-        print(f"Total of nodes: {cls.large_expected['Metadata']['NodeCount']} ... file size is aprox 54 MB")
 
     @unittest.skipIf(thisplatform.startswith("win"), "Not valid on Windows")
     def test_linux_send_over_file(self):

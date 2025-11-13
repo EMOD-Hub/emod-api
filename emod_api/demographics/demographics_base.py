@@ -261,10 +261,7 @@ class DemographicsBase(BaseInputFile):
 
     @property
     def _all_nodes(self) -> List[Node]:
-        # only HIV is using a default node object right now, malaria currently uses self.raw
-        # None protection if users are using self.raw default node access
-        default_node = [] if self.default_node is None else [self.default_node]
-        all_nodes = self.nodes + default_node
+        all_nodes = self.nodes + [self.default_node]
         return all_nodes
 
     @property
