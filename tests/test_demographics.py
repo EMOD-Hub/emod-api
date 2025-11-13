@@ -191,7 +191,7 @@ class DemographicsTest(unittest.TestCase):
         self.assertEqual(Demographics.DEFAULT_NODE_NAME, default_node.name)
         self.assertEqual(0, default_node.id)
 
-        # check node attributes
+        # check default node attributes
         self.assertEqual(0, default_node.node_attributes.birth_rate)
         self.assertEqual(1, default_node.node_attributes.airport)
         self.assertEqual(1, default_node.node_attributes.seaport)
