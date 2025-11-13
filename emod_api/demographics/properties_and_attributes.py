@@ -148,23 +148,18 @@ class IndividualProperties(Updateable):
     class NoSuchIndividualPropertyException(Exception):
         pass
 
-    # TODO: this constructor call is WEIRD. it should take a list of IndividualProperties instead and remove
-    #  "if is None" checks on self.individual_properties (None should auto goes to [] in constructor)
-    #  https://github.com/InstituteforDiseaseModeling/emod-api/issues/685
     def __init__(self, individual_properties: List[IndividualProperty] = None):
         """
         https://docs.idmod.org/projects/emod-generic/en/latest/model-properties.html
 
         Args:
-            individual_properties:
+            individual_properties (List[IndividualProperty]): list of individual properties to include. Default is
+                no individual_properties.
         """
         super().__init__()
-        self.individual_properties = individual_properties if individual_properties else []
+        self.individual_properties = [] if individual_properties is None else individual_properties
 
     def add(self, individual_property: IndividualProperty, overwrite=False) -> None:
-        if self.individual_properties is None:
-            self.individual_properties = []
-
         has_ip = self.has_individual_property(property_key=individual_property.property)
         if has_ip:
             if overwrite:
@@ -180,8 +175,7 @@ class IndividualProperties(Updateable):
 
     @property
     def ip_by_name(self):
-        individual_properties = [] if self.individual_properties is None else self.individual_properties
-        return {ip.property: ip for ip in individual_properties}
+        return {ip.property: ip for ip in self.individual_properties}
 
     def has_individual_property(self, property_key: str) -> bool:
         return property_key in self.ip_by_name.keys()
@@ -198,10 +192,8 @@ class IndividualProperties(Updateable):
         self.individual_properties = ips_to_keep
 
     def to_dict(self) -> List[dict]:
-        individual_properties = []
-        for ip in self.individual_properties:
-            individual_properties.append(ip.to_dict())
-        return individual_properties
+        data = [ip.to_dict() for ip in self.individual_properties]
+        return data
 
     def __getitem__(self, index: int):
         return self.individual_properties[index]
@@ -217,7 +209,7 @@ class IndividualAttributes(Updateable):
                  age_distribution_flag: int = None,
                  age_distribution1: int = None,
                  age_distribution2: int = None,
-                 age_distribution: [AgeDistribution, AgeDistributionOld] = None,
+                 age_distribution: Union[AgeDistribution, AgeDistributionOld] = None,
                  susceptibility_distribution_flag: int = None,
                  susceptibility_distribution1: int = None,
                  susceptibility_distribution2: int = None,
