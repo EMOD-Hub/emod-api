@@ -72,7 +72,7 @@ class TestSchemaCommon():
                 return True
             if (':IndividualIntervention' in key_in or ':NodeIntervention' in key_in):
                 for iv_obj_name in val_in:
-                    # For every parameter defined in an inteverntion
+                    # For every parameter defined in an intervention
                     iv_obj = val_in[iv_obj_name]
                     for iv_param_name in iv_obj:
                         if (iv_param_name == 'class' or iv_param_name == 'Sim_Types'):
@@ -94,7 +94,7 @@ class TestSchemaCommon():
                 return True
             if (':IndividualIntervention' in key_in or ':NodeIntervention' in key_in):
                 for iv_obj_name in val_in:
-                    # For every parameter defined in an inteverntion
+                    # For every parameter defined in an intervention
                     iv_obj = val_in[iv_obj_name]
                     for iv_param_name in iv_obj:
                         if (iv_param_name == 'class' or iv_param_name == 'Sim_Types'):
@@ -102,9 +102,7 @@ class TestSchemaCommon():
                         iv_param_obj = iv_obj[iv_param_name]
                         if ('default' not in iv_param_obj and 'type' in iv_param_obj):
                             type_str = iv_param_obj['type']
-                            if (type_str.startswith('idmType')):
-                                return True
-                            elif (type_str.startswith('idmAbstractType')):
+                            if (type_str.startswith('idmType') or type_str.startswith('idmAbstractType')):
                                 return True
                             else:
                                 return False

@@ -388,7 +388,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
 
     # abstract_key7 = "idmAbstractType:IndividualIntervention"
     elif (abstract_key7 in schema_idm and classname in schema_idm[abstract_key7]):
-        schema_blob = schema_idm[abstract_key7][iv_type][classname]
+        schema_blob = schema_idm[abstract_key7][classname]
         ret_json["class"] = schema_blob["class"]
         for key_str in schema_blob.keys():
             if key_str in ["class", "Sim_Types"]:
@@ -397,7 +397,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
 
     # abstract_key8 = "idmAbstractType:NodeIntervention"
     elif (abstract_key8 in schema_idm and classname in schema_idm[abstract_key8]):
-        schema_blob = schema_idm[abstract_key8][iv_type][classname]
+        schema_blob = schema_idm[abstract_key8][classname]
         ret_json["class"] = schema_blob["class"]
         for key_str in schema_blob.keys():
             if key_str in ["class", "Sim_Types"]:
