@@ -276,6 +276,8 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
     abstract_key5b = "idmType:WaningEffect"
     abstract_key6a = "idmAbstractType:AdditionalRestrictions"
     abstract_key6b = "idmType:AdditionalRestrictions"
+    abstract_key7 = "idmAbstractType:IndividualIntervention"
+    abstract_key8 = "idmAbstractType:NodeIntervention"
     abstract_key9 = "idmAbstractType:Intervention"
 
     # Abstract types get initialized to empty object
@@ -303,7 +305,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
         schema_blob = schema_idm[abstract_key1][classname]
         ret_json["class"] = schema_blob["class"]
         for key_str in schema_blob.keys():
-            if key_str in ["class"]:
+            if key_str in ["class", "Sim_Types"]:
                 continue
             ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
@@ -323,7 +325,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
         schema_blob = schema_idm[abstract_key3a][classname]
         ret_json["class"] = schema_blob["class"]
         for key_str in schema_blob.keys():
-            if key_str in ["class"]:
+            if key_str in ["class", "Sim_Types"]:
                 continue
             ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
@@ -332,7 +334,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
         schema_blob = schema_idm[abstract_key3b][classname]
         ret_json["class"] = schema_blob["class"]
         for key_str in schema_blob.keys():
-            if key_str in ["class"]:
+            if key_str in ["class", "Sim_Types"]:
                 continue
             ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
@@ -342,7 +344,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
         schema_blob = schema_idm[abstract_key4][classname]
         ret_json["class"] = schema_blob["class"]
         for key_str in schema_blob.keys():
-            if key_str in ["class"]:
+            if key_str in ["class", "Sim_Types"]:
                 continue
             ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
@@ -352,7 +354,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
         schema_blob = schema_idm[abstract_key5a][classname]
         ret_json["class"] = schema_blob["class"]
         for key_str in schema_blob.keys():
-            if key_str in ["class"]:
+            if key_str in ["class", "Sim_Types"]:
                 continue
             ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
@@ -361,7 +363,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
         schema_blob = schema_idm[abstract_key5b][classname]
         ret_json["class"] = schema_blob["class"]
         for key_str in schema_blob.keys():
-            if key_str in ["class"]:
+            if key_str in ["class", "Sim_Types"]:
                 continue
             ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
@@ -381,6 +383,24 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
         ret_json["class"] = schema_blob["class"]
         for key_str in schema_blob.keys():
             if key_str in ["class", "Sim_Types", "Vector2d idmType:AdditionalRestrictions"]:
+                continue
+            ret_json[key_str] = get_default(schema_blob[key_str], schema)
+
+    # abstract_key7 = "idmAbstractType:IndividualIntervention"
+    elif (abstract_key7 in schema_idm and classname in schema_idm[abstract_key7]):
+        schema_blob = schema_idm[abstract_key7][classname]
+        ret_json["class"] = schema_blob["class"]
+        for key_str in schema_blob.keys():
+            if key_str in ["class", "Sim_Types"]:
+                continue
+            ret_json[key_str] = get_default(schema_blob[key_str], schema)
+
+    # abstract_key8 = "idmAbstractType:NodeIntervention"
+    elif (abstract_key8 in schema_idm and classname in schema_idm[abstract_key8]):
+        schema_blob = schema_idm[abstract_key8][classname]
+        ret_json["class"] = schema_blob["class"]
+        for key_str in schema_blob.keys():
+            if key_str in ["class", "Sim_Types"]:
                 continue
             ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
@@ -423,33 +443,11 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
             if classname in schema_idm[abstract_key9][iv_type].keys():
                 schema_blob = schema_idm[abstract_key9][iv_type][classname]
                 ret_json["class"] = schema_blob["class"]
-                for iv_key in schema_blob.keys():
-                    if iv_key in ["class"]:
+                for key_str in schema_blob.keys():
+                    if key_str in ["class", "Sim_Types"]:
                         continue
-                    try:
-                        if "default" in schema_blob[iv_key]:
-                            ret_json[iv_key] = eval_default(schema_blob[iv_key]["default"])
-                        elif "type" in schema_blob[iv_key]:
-                            idmtype = schema_blob[iv_key]["type"]
-                            if "idmAbstractType:" in idmtype:
-                                ret_json[iv_key] = dict()
-                            elif "Vector" in idmtype:
-                                ret_json[iv_key] = []
-                            elif "String" in idmtype:
-                                ret_json[iv_key] = ""
-                            elif "idmType:" in idmtype:
-                                ret_json[iv_key] = get_class_with_defaults(idmtype, schema_json=schema)
-                            elif "List" in iv_key:  # a bit lame: to handle Intervention_List which has bad schema bug
-                                ret_json[iv_key] = []
-                            else:
-                                raise ValueError(f"Don't know how to make default for type {idmtype}.")
-                        elif iv_key not in ["Sim_Types"]:
-                            # very small whitelist of keys that are allowed to be ignored by this process.
-                            continue
+                    ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
-                    except Exception as ex:
-                        raise ValueError(f"ERROR: Exception caught while processing {iv_key} in Intervention family. Exception: {ex}")
-                break
         if bool(ret_json) is False:
             raise ValueError(f"Failed to find {classname} in schema.")
 
