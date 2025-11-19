@@ -1,8 +1,7 @@
 import json
 import numpy as np
 import pandas as pd
-
-from typing import List
+from typing import List, Dict
 
 from emod_api.demographics.demographics_base import DemographicsBase
 from emod_api.demographics.node import Node
@@ -14,7 +13,8 @@ class Demographics(DemographicsBase):
     """
     This class is a container of data necessary to produce a EMOD-valid demographics input file.
     """
-    def __init__(self, nodes: List[Node], idref: str = "Gridded world grump2.5arcmin", default_node: Node = None):
+    def __init__(self, nodes: List[Node], idref: str = "Gridded world grump2.5arcmin", default_node: Node = None,
+                 metadata: Dict = None, set_defaults: bool = True):
         """
         Object representation of an EMOD Demographics input (json) file.
 
@@ -23,14 +23,18 @@ class Demographics(DemographicsBase):
             idref: (string) an identifier for the Demographics file. Used to co-identify sets of Demographics/overlay
                 files.
             default_node: (Node) Represents default values for all nodes, unless overridden on a per-node basis.
+            metadata: (Dict) set the demographics metadata to the supplied dictionary. Default yields default
+                metadata values.
+            set_defaults: (bool) Whether to set default node attributes on the default node. Defaults to True.
         """
-        super().__init__(nodes=nodes, idref=idref, default_node=default_node)
+        super().__init__(nodes=nodes, idref=idref, default_node=default_node, metadata=metadata)
 
         # set some standard EMOD defaults
-        for node in self._all_nodes:
-            node.node_attributes.airport = 1
-            node.node_attributes.seaport = 1
-            node.node_attributes.region = 1
+        if set_defaults:
+            for node in self._all_nodes:
+                node.node_attributes.airport = 1
+                node.node_attributes.seaport = 1
+                node.node_attributes.region = 1
 
     def to_file(self, name: str = "demographics.json"):
         """
@@ -49,6 +53,28 @@ class Demographics(DemographicsBase):
         import warnings
         warnings.warn("generate_file() is deprecated. Please use to_file()", DeprecationWarning, stacklevel=2)
         self.to_file(name=name)
+
+    @classmethod
+    def from_file(cls, base_file: str) -> "Demographics":
+        """
+        Create a Demographics object from an EMOD-compatible demographics json file.
+
+        Args:
+            base_file (str): the file path to read from.:
+
+        Returns:
+            a Demographics object
+        """
+
+        with open(base_file, "rb") as src:
+            demographics_dict = json.load(src)
+        demographics_dict["Defaults"]["NodeID"] = 0  # This is a requirement of all emod-api Demographics objects
+        nodes = [Node.from_data(data=node_dict) for node_dict in demographics_dict["Nodes"]]
+        default_node = Node.from_data(data=demographics_dict["Defaults"])
+        metadata = demographics_dict["Metadata"]
+        idref = demographics_dict["Metadata"]["IdReference"]
+
+        return cls(nodes=nodes, default_node=default_node, idref=idref, metadata=metadata, set_defaults=False)
 
     @classmethod
     def from_template_node(cls,

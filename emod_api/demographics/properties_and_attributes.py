@@ -1,11 +1,7 @@
 from emod_api.demographics.age_distribution import AgeDistribution
-from emod_api.demographics.age_distribution_old import AgeDistributionOld
 from emod_api.demographics.fertility_distribution import FertilityDistribution
-from emod_api.demographics.fertility_distribution_old import FertilityDistributionOld
 from emod_api.demographics.mortality_distribution import MortalityDistribution
-from emod_api.demographics.mortality_distribution_old import MortalityDistributionOld
 from emod_api.demographics.susceptibility_distribution import SusceptibilityDistribution
-from emod_api.demographics.susceptibility_distribution_old import SusceptibilityDistributionOld
 from emod_api.demographics.updateable import Updateable
 
 from typing import List, Union
@@ -209,11 +205,11 @@ class IndividualAttributes(Updateable):
                  age_distribution_flag: int = None,
                  age_distribution1: int = None,
                  age_distribution2: int = None,
-                 age_distribution: Union[AgeDistribution, AgeDistributionOld] = None,
+                 age_distribution: AgeDistribution = None,
                  susceptibility_distribution_flag: int = None,
                  susceptibility_distribution1: int = None,
                  susceptibility_distribution2: int = None,
-                 susceptibility_distribution: Union[SusceptibilityDistribution, SusceptibilityDistributionOld] = None,
+                 susceptibility_distribution: SusceptibilityDistribution = None,
                  prevalence_distribution_flag: int = None,
                  prevalence_distribution1: int = None,
                  prevalence_distribution2: int = None,
@@ -223,10 +219,9 @@ class IndividualAttributes(Updateable):
                  migration_heterogeneity_distribution_flag: int = None,
                  migration_heterogeneity_distribution1: int = None,
                  migration_heterogeneity_distribution2: int = None,
-                 fertility_distribution: Union[FertilityDistribution, FertilityDistributionOld] = None,
-                 mortality_distribution: MortalityDistributionOld = None,
-                 mortality_distribution_male: Union[MortalityDistribution, MortalityDistributionOld] = None,
-                 mortality_distribution_female: Union[MortalityDistribution, MortalityDistributionOld] = None,
+                 fertility_distribution: FertilityDistribution = None,
+                 mortality_distribution_male: MortalityDistribution = None,
+                 mortality_distribution_female: MortalityDistribution = None,
                  innate_immune_distribution_flag: int = None,
                  innate_immune_distribution1: int = None,
                  innate_immune_distribution2: int = None
@@ -293,10 +288,9 @@ class IndividualAttributes(Updateable):
         self.migration_heterogeneity_distribution1 = migration_heterogeneity_distribution1
         self.migration_heterogeneity_distribution2 = migration_heterogeneity_distribution2
 
-        self.mortality_distribution = mortality_distribution
         self.mortality_distribution_male = mortality_distribution_male
         self.mortality_distribution_female = mortality_distribution_female
-
+        self.mortality_distribution = None # This should ONLY be set via from_dict() loading (deprecated).
         # fertility is only used by HIV
 
         self.fertility_distribution = fertility_distribution
@@ -421,14 +415,15 @@ class IndividualAttributes(Updateable):
         if self.fertility_distribution is not None:
             individual_attributes.update({"FertilityDistribution": self.fertility_distribution.to_dict()})
 
-        if self.mortality_distribution is not None:
-            individual_attributes.update({"MortalityDistribution": self.mortality_distribution.to_dict()})
-
         if self.mortality_distribution_male is not None:
             individual_attributes.update({"MortalityDistributionMale": self.mortality_distribution_male.to_dict()})
 
         if self.mortality_distribution_female is not None:
             individual_attributes.update({"MortalityDistributionFemale": self.mortality_distribution_female.to_dict()})
+
+        # # This should ONLY be set via from_dict() loading (deprecated).
+        if self.mortality_distribution is not None:
+            individual_attributes.update({"MortalityDistribution": self.mortality_distribution.to_dict()})
 
         return individual_attributes
 
@@ -460,9 +455,6 @@ class IndividualAttributes(Updateable):
         self.prevalence_distribution_flag = individual_attributes.get("PrevalenceDistributionFlag", None)
         self.prevalence_distribution1 = individual_attributes.get("PrevalenceDistribution1", None)
         self.prevalence_distribution2 = individual_attributes.get("PrevalenceDistribution2", None)
-        self.risk_distribution_flag = individual_attributes.get("RiskDistributionFlag", None)
-        self.risk_distribution1 = individual_attributes.get("RiskDistribution1", None)
-        self.risk_distribution2 = individual_attributes.get("RiskDistribution2", None)
         self.migration_heterogeneity_distribution_flag = individual_attributes.get(
             "MigrationHeterogeneityDistributionFlag", None)
         self.migration_heterogeneity_distribution1 = individual_attributes.get("MigrationHeterogeneityDistribution1",
@@ -488,11 +480,24 @@ class IndividualAttributes(Updateable):
         else:
             self.mortality_distribution_female = MortalityDistribution.from_dict(distribution_dict=distribution_dict)
 
+        # Even though we do NOT support NEW CREATION of all-gender mortality distributions, they are still valid in
+        # deprecated "from_dict()"(files)-type demographics loading. This is the only way self.mortality_distribution
+        # can/should be set in this class.
         distribution_dict = individual_attributes.get("MortalityDistribution", None)
         if distribution_dict is None:
             self.mortality_distribution = None
         else:
-            self.mortality_distribution = MortalityDistributionOld().from_dict(mortality_distribution=distribution_dict)
+            self.mortality_distribution = MortalityDistribution.from_dict(distribution_dict=distribution_dict)
+
+        # malaria only
+        self.innate_immune_distribution_flag = individual_attributes.get("InnateImmuneDistributionFlag", None)
+        self.innate_immune_distribution1 = individual_attributes.get("InnateImmuneDistribution1", None)
+        self.innate_immune_distribution2 = individual_attributes.get("InnateImmuneDistribution2", None)
+
+        # malaria only
+        self.risk_distribution_flag = individual_attributes.get("RiskDistributionFlag", None)
+        self.risk_distribution1 = individual_attributes.get("RiskDistribution1", None)
+        self.risk_distribution2 = individual_attributes.get("RiskDistribution2", None)
 
         return self
 

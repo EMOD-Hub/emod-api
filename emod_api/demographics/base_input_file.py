@@ -1,7 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 
-# from simtools.Utilities.LocalOS import LocalOS
 import getpass
 
 

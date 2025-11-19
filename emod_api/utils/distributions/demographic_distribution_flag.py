@@ -13,4 +13,4 @@ class DemographicDistributionFlag(Enum):
 
     # Not supported for demographics
     # DUAL_CONSTANT = -1
-    # DUAL_EXPONENTIAL = -21
+    # DUAL_EXPONENTIAL = -2

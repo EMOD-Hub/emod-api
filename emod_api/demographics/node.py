@@ -1,11 +1,11 @@
-import json
 import math
+
+from emod_api.demographics.age_distribution import AgeDistribution
+from emod_api.demographics.fertility_distribution import FertilityDistribution
+from emod_api.demographics.mortality_distribution import MortalityDistribution
+from emod_api.demographics.susceptibility_distribution import SusceptibilityDistribution
 from emod_api.demographics.updateable import Updateable
 from emod_api.demographics.properties_and_attributes import IndividualAttributes, IndividualProperty, IndividualProperties, NodeAttributes
-from emod_api.demographics.age_distribution_old import AgeDistributionOld as AgeDistribution
-from emod_api.demographics.fertility_distribution_old import FertilityDistributionOld as FertilityDistribution
-from emod_api.demographics.mortality_distribution_old import MortalityDistributionOld as MortalityDistribution
-from emod_api.demographics.susceptibility_distribution_old import SusceptibilityDistributionOld as SusceptibilityDistribution
 
 
 class Node(Updateable):
@@ -146,14 +146,11 @@ class Node(Updateable):
 
         individual_properties = IndividualProperties()
         if individual_properties_dict:
-            if type(individual_properties_dict) is dict:
-                individual_properties.append(individual_properties_dict)
-            if type(individual_properties_dict) is list:
-                for ip in individual_properties_dict:
-                    individual_properties.add(IndividualProperty(property=ip["Property"],
-                                                                 values=ip["Values"],
-                                                                 transitions=ip["Transitions"],
-                                                                 initial_distribution=ip["Initial_Distribution"]))
+            for ip in individual_properties_dict:
+                individual_properties.add(IndividualProperty(property=ip["Property"],
+                                                             values=ip["Values"],
+                                                             transitions=ip["Transitions"],
+                                                             initial_distribution=ip["Initial_Distribution"]))
         individual_attributes = None
         if individual_attributes_dict:
             individual_attributes = IndividualAttributes().from_dict(individual_attributes_dict)
@@ -421,25 +418,6 @@ class Node(Updateable):
         """
         self.individual_attributes.fertility_distribution = distribution
 
-
-class OverlayNode(Node):
-    """
-    Node that only requires an ID. Use to overlay a Node.
-    """
-
-    def __init__(self,
-                 node_id,
-                 latitude=None,
-                 longitude=None,
-                 initial_population=None,
-                 **kwargs
-                 ):
-        super(OverlayNode, self).__init__(latitude, longitude, initial_population,
-                                          forced_id=node_id,
-                                          **kwargs
-                                          )
-
-
 def get_xpix_ypix(nodeid):
     """ Get pixel position from nodid. Inverse of :py:func:`nodeid_from_lat_lon` """
     ypix = (nodeid - 1) & 2 ** 16 - 1
@@ -467,26 +445,3 @@ def nodeid_from_lat_lon(lat, lon, res_in_deg=Node.res_in_degrees):
     xpix, ypix = xpix_ypix_from_lat_lon(lat, lon, res_in_deg)
     nodeid = (xpix << 16) + ypix + 1
     return nodeid
-
-
-def nodes_for_DTK(filename, nodes):
-    """
-    Write nodes to a file in JSON format for EMOD
-
-    Args:
-        filename (str): Name of output file
-        nodes (list[Node]): List of Node objects
-    """
-    with open(filename, "w") as f:
-        json.dump(
-            {"Nodes": [{"NodeID": n.id, "NodeAttributes": n.to_dict()} for n in nodes]},
-            f,
-            indent=4,
-        )
-
-
-def basicNode(lat: float = 0, lon: float = 0, pop: int = int(1e6), name: str = "node_name", forced_id: int = 1):
-    """
-    A single node with population 1 million
-    """
-    return Node(lat, lon, pop, name=name, forced_id=forced_id)
