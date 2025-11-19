@@ -418,6 +418,7 @@ class Node(Updateable):
         """
         self.individual_attributes.fertility_distribution = distribution
 
+
 def get_xpix_ypix(nodeid):
     """ Get pixel position from nodid. Inverse of :py:func:`nodeid_from_lat_lon` """
     ypix = (nodeid - 1) & 2 ** 16 - 1

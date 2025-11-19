@@ -1,7 +1,3 @@
-import json
-import math
-import os
-import sys
 import warnings
 from collections import Counter
 from functools import partial
@@ -78,7 +74,7 @@ class DemographicsBase(BaseInputFile):
         default_node.birth_rate = 0
         return default_node
 
-    def apply_overlay(self, overlay_nodes: List[Node]):
+    def apply_overlay(self, overlay_nodes: List[Node]) -> None:
         """
         Overlays a set of nodes onto the demographics object. Only overlay nodes with ids matching current demographic
         node_ids will be overlayed (extending/overriding exisiting node data).

@@ -100,6 +100,7 @@ def _computeAgeDist(bval, mvecX, mvecY, fVec, max_yr=90):
 
     return gR.tolist()[0], avecX[:-1].tolist(), avecY.tolist()
 
+
 def generate_mortality_over_time_from_data(data_csv: Union[str, os.PathLike],
                                            base_year: int) -> MortalityDistribution:
     """
@@ -140,7 +141,6 @@ def generate_mortality_over_time_from_data(data_csv: Union[str, os.PathLike],
     if age_key is None:
         raise ValueError("Failed to find 'Age_Bin' (or similar) column in the csv dataset. Cannot process.")
 
-    num_age_bins = len(raw_age_bins)
     age_bins = list()
     try:
         for age_bin in raw_age_bins:
@@ -155,10 +155,5 @@ def generate_mortality_over_time_from_data(data_csv: Union[str, os.PathLike],
         mort_data = list(df.transpose()[idx][1:])
         rates.append(mort_data)  # 28 of these, 1 for each year, eg
 
-    num_pop_groups = [num_age_bins, num_years]
-    pop_groups = [age_bins, rel_years]
-
-    distribution = MortalityDistribution(ages_years=age_bins,
-                                         mortality_rate_matrix=rates,
-                                         calendar_years=rel_years)
+    distribution = MortalityDistribution(ages_years=age_bins, mortality_rate_matrix=rates, calendar_years=rel_years)
     return distribution

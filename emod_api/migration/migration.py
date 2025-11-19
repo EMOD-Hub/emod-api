@@ -11,8 +11,6 @@ from warnings import warn
 import numpy as np
 import csv
 
-# for from_params()
-import scipy.spatial.distance as spspd
 from emod_api.demographics.demographics import Demographics
 
 # for from_demog_and_param_gravity()
