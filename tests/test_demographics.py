@@ -1,26 +1,31 @@
-import os
+import getpass
 import json
+import os
 import numpy as np
 import pandas as pd
-import pathlib
 import shutil
 import tempfile
 import unittest
-from emod_api.demographics.demographics import Demographics
-from emod_api.demographics.node import Node
-from emod_api.demographics.overlay_node import OverlayNode
-from emod_api.demographics.demographics_base import DemographicsBase
-from emod_api.demographics.demographics_overlay import DemographicsOverlay
-from emod_api.demographics.mortality_distribution import MortalityDistribution
-from emod_api.demographics.susceptibility_distribution import SusceptibilityDistribution
 
-from tests import manifest
 from datetime import date
-import getpass
-from emod_api.demographics.properties_and_attributes import IndividualAttributes, IndividualProperty, IndividualProperties, NodeAttributes
-import emod_api.demographics.demographic_exceptions as demog_ex
+from pathlib import Path
 
 from emod_api.demographics.age_distribution import AgeDistribution
+from emod_api.demographics.demographics import Demographics
+from emod_api.demographics.demographics_base import DemographicsBase
+import emod_api.demographics.demographic_exceptions as demog_ex
+from emod_api.demographics.demographics_overlay import DemographicsOverlay
+from emod_api.demographics.fertility_distribution import FertilityDistribution
+from emod_api.demographics.mortality_distribution import MortalityDistribution
+from emod_api.demographics.node import Node
+from emod_api.demographics.overlay_node import OverlayNode
+from emod_api.demographics.properties_and_attributes import (IndividualAttributes, IndividualProperty,
+                                                             IndividualProperties, NodeAttributes)
+from emod_api.demographics.susceptibility_distribution import SusceptibilityDistribution
+from emod_api.utils.distributions.exponential_distribution import ExponentialDistribution
+
+from tests import manifest
+
 
 
 class DemographicsTest(unittest.TestCase):
@@ -270,6 +275,89 @@ class DemographicsTest(unittest.TestCase):
         self.assertEqual(metadata['NodeCount'], 1)
         self.assertEqual(metadata['Author'], getpass.getuser())
 
+    def test_from_file_sets_necessary_simple_distribution_implicit_functions(self):
+        from emod_api.demographics.implicit_functions import _set_age_simple
+        from emod_api.demographics.implicit_functions import _set_enable_demog_risk
+        from emod_api.demographics.implicit_functions import _set_enable_migration_model_heterogeneity
+        from emod_api.demographics.implicit_functions import _set_init_prev
+        from emod_api.demographics.implicit_functions import _set_migration_model_fixed_rate
+        from emod_api.demographics.implicit_functions import _set_suscept_simple
+
+        input_filepath = Path(manifest.demo_folder,
+                              "demographics_test_from_file_sets_necessary_simple_distribution_implicit_functions.json")
+        expected_implicits = [_set_age_simple, _set_suscept_simple, _set_init_prev, _set_migration_model_fixed_rate,
+                              _set_enable_migration_model_heterogeneity, _set_enable_demog_risk]
+
+        # # Use this if needing to regenerate the input_filepath
+        # default_node = Node(lat=0, lon=0, pop=1000, forced_id=0)
+        # demographics = Demographics(default_node=default_node, nodes=[])
+        # simple_distribution = ExponentialDistribution(mean=0.1)
+        #
+        # # set simple distributions on everything we can (IndividualAttributes)
+        # demographics.set_age_distribution(distribution=simple_distribution)
+        # demographics.set_susceptibility_distribution(distribution=simple_distribution)
+        # demographics.set_prevalence_distribution(distribution=simple_distribution)
+        # demographics.set_migration_heterogeneity_distribution(distribution=simple_distribution)
+        #
+        # # user-facing demographics functions for setting the following are in emodpy-hiv and emodpy-malaria, so we
+        # # set these "manually" for emod-api testing purposes.
+        # demographics.default_node._set_risk_simple_distribution(flag=simple_distribution.DEMOGRAPHIC_DISTRIBUTION_FLAG,
+        #                                                         value1=simple_distribution.mean,
+        #                                                         value2=None)
+        # demographics.default_node._set_innate_immune_simple_distribution(flag=simple_distribution.DEMOGRAPHIC_DISTRIBUTION_FLAG,
+        #                                                                  value1=simple_distribution.mean,
+        #                                                                  value2=None)
+        #
+        # # demographics.to_file(path=input_filepath)
+        # # return
+
+        demographics_loaded = Demographics.from_file(path=input_filepath)
+        self.assertEqual(len(demographics_loaded.implicits), len(expected_implicits))
+        for expected_implicit in expected_implicits:
+            self.assertTrue(expected_implicit in demographics_loaded.implicits)
+
+    def test_from_file_sets_necessary_complex_distribution_implicit_functions(self):
+        from emod_api.demographics.implicit_functions import _set_age_complex
+        from emod_api.demographics.implicit_functions import _set_enable_natural_mortality
+        from emod_api.demographics.implicit_functions import _set_fertility_age_year
+        from emod_api.demographics.implicit_functions import _set_mortality_age_gender_year
+        from emod_api.demographics.implicit_functions import _set_suscept_complex
+
+        input_filepath = Path(manifest.demo_folder,
+                              "demographics_test_from_file_sets_necessary_complex_distribution_implicit_functions.json")
+        expected_implicits = [_set_age_complex, _set_suscept_complex, _set_enable_natural_mortality,
+                              _set_mortality_age_gender_year, _set_fertility_age_year]
+
+        # # Use this if needing to regenerate the input_filepath
+        # default_node = Node(lat=0, lon=0, pop=1000, forced_id=0)
+        # demographics = Demographics(default_node=default_node, nodes=[])
+        #
+        # # set complex distributions on everything we can (IndividualAttributes)
+        # age_distribution = AgeDistribution(ages_years=[0, 20], cumulative_population_fraction=[0.0, 1.0])
+        # demographics.set_age_distribution(distribution=age_distribution)
+        # susceptibility_distribution = SusceptibilityDistribution(ages_years=[0, 20], susceptible_fraction=[0.1, 0.2])
+        # demographics.set_susceptibility_distribution(distribution=susceptibility_distribution)
+        # mortality_distribution_male = MortalityDistribution(ages_years=[0, 20], calendar_years=[2000, 2010],
+        #                                                     mortality_rate_matrix=[[0.1, 0.2], [0.3, 0.4]])
+        # mortality_distribution_female = mortality_distribution_male
+        # demographics.set_mortality_distribution(distribution_male=mortality_distribution_male,
+        #                                         distribution_female=mortality_distribution_female)
+        #
+        # # user-facing demographics functions for setting the following are in emodpy-hiv , so we
+        # # set these "manually" for emod-api testing purposes.
+        # fertility_distribution = FertilityDistribution(ages_years=[15, 25], calendar_years=[2005, 2015],
+        #                                                pregnancy_rate_matrix=[[0.01, 0.02], [0.03, 0.04]])
+        # demographics.default_node._set_fertility_complex_distribution(distribution=fertility_distribution)
+        #
+        # demographics.to_file(path=input_filepath)
+        # return
+
+        demographics_loaded = Demographics.from_file(path=input_filepath)
+        self.assertEqual(len(demographics_loaded.implicits), len(expected_implicits))
+        for expected_implicit in expected_implicits:
+            self.assertTrue(expected_implicit in demographics_loaded.implicits)
+
+
     def test_generate_from_file_compatibility_Prashanth_single_node(self):
         input_filename = os.path.join(manifest.demo_folder, "single_node_demographics.json")
         output_filename = os.path.join(self.out_folder, "single_node_demographics_comparison.json")
@@ -284,7 +372,7 @@ class DemographicsTest(unittest.TestCase):
 
     def pass_through_test(self, input_filename, output_filename):
         demog = Demographics.from_file(input_filename)
-        demog.to_file(name=output_filename)
+        demog.to_file(path=output_filename)
         with open(input_filename, 'r') as demo_file:
             demog_json_original = json.load(demo_file)
         with open(output_filename, 'r') as demo_file2:
@@ -445,7 +533,7 @@ class DemographicsTest(unittest.TestCase):
                 'pop': [123, 234, 345, 678],
                 'lon': [10, 11, 12, 13],
                 'lat': [21, 22, 23, 24]}
-        csv_file = pathlib.Path("test_overlay_population.csv")
+        csv_file = Path("test_overlay_population.csv")
         pd.DataFrame.from_dict(temp).to_csv(csv_file)
         demo = Demographics.from_csv(csv_file)
 
@@ -511,7 +599,7 @@ class DemographicsTest(unittest.TestCase):
                 'pop': [123, 234, 345, 678],
                 'lon': [10, 11, 12, 13],
                 'lat': [21, 22, 23, 24]}
-        csv_file = pathlib.Path("test_overlay_population.csv")
+        csv_file = Path("test_overlay_population.csv")
         pd.DataFrame.from_dict(temp).to_csv(csv_file)
         demo = Demographics.from_csv(input_file=csv_file)
         csv_file.unlink()
@@ -561,7 +649,7 @@ class DemographicsTest(unittest.TestCase):
                 'pop': [123, 234, 345],
                 'lon': [10, 11, 12],
                 'lat': [21, 22, 23]}
-        csv_file = pathlib.Path("test_overlay_population.csv")
+        csv_file = Path("test_overlay_population.csv")
         pd.DataFrame.from_dict(temp).to_csv(csv_file)
         demo = Demographics.from_csv(csv_file)
         csv_file.unlink()
@@ -608,7 +696,7 @@ class DemographicsTest(unittest.TestCase):
                 'pop': [123, 234, 345],
                 'lon': [10, 11, 12],
                 'lat': [21, 22, 23]}
-        csv_file = pathlib.Path("test_overlay_population.csv")
+        csv_file = Path("test_overlay_population.csv")
         pd.DataFrame.from_dict(temp).to_csv(csv_file)
         demo = Demographics.from_csv(csv_file)
         csv_file.unlink()
@@ -647,7 +735,7 @@ class DemographicsTest(unittest.TestCase):
                 'pop': [123, 234, 345],
                 'lon': [10, 11, 12],
                 'lat': [21, 22, 23]}
-        csv_file = pathlib.Path("test_overlay_population.csv")
+        csv_file = Path("test_overlay_population.csv")
         pd.DataFrame.from_dict(temp).to_csv(csv_file)
         demo = Demographics.from_csv(csv_file)
         csv_file.unlink()

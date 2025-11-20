@@ -1,4 +1,5 @@
 import math
+from typing import Callable, List, Tuple
 
 from emod_api.demographics.age_distribution import AgeDistribution
 from emod_api.demographics.fertility_distribution import FertilityDistribution
@@ -127,7 +128,7 @@ class Node(Updateable):
 
     @classmethod
     def from_data(cls,
-                  data: dict):
+                  data: dict) -> Tuple["Node", List[Callable]]:
         """
         Function used to create the node object from data (most likely coming from a demographics file)
 
@@ -135,8 +136,10 @@ class Node(Updateable):
             data (dict): Contains the node definitions
 
         Returns:
-            (Node): New Node object
+            A New Node object and a list of known implicit functions needed for config compatibility.
         """
+        implicit_functions = []
+
         nodeid = data["NodeID"]
         node_attributes_dict = dict(data.get("NodeAttributes"))
         attributes = data["NodeAttributes"]
@@ -153,16 +156,17 @@ class Node(Updateable):
                                                              initial_distribution=ip["Initial_Distribution"]))
         individual_attributes = None
         if individual_attributes_dict:
-            individual_attributes = IndividualAttributes().from_dict(individual_attributes_dict)
+            individual_attributes, implicit_functions = IndividualAttributes().from_dict(individual_attributes_dict)
 
         node_attributes = None
         if node_attributes_dict:
             node_attributes = NodeAttributes().from_dict(node_attributes_dict)
 
-        # Create the node and return
-        return cls(node_attributes.latitude, node_attributes.longitude, node_attributes.initial_population,
+        # Create the node and return plus any known necessary implicit functions
+        node = cls(node_attributes.latitude, node_attributes.longitude, node_attributes.initial_population,
                    name=name, forced_id=nodeid, individual_attributes=individual_attributes,
                    individual_properties=individual_properties, node_attributes=node_attributes)
+        return node, implicit_functions
 
     @property
     def pop(self):

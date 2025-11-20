@@ -36,45 +36,53 @@ class Demographics(DemographicsBase):
                 node.node_attributes.seaport = 1
                 node.node_attributes.region = 1
 
-    def to_file(self, name: str = "demographics.json") -> None:
+    def to_file(self, path: str = "demographics.json") -> None:
         """
         Write the Demographics object to an EMOD demograhpics json file.
 
         Args:
-            name: (str) the filepath to write the file to. Default is "demographics.json".
+            path: (str) the filepath to write the file to. Default is "demographics.json".
 
         Returns:
             Nothing
         """
-        with open(name, "w") as output:
+        with open(path, "w") as output:
             json.dump(self.to_dict(), output, indent=3, sort_keys=True)
 
-    def generate_file(self, name: str = "demographics.json"):
+    def generate_file(self, path: str = "demographics.json"):
         import warnings
         warnings.warn("generate_file() is deprecated. Please use to_file()", DeprecationWarning, stacklevel=2)
-        self.to_file(name=name)
+        self.to_file(path=path)
 
     @classmethod
-    def from_file(cls, base_file: str) -> "Demographics":
+    def from_file(cls, path: str) -> "Demographics":
         """
         Create a Demographics object from an EMOD-compatible demographics json file.
 
         Args:
-            base_file (str): the file path to read from.:
+            path (str): the file path to read from.:
 
         Returns:
             a Demographics object
         """
 
-        with open(base_file, "rb") as src:
+        with open(path, "rb") as src:
             demographics_dict = json.load(src)
         demographics_dict["Defaults"]["NodeID"] = 0  # This is a requirement of all emod-api Demographics objects
-        nodes = [Node.from_data(data=node_dict) for node_dict in demographics_dict["Nodes"]]
-        default_node = Node.from_data(data=demographics_dict["Defaults"])
+        implicit_functions = []
+        nodes = []
+        for node_dict in demographics_dict["Nodes"]:
+            node, implicits = Node.from_data(data=node_dict)
+            implicit_functions.extend(implicits)
+            nodes.append(node)
+        default_node, implicits = Node.from_data(data=demographics_dict["Defaults"])
+        implicit_functions.extend(implicits)
         metadata = demographics_dict["Metadata"]
         idref = demographics_dict["Metadata"]["IdReference"]
 
-        return cls(nodes=nodes, default_node=default_node, idref=idref, metadata=metadata, set_defaults=False)
+        demographics = cls(nodes=nodes, default_node=default_node, idref=idref, metadata=metadata, set_defaults=False)
+        demographics.implicits.extend(implicit_functions)
+        return demographics
 
     @classmethod
     def from_template_node(cls,
