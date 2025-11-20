@@ -562,8 +562,7 @@ class ReadOnlyDictTest(unittest.TestCase):
         with open(schema_path) as fid01:
             schema_json = json.load(fid01)
 
-        coordinator = s2c.get_class_with_defaults("StandardEventCoordinator", schema_json=schema_json)
-
+        coordinator = s2c.get_class_with_defaults("StandardInterventionDistributionEventCoordinator", schema_json=schema_json)
         coordinator.Number_Repetitions = 123    # doesn't raise an exception
 
         with self.assertRaises(KeyError) as context:

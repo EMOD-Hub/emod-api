@@ -10,4 +10,4 @@ To generate a schema.json:
 
 For rest of emod-api documentation, please go to https://github.com/InstituteforDiseaseModeling/emod-api
 """
-__version__ = "2.0.35"
+__version__ = "2.0.36"
