@@ -12,28 +12,30 @@ class DemographicsOverlay(DemographicsBase):
     """
 
     def __init__(self,
+                 default_node: OverlayNode,
                  nodes: list[OverlayNode] = None,
-                 idref: str = None,
-                 default_node: OverlayNode = None):
+                 idref: str = None):
         """
-        A class to create demographic overlays.
+        An object representation of an EMOD demographics overlay input (file). The contents are interpreted by EMOD
+        at runtime as overrides to the canonical/primary demographics input file.
+
         Args:
-            nodes: Overlay is applied to these nodes.
-            idref: a name used to indicate files (demographics, climate, and migration) are used together
-            individual_attributes: Object of type
-                :py:obj:`emod_api:emod_api.demographics.PropertiesAndAttributes.IndividualAttributes
-                to overwrite individual attributes
-            node_attributes:  Object of type
-                :py:obj:`emod_api:emod_api.demographics.PropertiesAndAttributes.NodeAttributes
-                to overwrite individual attributes
-            default_node: (OverlayNode) An optional node to use for default settings.
-
+            default_node: (OverlayNode) Contains default settings for nodes in the overlay.
+            nodes (List[OverlayNode]): Overlay is applied to these nodes. Default is no nodes.
+            idref (str): a name used to indicate files (demographics, climate, and migration) are used together
         """
-        super(DemographicsOverlay, self).__init__(nodes=nodes, idref=idref, default_node=default_node)
+        nodes = [] if nodes is None else nodes
+        super().__init__(nodes=nodes, idref=idref, default_node=default_node)
 
-    def to_file(self, file_name="demographics_overlay.json"):
+    def to_file(self, file_name: str = "demographics_overlay.json") -> None:
         """
-        Write the contents of the instance to an EMOD-compatible (JSON) file.
+        Writes the DemographicsOverlay to an EMOD-compatible json file.
+
+        Args:
+            file_name (str): The filepath to write to.
+
+        Returns:
+            Nothing
         """
         with open(file_name, "w") as demo_override_f:
             json.dump(self.to_dict(), demo_override_f)
