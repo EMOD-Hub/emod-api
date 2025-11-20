@@ -31,12 +31,11 @@ class Demographics(DemographicsBase):
 
         # set some standard EMOD defaults
         if set_defaults:
-            for node in self._all_nodes:
-                node.node_attributes.airport = 1
-                node.node_attributes.seaport = 1
-                node.node_attributes.region = 1
+            self.default_node.node_attributes.airport = 1
+            self.default_node.node_attributes.seaport = 1
+            self.default_node.node_attributes.region = 1
 
-    def to_file(self, path: str = "demographics.json") -> None:
+    def to_file(self, name: str = "demographics.json") -> None:
         """
         Write the Demographics object to an EMOD demograhpics json file.
 

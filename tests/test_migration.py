@@ -705,8 +705,6 @@ class MigrationTests(unittest.TestCase):
 
         return
 
-    # miscellaneous
-
     def test_from_demog_and_param_gravity(self):
         demographics_file = os.path.join(manifest.demo_folder, 'Seattle_30arcsec_demographics.json')
         migration = from_demog_and_param_gravity(demographics_file, gravity_params=[0.1, 0.2, 0.3, 0.4],
