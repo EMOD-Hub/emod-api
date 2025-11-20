@@ -35,7 +35,7 @@ class Demographics(DemographicsBase):
             self.default_node.node_attributes.seaport = 1
             self.default_node.node_attributes.region = 1
 
-    def to_file(self, name: str = "demographics.json") -> None:
+    def to_file(self, path: str = "demographics.json") -> None:
         """
         Write the Demographics object to an EMOD demograhpics json file.
 
