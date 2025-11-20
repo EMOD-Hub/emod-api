@@ -1,7 +1,7 @@
 import json
 
 from emod_api.demographics.demographics_base import DemographicsBase
-from emod_api.demographics.node import OverlayNode
+from emod_api.demographics.overlay_node import OverlayNode
 
 
 class DemographicsOverlay(DemographicsBase):

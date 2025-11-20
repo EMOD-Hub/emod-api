@@ -10,7 +10,7 @@ from pathlib import Path
 from platform import system
 from tempfile import mkstemp
 import unittest
-from emod_api.migration.migration import Migration, from_file, from_params, from_demog_and_param_gravity, to_csv, examine_file, from_csv
+from emod_api.migration.migration import Migration, from_file, from_demog_and_param_gravity, to_csv, examine_file, from_csv
 import pandas as pd
 import io
 from contextlib import redirect_stdout
@@ -705,10 +705,8 @@ class MigrationTests(unittest.TestCase):
 
         return
 
-    @unittest.skip("any test using demographics will need to be ported to 2.x format before being reinstated")
     def test_from_demog_and_param_gravity(self):
         demographics_file = os.path.join(manifest.demo_folder, 'Seattle_30arcsec_demographics.json')
-
         migration = from_demog_and_param_gravity(demographics_file, gravity_params=[0.1, 0.2, 0.3, 0.4],
                                                  id_ref='from_demog_and_param_gravity_test',
                                                  migration_type=Migration.LOCAL)
@@ -717,9 +715,6 @@ class MigrationTests(unittest.TestCase):
         self.assertEqual(migration.IdReference, "from_demog_and_param_gravity_test")
         self.assertEqual(migration.MigrationType, Migration.LOCAL)
 
-        return
-
-    @unittest.skip("any test using demographics will need to be ported to 2.x format before being reinstated")
     def test_from_demog_and_param_gravity_distance(self):
         def get_distance(lat1, lon1, lat2, lon2):
             r = 6371
@@ -787,7 +782,6 @@ class MigrationTests(unittest.TestCase):
 
         verify_distance(migration_rate, locations)
 
-    @unittest.skip("any test using demographics will need to be ported to 2.x format before being reinstated")
     def test_from_demog_and_param_gravity_with_reference(self):
         demographics_file = os.path.join(manifest.demo_folder, 'Seattle_30arcsec_demographics.json')
 
