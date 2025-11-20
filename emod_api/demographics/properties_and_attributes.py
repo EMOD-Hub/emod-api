@@ -431,7 +431,7 @@ class IndividualAttributes(Updateable):
 
         return individual_attributes
 
-    def from_dict(self, individual_attributes: dict)-> Tuple["IndividualAttributes", List[Callable]]:
+    def from_dict(self, individual_attributes: dict) -> Tuple["IndividualAttributes", List[Callable]]:
         implicit_functions = []
 
         age_distribution_dict = individual_attributes.get("AgeDistribution", None)
