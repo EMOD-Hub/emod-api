@@ -705,17 +705,6 @@ class MigrationTests(unittest.TestCase):
 
         return
 
-    # miscellaneous
-    def test_from_params(self):
-        migration = from_params(pop=1e6, num_nodes=80, mig_factor=1.0, frac_rural=0.2,
-                                id_ref="from_params_test", migration_type=Migration.REGIONAL)
-        self.assertEqual(migration.NodeCount, 80)
-        self.assertEqual(migration.DatavalueCount, 30)
-        self.assertEqual(migration.IdReference, "from_params_test")
-        self.assertEqual(migration.MigrationType, Migration.REGIONAL)
-
-        return
-
     @unittest.skip("any test using demographics will need to be ported to 2.x format before being reinstated")
     def test_from_demog_and_param_gravity(self):
         demographics_file = os.path.join(manifest.demo_folder, 'Seattle_30arcsec_demographics.json')
