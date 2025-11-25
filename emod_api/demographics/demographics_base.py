@@ -541,6 +541,7 @@ class DemographicsBase(BaseInputFile):
                                     node_ids: List[int] = None) -> None:
         """
         Sets a prevalence distribution on the demographics object. Automatically handles any necessary config updates.
+        Initial prevalence distributions are not compatible with HIV EMOD simulations.
 
         Args:
             distribution: The distribution to set. Must be a BaseDistribution object for a simple distribution.
