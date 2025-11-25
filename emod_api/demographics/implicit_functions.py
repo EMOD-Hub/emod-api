@@ -30,8 +30,8 @@ def _set_local_migration_filename(config, file_name):
     return config
 
 
-def _set_demographic_filenames(config, file_names):
-    config.parameters.Demographics_Filenames = file_names
+def _set_demographic_filenames(config, filenames):
+    config.parameters.Demographics_Filenames = filenames
     return config
 
 

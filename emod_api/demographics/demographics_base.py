@@ -8,8 +8,6 @@ import pandas as pd
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-import emod_api.demographics.calculators
-import emod_api.demographics.implicit_functions
 from emod_api.demographics.age_distribution import AgeDistribution
 from emod_api.demographics.base_input_file import BaseInputFile
 from emod_api.demographics.fertility_distribution import FertilityDistribution
@@ -255,15 +253,16 @@ class DemographicsBase(BaseInputFile):
                            if node_name in node_names}
         return requested_nodes
 
-    def set_demographics_filenames(self, file_names: List[str]):
+    def set_demographics_filenames(self, filenames: List[str]):
         """
         Set paths to demographic file.
 
         Args:
-            file_names: Paths to demographic files.
+            filenames: Paths to demographic files.
         """
-        if self.implicits is not None:
-            self.implicits.append(partial(emod_api.demographics.implicits._set_demographic_filenames, file_names=file_names))
+        from emod_api.demographics.implicit_functions import _set_demographic_filenames
+
+        self.implicits.append(partial(_set_demographic_filenames, filenames=filenames))
 
     def infer_natural_mortality(self,
                                 file_male,
