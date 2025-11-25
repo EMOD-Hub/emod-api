@@ -7,8 +7,10 @@ import getpass
 class BaseInputFile:
     __metaclass__ = ABCMeta
 
-    def __init__(self, idref):
-        self.idref = idref
+    DEFAULT_ID_REFERENCE = "default_id_reference"
+
+    def __init__(self, idref: str = DEFAULT_ID_REFERENCE):
+        self.idref = self.DEFAULT_ID_REFERENCE if idref is None else idref
 
     @abstractmethod
     def generate_file(self, name):

@@ -38,7 +38,7 @@ class DemographicsBase(BaseInputFile):
     class DuplicateNodeNameException(Exception):
         pass
 
-    def __init__(self, nodes: List[Node], idref: str, default_node: Node = None, metadata: Dict = None):
+    def __init__(self, nodes: List[Node], idref: str, default_node: Node = None):
         """
         Passed-in default nodes are optional. If one is not passed in, one will be created.
         """
@@ -58,7 +58,7 @@ class DemographicsBase(BaseInputFile):
         self.default_node.name = self.DEFAULT_NODE_NAME
         if self.default_node.id != 0:
             raise InvalidNodeIdException(f"Default nodes must have an id of 0. It is {self.default_node.id} .")
-        self.metadata = self.generate_headers() if metadata is None else metadata
+        self.metadata = self.generate_headers()
         # TODO: remove the following setting of birth_rate on the default node once this EMOD binary issue is fixed
         #  https://github.com/InstituteforDiseaseModeling/DtkTrunk/issues/4009
         if self.default_node.birth_rate is None:
