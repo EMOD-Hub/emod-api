@@ -4,7 +4,8 @@ from emod_api import schema_to_class as s2c
 
 class BaseDistribution(ABC):
     """
-    Abstract base class for distribution classes. This class should not be instantiated directly.
+    Abstract base class for distribution classes such as UniformDistribution and ExpoentialDistribution. This class
+    should not be instantiated directly.
     """
 
     @abstractmethod
