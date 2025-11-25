@@ -716,7 +716,7 @@ class DemographicsBase(BaseInputFile):
         ('Accessibility') that labels them as either having access to health care (value: 'Yes') or not (value: 'No').
 
         Note: EMOD requires individual property key and values (property and values arguments) to be the same across all
-            nodes. The individual distributions of individual properties (initial_distribution) can vary across nodes.
+            nodes. The initial distributions of individual properties (initial_distribution) can vary across nodes.
 
         Documentation of individual properties and HINT:
             For malaria, see :doc:`emod-malaria:emod/model-properties`
@@ -724,9 +724,9 @@ class DemographicsBase(BaseInputFile):
 
         Args:
             property: a new individual property key to add. If property already exists an exception is raised
-                unless overwrite_existing is True.
+                unless overwrite_existing is True. 'property' must be the same across all nodes, note above.
             values: A list of valid values for the property key. For example,  ['Yes', 'No'] for an 'Accessibility'
-                property key.
+                property key. 'values' must be the same across all nodes, note above.
             initial_distribution: The fractional, between 0 and 1, initial distribution of each valid values entry.
                 Order must match values argument. The values must add up to 1.
             node_ids: The node ids to apply changes to. None or 0 means the 'Defaults' node, which will apply to all
