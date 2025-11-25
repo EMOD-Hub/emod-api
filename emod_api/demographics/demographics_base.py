@@ -512,7 +512,8 @@ class DemographicsBase(BaseInputFile):
         Set a distribution that will impact the probability that a person will acquire an infection based on immunity.
         The SusceptibilityDistribution is used to define an age-based distribution from which a probability is selected
         to determine if a person is susceptible or not. The older ages of the distribution are only used during
-        initialization. Automatically handles any necessary config updates.
+        initialization. Automatically handles any necessary config updates. Susceptibility distributions are NOT
+        compatible or supported for Malaria or HIV simulations of HIV.
 
 
         Args:
