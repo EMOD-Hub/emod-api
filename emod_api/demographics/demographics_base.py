@@ -116,7 +116,7 @@ class DemographicsBase(BaseInputFile):
             a Node object
         """
         message = "get_node() is a deprecated function of Node objects, use get_node_by_id() instead. " \
-                  "(e.g. demographics.get_node_by_id(node_id=4))"
+                  "(For example, demographics.get_node_by_id(node_id=4))"
         warnings.warn(message=message, category=DeprecationWarning, stacklevel=2)
         return self.get_node_by_id(node_id=nodeid)
 
@@ -712,8 +712,8 @@ class DemographicsBase(BaseInputFile):
         Adds a new individual property or replace values on an already-existing property in a demographics object.
 
         Individual properties act as 'labels' on model agents that can be used for identifying and targeting
-        subpopulations in campaign elements and reports. E.g. model agents may be given a property ('Accessibility')
-        that labels them as either having access to health care (value: 'Yes') or not (value: 'No').
+        subpopulations in campaign elements and reports. For example, model agents may be given a property
+        ('Accessibility') that labels them as either having access to health care (value: 'Yes') or not (value: 'No').
 
         Note: EMOD requires individual property key and values (property and values arguments) to be the same across all
             nodes. The individual distributions of individual properties (initial_distribution) can vary across nodes.
@@ -725,7 +725,8 @@ class DemographicsBase(BaseInputFile):
         Args:
             property: a new individual property key to add. If property already exists an exception is raised
                 unless overwrite_existing is True.
-            values: A list of valid values for the property key. E.g. ['Yes', 'No'] for an 'Accessibility' property key.
+            values: A list of valid values for the property key. For example,  ['Yes', 'No'] for an 'Accessibility'
+                property key.
             initial_distribution: The fractional, between 0 and 1, initial distribution of each valid values entry.
                 Order must match values argument. The values must add up to 1.
             node_ids: The node ids to apply changes to. None or 0 means the 'Defaults' node, which will apply to all
