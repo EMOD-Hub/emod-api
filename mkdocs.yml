@@ -46,12 +46,11 @@ plugins:
   - mkdocs-autoapi:
       autoapi_ignore:
         - .github/**/*
+        - build/**/*
+        - docs/**/*
         - emod_api/.dtk_tools/**/*
         - emod_api/**/__main__.py
         - tests/**/*
-        - build/**/*
-        - docs/*
-        - setup.py
       autoapi_add_nav_entry: false
   - mkdocstrings:
 

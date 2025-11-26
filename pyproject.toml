@@ -63,8 +63,8 @@ test = [
 ]
 
 [project.urls]
-Repository="https://github.com/EMOD-Hub/emod-api"
-Issues="https://github.com/EMOD-Hub/emod-api/issues"
+Repository = "https://github.com/EMOD-Hub/emod-api"
+Issues = "https://github.com/EMOD-Hub/emod-api/issues"
 
 [tool.setuptools.packages]
 find = {include = ["emod_api*"]}
