@@ -9,7 +9,7 @@ from tests import manifest
 class DemoConfigTest(unittest.TestCase):
     # This test suite simply verifies that implicit functions from demographics objects are applied to the config
     # appropriately. Further details, like the contents of the distributions being set (and covering all distribution
-    # use cases e.g. mortality) are covered in test_self.demographics.py .
+    # use cases, for example, mortality) are covered in test_demographics.py .
 
     def setUp(self) -> None:
         print(f"\n{self._testMethodName} started...")
@@ -22,7 +22,7 @@ class DemoConfigTest(unittest.TestCase):
         return config_obj
 
     def test_demographic_implicits_are_applied(self):
-        # simple case to ensure a implicit functions actually apply to configs. test_self.demographics.py ensures the
+        # simple case to ensure a implicit functions actually apply to configs. test_demographics.py ensures the
         # RIGHT implicit functions are set.
         from emod_api.demographics.implicit_functions import _set_age_simple, _set_suscept_complex
         from emod_api.demographics.susceptibility_distribution import SusceptibilityDistribution
