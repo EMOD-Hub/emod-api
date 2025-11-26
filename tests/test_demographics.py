@@ -604,16 +604,13 @@ class DemographicsTest(unittest.TestCase):
         demo = Demographics.from_csv(input_file=csv_file)
         csv_file.unlink()
 
-        # new_susceptibility_distribution_1 = SusceptibilityDistribution(distribution_values=[0.1, 0.2],
-        #                                                                result_scale_factor=1,
-        #                                                                result_values=[0.1, 0.2])
         new_susceptibility_distribution_1 = SusceptibilityDistribution(ages_years=[0, 20],
                                                                        susceptible_fraction=[0.1, 0.2])
 
         overlay_nodes = []  # list of all overlay nodes
         overlay_nodes_id_1 = [1, 2]  # Change susceptibility of nodes with ids 1 and 2
         for node_id in overlay_nodes_id_1:
-            overlay_nodes.append(OverlayNode(node_id=node_id)) # , individual_attributes=new_individual_attributes_1))
+            overlay_nodes.append(OverlayNode(node_id=node_id))
         demo.set_susceptibility_distribution(distribution=new_susceptibility_distribution_1,
                                              node_ids=overlay_nodes_id_1)
 
@@ -622,11 +619,7 @@ class DemographicsTest(unittest.TestCase):
 
         overlay_nodes_id_2 = [5, 10]    # Change susceptibility of nodes with ids 5 and 10
         for node_id in overlay_nodes_id_2:
-            # new_susceptibility_distribution_2 = SusceptibilityDistribution(distribution_values=[0.8, 0.9],
-            #                                                                result_scale_factor=1,
-            #                                                                result_values=[0.8, 0.9])
-            # new_individual_attributes_2 = IndividualAttributes(susceptibility_distribution=new_susceptibility_distribution_2)
-            overlay_nodes.append(OverlayNode(node_id=node_id))  #, individual_attributes=new_individual_attributes_2))
+            overlay_nodes.append(OverlayNode(node_id=node_id))
         demo.set_susceptibility_distribution(distribution=new_susceptibility_distribution_2,
                                              node_ids=overlay_nodes_id_1)
 
@@ -762,10 +755,9 @@ class DemographicsTest(unittest.TestCase):
     def test_applyoverlay_individual_properties(self):
         node_attributes_1 = NodeAttributes(name="test_demo1")
         node_attributes_2 = NodeAttributes(name="test_demo2")
-        nodes = [Node(1, 0, 1001, node_attributes=node_attributes_1, forced_id=1),
-                 Node(0, 1, 1002, node_attributes=node_attributes_2, forced_id=2)]
+        nodes = [Node(lat=1, lon=0, pop=1001, node_attributes=node_attributes_1, forced_id=1),
+                 Node(lat=0, lon=1, pop=1002, node_attributes=node_attributes_2, forced_id=2)]
         demog = Demographics(nodes=nodes)
-        # demog.SetDefaultProperties()
 
         overlay_nodes = []
 
