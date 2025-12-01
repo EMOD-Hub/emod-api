@@ -1,7 +1,9 @@
 import json
 import numpy as np
 import pandas as pd
-from typing import List, Dict
+
+from pathlib import Path
+from typing import List, Union
 
 from emod_api.demographics.demographics_base import DemographicsBase
 from emod_api.demographics.node import Node
@@ -33,7 +35,7 @@ class Demographics(DemographicsBase):
             self.default_node.node_attributes.seaport = 1
             self.default_node.node_attributes.region = 1
 
-    def to_file(self, path: str = "demographics.json", indent: int = 4) -> None:
+    def to_file(self, path: Union[str, Path] = "demographics.json", indent: int = 4) -> None:
         """
         Write the Demographics object to an EMOD demograhpics json file.
 
@@ -50,7 +52,7 @@ class Demographics(DemographicsBase):
             else:
                 json.dump(self.to_dict(), output, indent=indent, sort_keys=True)
 
-    def generate_file(self, path: str = "demographics.json", indent: int = 4):
+    def generate_file(self, path: Union[str, Path] = "demographics.json", indent: int = 4):
         import warnings
         warnings.warn("generate_file() is deprecated. Please use to_file()", DeprecationWarning, stacklevel=2)
         self.to_file(path=path, indent=indent)
