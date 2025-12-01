@@ -33,23 +33,27 @@ class Demographics(DemographicsBase):
             self.default_node.node_attributes.seaport = 1
             self.default_node.node_attributes.region = 1
 
-    def to_file(self, path: str = "demographics.json") -> None:
+    def to_file(self, path: str = "demographics.json", indent: int = 4) -> None:
         """
         Write the Demographics object to an EMOD demograhpics json file.
 
         Args:
             path: (str) the filepath to write the file to. Default is "demographics.json".
-
+            indent: (int, optional) The number of spaces to indent for nested JSON elements (Default is 4, None means
+                no nesting (one line printing)).
         Returns:
             Nothing
         """
         with open(path, "w") as output:
-            json.dump(self.to_dict(), output, indent=3, sort_keys=True)
+            if indent is None:
+                json.dump(self.to_dict(), output, sort_keys=True)
+            else:
+                json.dump(self.to_dict(), output, indent=indent, sort_keys=True)
 
-    def generate_file(self, path: str = "demographics.json"):
+    def generate_file(self, path: str = "demographics.json", indent: int = 4):
         import warnings
         warnings.warn("generate_file() is deprecated. Please use to_file()", DeprecationWarning, stacklevel=2)
-        self.to_file(path=path)
+        self.to_file(path=path, indent=indent)
 
     @classmethod
     def from_file(cls, path: str) -> "Demographics":
