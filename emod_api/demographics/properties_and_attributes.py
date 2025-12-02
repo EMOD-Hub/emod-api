@@ -392,7 +392,7 @@ class IndividualAttributes(Updateable):
                                             value2_key="MigrationHeterogeneityDistribution2")
             individual_attributes.update(migration_heterogeneity_distribution_dict)
 
-        # malaria only
+        # malaria only - possible to move this to emodpy-malaria in the future if desired.
         if self.risk_distribution_flag is not None:
             risk_distribution_dict = {
                 "RiskDistributionFlag": self.risk_distribution_flag,
@@ -402,7 +402,7 @@ class IndividualAttributes(Updateable):
             self._ensure_valid_value2_value(distribution_dict=risk_distribution_dict, value2_key="RiskDistribution2")
             individual_attributes.update(risk_distribution_dict)
 
-        # malaria only
+        # malaria only - possible to move this to emodpy-malaria in the future if desired.
         if self.innate_immune_distribution_flag is not None:
             innate_immune_distribution_dict = {
                 "InnateImmuneDistributionFlag": self.innate_immune_distribution_flag,
@@ -415,7 +415,6 @@ class IndividualAttributes(Updateable):
 
         # The following distributions can only be complex, not simple
 
-        # HIV only
         if self.fertility_distribution is not None:
             individual_attributes.update({"FertilityDistribution": self.fertility_distribution.to_dict()})
 
@@ -506,7 +505,7 @@ class IndividualAttributes(Updateable):
             self.mortality_distribution = MortalityDistribution.from_dict(distribution_dict=distribution_dict)
             implicit_functions.extend([_set_enable_natural_mortality, _set_mortality_age_gender])
 
-        # malaria only
+        # malaria only - possible to move this to emodpy-malaria in the future if desired.
         self.innate_immune_distribution_flag = individual_attributes.get("InnateImmuneDistributionFlag", None)
         self.innate_immune_distribution1 = individual_attributes.get("InnateImmuneDistribution1", None)
         self.innate_immune_distribution2 = individual_attributes.get("InnateImmuneDistribution2", None)
@@ -517,14 +516,13 @@ class IndividualAttributes(Updateable):
                           "properly.",
                           Warning, stacklevel=2)
 
-        # malaria only
+        # malaria only - possible to move this to emodpy-malaria in the future if desired.
         self.risk_distribution_flag = individual_attributes.get("RiskDistributionFlag", None)
         self.risk_distribution1 = individual_attributes.get("RiskDistribution1", None)
         self.risk_distribution2 = individual_attributes.get("RiskDistribution2", None)
         if self.risk_distribution_flag is not None:
             implicit_functions.append(_set_enable_demog_risk)
 
-        # HIV only
         distribution_dict = individual_attributes.get("FertilityDistribution", None)
         if distribution_dict is None:
             self.fertility_distribution = None
