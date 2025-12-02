@@ -76,7 +76,7 @@ class Demographics(DemographicsBase):
                       "whenever possible as that route is by far the most tested for modern EMOD compatibility.",
                       DeprecationWarning, stacklevel=2)
 
-        with open(path, "rb") as src:
+        with open(path, "r") as src:
             demographics_dict = json.load(src)
         demographics_dict["Defaults"]["NodeID"] = 0  # This is a requirement of all emod-api Demographics objects
         implicit_functions = []
