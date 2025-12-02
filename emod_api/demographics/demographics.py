@@ -73,7 +73,10 @@ class Demographics(DemographicsBase):
         """
         import warnings
         warnings.warn("Loading Demographics from JSON files is deprecated. Objects should be created via Python code "
-                      "whenever possible as that route is by far the most tested for modern EMOD compatibility.",
+                      "whenever possible as that route is by far the most tested for modern EMOD compatibility. Please "
+                      "ensure, for example, that the read-in json file (or resultant demographics object) does not "
+                      "contain conflicting distributions for IndividualAttributes that can be represented with simple "
+                      "or complex distributions (use of only one at a time is valid).",
                       DeprecationWarning, stacklevel=2)
 
         with open(path, "r") as src:
