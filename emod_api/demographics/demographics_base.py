@@ -36,7 +36,7 @@ class DemographicsBase(BaseInputFile):
     class DuplicateNodeNameException(Exception):
         pass
 
-    def __init__(self, nodes: List[Node], idref: str, default_node: Node = None):
+    def __init__(self, nodes: List[Node], idref: str = None, default_node: Node = None):
         """
         Passed-in default nodes are optional. If one is not passed in, one will be created.
         """

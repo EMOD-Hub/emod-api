@@ -9,7 +9,7 @@ class BaseInputFile:
 
     DEFAULT_ID_REFERENCE = "default_id_reference"
 
-    def __init__(self, idref: str = DEFAULT_ID_REFERENCE):
+    def __init__(self, idref: str = None):
         self.idref = self.DEFAULT_ID_REFERENCE if idref is None else idref
 
     @abstractmethod
