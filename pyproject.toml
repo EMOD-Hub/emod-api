@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "emod-api"
-version = "2.0.36"
+version = "2.0.38"
 description = "Core tools for modeling using EMOD"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -63,8 +63,8 @@ test = [
 ]
 
 [project.urls]
-Repository="https://github.com/EMOD-Hub/emod-api"
-Issues="https://github.com/EMOD-Hub/emod-api/issues"
+Repository = "https://github.com/EMOD-Hub/emod-api"
+Issues = "https://github.com/EMOD-Hub/emod-api/issues"
 
 [tool.setuptools.packages]
 find = {include = ["emod_api*"]}

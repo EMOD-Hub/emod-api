@@ -64,6 +64,54 @@ class TestSchemaCommon():
         assert test_true
         self.succeeded = True
 
+    def test_iv_default_or_type(self):
+        # Schema processing assumes intervention class params have default or type
+        def fun_iv_reqs(key_in, val_in):
+            ret_val = True
+            if (type(key_in) is not str):
+                return True
+            if (':IndividualIntervention' in key_in or ':NodeIntervention' in key_in):
+                for iv_obj_name in val_in:
+                    # For every parameter defined in an intervention
+                    iv_obj = val_in[iv_obj_name]
+                    for iv_param_name in iv_obj:
+                        if (iv_param_name == 'class' or iv_param_name == 'Sim_Types'):
+                            continue
+                        iv_param_obj = iv_obj[iv_param_name]
+                        if ('default' not in iv_param_obj and 'type' not in iv_param_obj):
+                            return False
+            return ret_val
+
+        test_true = self.rabbit_hole(self.schema_json, fun_iv_reqs)
+        assert test_true
+        self.succeeded = True
+
+    def test_iv_type_is_idm(self):
+        # Schema processing assumes intervention class params without default are idmType
+        def fun_iv_type(key_in, val_in):
+            ret_val = True
+            if (type(key_in) is not str):
+                return True
+            if (':IndividualIntervention' in key_in or ':NodeIntervention' in key_in):
+                for iv_obj_name in val_in:
+                    # For every parameter defined in an intervention
+                    iv_obj = val_in[iv_obj_name]
+                    for iv_param_name in iv_obj:
+                        if (iv_param_name == 'class' or iv_param_name == 'Sim_Types'):
+                            continue
+                        iv_param_obj = iv_obj[iv_param_name]
+                        if ('default' not in iv_param_obj and 'type' in iv_param_obj):
+                            type_str = iv_param_obj['type']
+                            if (type_str.startswith('idmType') or type_str.startswith('idmAbstractType')):
+                                return True
+                            else:
+                                return False
+            return ret_val
+
+        test_true = self.rabbit_hole(self.schema_json, fun_iv_type)
+        assert test_true
+        self.succeeded = True
+
     def test_no_iv_type(self):
         # Schema processing assumes no "iv_type" key
         def fun_no_iv_type(key_in, val_in):
