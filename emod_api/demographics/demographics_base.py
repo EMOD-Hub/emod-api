@@ -513,7 +513,7 @@ class DemographicsBase(BaseInputFile):
         The SusceptibilityDistribution is used to define an age-based distribution from which a probability is selected
         to determine if a person is susceptible or not. The older ages of the distribution are only used during
         initialization. Automatically handles any necessary config updates. Susceptibility distributions are NOT
-        compatible or supported for Malaria or HIV simulations of HIV.
+        compatible or supported for Malaria or HIV simulations.
 
 
         Args:
@@ -583,7 +583,7 @@ class DemographicsBase(BaseInputFile):
 
     # TODO: This belongs in emodpy-malaria, as that is the one disease that uses this set of parameters.
     #  Should be moved into a subclass of emodpy Demographics inside emodpy-malaria during a 2.0 conversion of it.
-    #  https://github.com/InstituteforDiseaseModeling/emodpy-malaria-old/issues/706
+    #  https://github.com/EMOD-Hub/emodpy-malaria/issues/126
     # def set_innate_immune_distribution(self,
     #                                    distribution: BaseDistribution,
     #                                    innate_immune_variation_type: str,
@@ -714,6 +714,9 @@ class DemographicsBase(BaseInputFile):
         Individual properties act as 'labels' on model agents that can be used for identifying and targeting
         subpopulations in campaign elements and reports. For example, model agents may be given a property
         ('Accessibility') that labels them as either having access to health care (value: 'Yes') or not (value: 'No').
+
+        Another example: a property ('Risk') could label model agents as belonging to a spectrum of value categories
+        (values: 'HIGH', 'MEDIUM', 'LOW') that govern disease-related behavior.
 
         Note: EMOD requires individual property key and values (property and values arguments) to be the same across all
             nodes. The initial distributions of individual properties (initial_distribution) can vary across nodes.
