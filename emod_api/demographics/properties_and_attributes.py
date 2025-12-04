@@ -1,4 +1,5 @@
 from emod_api.demographics.age_distribution import AgeDistribution
+from emod_api.demographics.demographic_exceptions import ConflictingDistributionsException
 from emod_api.demographics.fertility_distribution import FertilityDistribution
 from emod_api.demographics.implicit_functions import _set_age_simple, _set_age_complex, _set_suscept_simple, \
     _set_suscept_complex, _set_init_prev, _set_migration_model_fixed_rate, _set_enable_migration_model_heterogeneity, \
@@ -339,7 +340,12 @@ class IndividualAttributes(Updateable):
         #  https://github.com/InstituteforDiseaseModeling/emod-api-old/issues/751
         individual_attributes = self.parameter_dict
 
-        # Set age distribution as complex or simple
+        # Set age distribution as complex or simple if specified, but not both.
+        both_types_selected = ((self.age_distribution is not None) and
+                                (self.age_distribution_flag is not None))
+        if both_types_selected:
+            raise ConflictingDistributionsException('Both a simple and complex distribution for age has been set. '
+                                                    'Only type is allowed.')
         if self.age_distribution is not None:
             # complex distribution
             age_distribution_dict = {"AgeDistribution": self.age_distribution.to_dict()}
@@ -354,7 +360,12 @@ class IndividualAttributes(Updateable):
             self._ensure_valid_value2_value(distribution_dict=age_distribution_dict, value2_key="AgeDistribution2")
             individual_attributes.update(age_distribution_dict)
 
-        # Set susceptibility distribution as complex or simple
+        # Set susceptibility distribution as complex or simple if specified, but not both.
+        both_types_selected = ((self.susceptibility_distribution is not None) and
+                                (self.susceptibility_distribution_flag is not None))
+        if both_types_selected:
+            raise ConflictingDistributionsException('Both a simple and complex distribution for susceptibility has '
+                                                    'been set. Only type is allowed.')
         if self.susceptibility_distribution is not None:
             # complex distribution
             susceptibility_distribution_dict = {"SusceptibilityDistribution": self.susceptibility_distribution.to_dict()}

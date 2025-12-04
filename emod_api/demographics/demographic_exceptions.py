@@ -48,3 +48,6 @@ class NonMonotonicDistributionException(ValueError):
 
 class InvalidNodeIdException(ValueError):
     pass
+
+class ConflictingDistributionsException(ValueError):
+    pass

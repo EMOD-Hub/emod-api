@@ -15,7 +15,6 @@ from emod_api.demographics.demographics import Demographics
 from emod_api.demographics.demographics_base import DemographicsBase
 import emod_api.demographics.demographic_exceptions as demog_ex
 from emod_api.demographics.demographics_overlay import DemographicsOverlay
-from emod_api.demographics.fertility_distribution import FertilityDistribution
 from emod_api.demographics.mortality_distribution import MortalityDistribution
 from emod_api.demographics.node import Node
 from emod_api.demographics.overlay_node import OverlayNode
@@ -23,6 +22,7 @@ from emod_api.demographics.properties_and_attributes import (IndividualAttribute
                                                              IndividualProperties, NodeAttributes)
 from emod_api.demographics.susceptibility_distribution import SusceptibilityDistribution
 from emod_api.utils.distributions.exponential_distribution import ExponentialDistribution
+from emod_api.utils.distributions.gaussian_distribution import GaussianDistribution
 
 from tests import manifest
 
@@ -1330,3 +1330,38 @@ class DemographicsComplexDistributionTests(unittest.TestCase):
         self.assertEqual(len(self.demographics.implicits), 2)
         self.assertIn(_set_enable_natural_mortality, self.demographics.implicits)
         self.assertIn(_set_mortality_age_gender_year, self.demographics.implicits)
+
+class DemographicsConflictingDistributionsTests(unittest.TestCase):
+    """
+    The exceptions checked in this class are thrown by IndividualAttributes of the Demographics Node objects when being
+    converted to dicts.
+    """
+
+    def setUp(self):
+        self.demographics = Demographics(nodes=[],
+                                         default_node=Node(lat=0, lon=0, pop=1000, forced_id=0))
+        self.simple_distribution = GaussianDistribution(mean=0.5, std_dev=0.1)
+
+    def test_simple_and_complex_age_distribution_specification_throws_an_exception(self):
+        # First, set a simple age distribution normally
+        self.demographics.set_age_distribution(distribution=self.simple_distribution)
+
+        # Second, set a complex age distribution (producing the error requires defeating the protections of method
+        # set_age_distribution(), so we do the setting manually.
+        complex_distribution = AgeDistribution(ages_years=[0, 10, 20], cumulative_population_fraction=[0.0, 0.5, 1.0])
+        self.demographics.default_node.individual_attributes.age_distribution = complex_distribution
+
+        self.assertRaises(demog_ex.ConflictingDistributionsException,
+                          self.demographics.to_dict)
+
+    def test_simple_and_complex_susceptibility_distribution_specification_throws_an_exception(self):
+        # First, set a simple age distribution normally
+        self.demographics.set_susceptibility_distribution(distribution=self.simple_distribution)
+
+        # Second, set a complex age distribution (producing the error requires defeating the protections of method
+        # set_susceptibility_distribution(), so we do the setting manually.
+        complex_distribution = SusceptibilityDistribution(ages_years=[0, 10, 20], susceptible_fraction=[0.0, 0.5, 1.0])
+        self.demographics.default_node.individual_attributes.susceptibility_distribution = complex_distribution
+
+        self.assertRaises(demog_ex.ConflictingDistributionsException,
+                          self.demographics.to_dict)

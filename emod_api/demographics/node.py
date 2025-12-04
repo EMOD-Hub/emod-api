@@ -22,6 +22,8 @@ class Node(Updateable):
                  pop: float,
                  name: str = None,
                  area: float = None,
+                 # TODO: consider deprecating 'forced_id' as an argument and renaming it to simply 'id' for clarity and
+                 #  brevity.
                  forced_id: int = None,
                  individual_attributes: IndividualAttributes = None,
                  individual_properties: IndividualProperties = None,
