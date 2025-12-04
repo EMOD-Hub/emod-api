@@ -1,61 +1,53 @@
 import unittest
-import emod_api.demographics.demographics as Demographics
-import emod_api.demographics.pre_defined_distributions as Distributions
 
-from emod_api.config import default_from_schema_no_validation as dfs
+from emod_api.config.default_from_schema_no_validation import get_default_config_from_schema
+from emod_api.demographics.demographics import Demographics
+
 from tests import manifest
 
 
 class DemoConfigTest(unittest.TestCase):
+    # This test suite simply verifies that implicit functions from demographics objects are applied to the config
+    # appropriately. Further details, like the contents of the distributions being set (and covering all distribution
+    # use cases, for example, mortality) are covered in test_demographics.py .
+
     def setUp(self) -> None:
         print(f"\n{self._testMethodName} started...")
-        self.reset_config()
-
-    def get_config_as_object(self):
-        schema_name = manifest.generic_schema_path
-        config_obj = dfs.get_default_config_from_schema(schema_name, as_rod=True)
-        return config_obj
+        self.config = self.reset_config()
+        self.demographics = Demographics(nodes=[])
 
     def reset_config(self):
-        self.config = self.get_config_as_object()
+        schema_name = manifest.generic_schema_path
+        config_obj = get_default_config_from_schema(schema_name, as_rod=True)
+        return config_obj
 
-    # TODO: restore when working on issue #43 dealing with moving emodpy distribution classes down to emod-api
-    # def test_set_birth_rate_config(self):
-    #     demog = Demographics.from_template_node()
-    #     self.config.parameters.Enable_Birth = 0  # since it is 1 by default
-    #     demog.SetBirthRate(0.7)
-    #     self.assertEqual(len(demog.implicits), 2)
-    #     demog.implicits[-1](self.config)
-    #     self.assertEqual(self.config.parameters.Birth_Rate_Dependence, "POPULATION_DEP_RATE")
+    def test_demographic_implicits_are_applied(self):
+        # simple case to ensure a implicit functions actually apply to configs. test_demographics.py ensures the
+        # RIGHT implicit functions are set.
+        from emod_api.demographics.implicit_functions import _set_age_simple, _set_suscept_complex
+        from emod_api.demographics.susceptibility_distribution import SusceptibilityDistribution
+        from emod_api.utils.distributions.exponential_distribution import ExponentialDistribution
 
-    # TODO: restore when working on issue #43 dealing with moving emodpy distribution classes down to emod-api
-    # def test_set_mortality_rate_config(self):
-    #     for index in range(2):
-    #         demog = Demographics.from_template_node()
-    #         if index:
-    #             demog.SetMortalityRate(0.75)
-    #         demog.implicits[-1](self.config)
+        self.assertEqual(self.config.parameters.Age_Initialization_Distribution_Type, "DISTRIBUTION_OFF")
+        self.assertEqual(self.config.parameters.Susceptibility_Initialization_Distribution_Type, "DISTRIBUTION_OFF")
 
-    # TODO: restore when working on issue #43 dealing with moving emodpy distribution classes down to emod-api
-    # def test_set_mortality_distribution(self):
-    #     demog = Demographics.from_template_node()
-    #
-    #     mortality_distribution = Distributions.SEAsia_Diag
-    #     demog.SetMortalityDistribution(mortality_distribution)
-    #     self.assertEqual(len(demog.implicits), 2)
-    #     demog.implicits[-1](self.config)
-    #     demog.implicits[-2](self.config)
-    #     self.assertEqual(self.config.parameters.Death_Rate_Dependence, "NONDISEASE_MORTALITY_BY_AGE_AND_GENDER")
+        # setting up the test
+        age_distribution = ExponentialDistribution(mean=0.0001)
+        self.demographics.set_age_distribution(distribution=age_distribution)
+        susceptibility_distribution = SusceptibilityDistribution(ages_years=[0, 10, 20],
+                                                                 susceptible_fraction=[0.5, 0.25, 0.125])
+        self.demographics.set_susceptibility_distribution(distribution=susceptibility_distribution)
 
-    # TODO: restore when working on issue #43 dealing with moving emodpy distribution classes down to emod-api
-    # def test_set_age_distribution(self):
-    #     demog = Demographics.from_template_node()
-    #     self.assertEqual(self.config.parameters.Age_Initialization_Distribution_Type, "DISTRIBUTION_OFF")
-    #     age_distribution = Distributions.SEAsia_Diag
-    #     demog.SetAgeDistribution(age_distribution)
-    #     self.assertEqual(len(demog.implicits), 2)
-    #     demog.implicits[-1](self.config)
-    #     self.assertEqual(self.config.parameters.Age_Initialization_Distribution_Type, "DISTRIBUTION_COMPLEX")
+        # ensure we have the implicits we expect, then apply them.
+        self.assertEqual(len(self.demographics.implicits), 2)
+        self.assertIn(_set_age_simple, self.demographics.implicits)
+        self.assertIn(_set_suscept_complex, self.demographics.implicits)
+        for implicit in self.demographics.implicits:
+            implicit(self.config)
+
+        # Ensure we have the right config items set now.
+        self.assertEqual(self.config.parameters.Age_Initialization_Distribution_Type, "DISTRIBUTION_SIMPLE")
+        self.assertEqual(self.config.parameters.Susceptibility_Initialization_Distribution_Type, "DISTRIBUTION_COMPLEX")
 
 
 if __name__ == '__main__':

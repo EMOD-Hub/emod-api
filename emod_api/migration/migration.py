@@ -11,9 +11,7 @@ from warnings import warn
 import numpy as np
 import csv
 
-# for from_params()
-import scipy.spatial.distance as spspd
-from emod_api.demographics import demographics as Demog
+from emod_api.demographics.demographics import Demographics
 
 # for from_demog_and_param_gravity()
 from geographiclib.geodesic import Geodesic
@@ -651,74 +649,8 @@ utility functions emodpy-utils?
 """
 
 
-def from_params(demographics_file_path=None,
-                pop=1e6,
-                num_nodes=100,
-                mig_factor=1.0,
-                frac_rural=0.3,
-                id_ref="from_params",
-                migration_type=Migration.LOCAL):
-    """
-    This function is for creating a migration file that goes with a (multinode)
-    demographics file created from a few parameters, as opposed to one from real-world data.
-    Note that the 'demographics_file_path" input param is not used at this time but in future
-    will be exploited to ensure nodes, etc., match.
-    """
-    # ***** Write migration files *****
-    # NOTE: This goes straight from input 'data' -- parameters -- to output file.
-    # We really want to go from input parameters to standard data representation of migration data
-    # and then to file as a separate decoupled step.
-    ucellb = np.array([[1.0, 0.0], [-0.5, 0.86603]])
-    nlocs = np.random.rand(num_nodes, 2)
-    nlocs[0, :] = 0.5
-    nlocs = np.round(np.matmul(nlocs, ucellb), 4)
-    # Calculate inter-node distances on periodic grid
-    nlocs = np.tile(nlocs, (9, 1))
-    nlocs[0 * num_nodes:1 * num_nodes, :] += [0.0, 0.0]
-    nlocs[1 * num_nodes:2 * num_nodes, :] += [1.0, 0.0]
-    nlocs[2 * num_nodes:3 * num_nodes, :] += [-1.0, 0.0]
-    nlocs[3 * num_nodes:4 * num_nodes, :] += [0.0, 0.0]
-    nlocs[4 * num_nodes:5 * num_nodes, :] += [1.0, 0.0]
-    nlocs[5 * num_nodes:6 * num_nodes, :] += [-1.0, 0.0]
-    nlocs[6 * num_nodes:7 * num_nodes, :] += [0.0, 0.0]
-    nlocs[7 * num_nodes:8 * num_nodes, :] += [1.0, 0.0]
-    nlocs[8 * num_nodes:9 * num_nodes, :] += [-1.0, 0.0]
-    nlocs[0 * num_nodes:1 * num_nodes, :] += [0.0, 0.0]
-    nlocs[1 * num_nodes:2 * num_nodes, :] += [0.0, 0.0]
-    nlocs[2 * num_nodes:3 * num_nodes, :] += [0.0, 0.0]
-    nlocs[3 * num_nodes:4 * num_nodes, :] += [-0.5, 0.86603]
-    nlocs[4 * num_nodes:5 * num_nodes, :] += [-0.5, 0.86603]
-    nlocs[5 * num_nodes:6 * num_nodes, :] += [-0.5, 0.86603]
-    nlocs[6 * num_nodes:7 * num_nodes, :] += [0.5, -0.86603]
-    nlocs[7 * num_nodes:8 * num_nodes, :] += [0.5, -0.86603]
-    nlocs[8 * num_nodes:9 * num_nodes, :] += [0.5, -0.86603]
-    distgrid = spspd.squareform(spspd.pdist(nlocs))
-    nborlist = np.argsort(distgrid, axis=1)
-    npops = Demog.get_node_pops_from_params(pop, num_nodes, frac_rural)
-
-    migration = Migration()
-    migration.IdReference = id_ref
-
-    for source in range(num_nodes):
-        for index in range(1, 31):
-            if distgrid.shape[0] > index:
-                destination = int(np.mod(nborlist[source, index], num_nodes)) + 1
-
-                tnode = int(np.mod(nborlist[source, index], num_nodes))
-                idnode = nborlist[source, index]
-                rate = mig_factor * npops[tnode] / np.sum(npops) / distgrid[source, idnode]
-            else:
-                destination = 0
-                rate = 0.0
-
-            migration[source][destination] = rate
-
-    migration.MigrationType = migration_type
-    return migration
-
-
 def from_demog_and_param_gravity(demographics_file_path, gravity_params, id_ref, migration_type=Migration.LOCAL):
-    demog = Demog.from_file(demographics_file_path)
+    demog = Demographics.from_file(demographics_file_path)
     return _from_demog_and_param_gravity(demog, gravity_params, id_ref, migration_type)
 
 

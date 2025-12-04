@@ -1,0 +1,43 @@
+{
+   "Defaults": {
+      "IndividualAttributes": {
+         "AgeDistribution1": 0.1,
+         "AgeDistribution2": 0,
+         "AgeDistributionFlag": 3,
+         "InnateImmuneDistribution1": 0.1,
+         "InnateImmuneDistribution2": 0,
+         "InnateImmuneDistributionFlag": 3,
+         "MigrationHeterogeneityDistribution1": 0.1,
+         "MigrationHeterogeneityDistribution2": 0,
+         "MigrationHeterogeneityDistributionFlag": 3,
+         "PrevalenceDistribution1": 0.1,
+         "PrevalenceDistribution2": 0,
+         "PrevalenceDistributionFlag": 3,
+         "RiskDistribution1": 0.1,
+         "RiskDistribution2": 0,
+         "RiskDistributionFlag": 3,
+         "SusceptibilityDistribution1": 0.1,
+         "SusceptibilityDistribution2": 0,
+         "SusceptibilityDistributionFlag": 3
+      },
+      "NodeAttributes": {
+         "Airport": 1,
+         "BirthRate": 0,
+         "FacilityName": "default_node",
+         "InitialPopulation": 1000,
+         "Latitude": 0,
+         "Longitude": 0,
+         "Region": 1,
+         "Seaport": 1
+      },
+      "NodeID": 0
+   },
+   "Metadata": {
+      "Author": "clarkki",
+      "DateCreated": "11/20/2025",
+      "IdReference": "Gridded world grump2.5arcmin",
+      "NodeCount": 0,
+      "Tool": "emod-api"
+   },
+   "Nodes": []
+}
