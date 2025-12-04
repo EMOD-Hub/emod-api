@@ -13,7 +13,7 @@ See the [idmtools documentation][idmtools] for a diagram of how each of the rela
 The emod-api package is currently available on a [Python package index server][idm_pypi] managed by the [Institute for Disease Modeling][idmod].
 
 ```
-pip install --extra-index-url=https://packages.idmod.org/api/pypi/pypi-production/simple
+pip install emod-api --extra-index-url=https://packages.idmod.org/api/pypi/pypi-production/simple
 ```
 
 {%

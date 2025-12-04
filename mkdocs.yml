@@ -46,12 +46,11 @@ plugins:
   - mkdocs-autoapi:
       autoapi_ignore:
         - .github/**/*
+        - build/**/*
+        - docs/**/*
         - emod_api/.dtk_tools/**/*
         - emod_api/**/__main__.py
         - tests/**/*
-        - build/**/*
-        - docs/*
-        - setup.py
       autoapi_add_nav_entry: false
   - mkdocstrings:
 
@@ -97,8 +96,8 @@ extra:
     - icon: fontawesome/brands/slack
       link: https://gatesfoundation.enterprise.slack.com/
   analytics:
-    provider: google
-    property: # no tracking until we can implement OneTrust cookie consent
+    provider: custom
+    property: GTM-NK4K647
     feedback:
       title: Was this page helpful?
       ratings:
