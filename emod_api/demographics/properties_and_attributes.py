@@ -341,8 +341,7 @@ class IndividualAttributes(Updateable):
         individual_attributes = self.parameter_dict
 
         # Set age distribution as complex or simple if specified, but not both.
-        both_types_selected = ((self.age_distribution is not None) and
-                                (self.age_distribution_flag is not None))
+        both_types_selected = ((self.age_distribution is not None) and (self.age_distribution_flag is not None))
         if both_types_selected:
             raise ConflictingDistributionsException('Both a simple and complex distribution for age has been set. '
                                                     'Only type is allowed.')
@@ -361,8 +360,7 @@ class IndividualAttributes(Updateable):
             individual_attributes.update(age_distribution_dict)
 
         # Set susceptibility distribution as complex or simple if specified, but not both.
-        both_types_selected = ((self.susceptibility_distribution is not None) and
-                                (self.susceptibility_distribution_flag is not None))
+        both_types_selected = ((self.susceptibility_distribution is not None) and (self.susceptibility_distribution_flag is not None))
         if both_types_selected:
             raise ConflictingDistributionsException('Both a simple and complex distribution for susceptibility has '
                                                     'been set. Only type is allowed.')
