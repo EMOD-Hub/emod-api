@@ -15,7 +15,3 @@ The emod-api package is currently available on a [Python package index server][i
 ```
 pip install emod-api --extra-index-url=https://packages.idmod.org/api/pypi/pypi-production/simple
 ```
-
-{%
-    include-markdown "bib.md"
-%}

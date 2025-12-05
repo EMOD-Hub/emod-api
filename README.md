@@ -6,7 +6,7 @@
 
 ## Documentation
 
-Documentation available at https://docs.idmod.org/projects/emod-api/en/latest/.
+Documentation available at https://emod-hub.github.io/emod-api/.
 
 To build the documentation locally, do the following:
 
