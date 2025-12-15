@@ -110,19 +110,3 @@ def _set_population_dependent_birth_rate(config):
 def _set_enable_demog_risk(config):
     config.parameters.Enable_Demographics_Risk = 1
     return config
-
-
-# Innate immunity (malaria support)
-
-# TODO: Move to emodpy-malaria?
-#  https://github.com/InstituteforDiseaseModeling/emodpy-malaria-old/issues/707
-def _set_immune_variation_type_cytokine_killing(config):
-    config.parameters.Innate_Immune_Variation_Type = 'CYTOKINE_KILLING'
-    return config
-
-
-# TODO: Move to emodpy-malaria?
-#  https://github.com/InstituteforDiseaseModeling/emodpy-malaria-old/issues/707
-def _set_immune_variation_type_pyrogenic_threshold(config):
-    config.parameters.Innate_Immune_Variation_Type = 'PYROGENIC_THRESHOLD'
-    return config
