@@ -10,9 +10,6 @@ from emod_api.demographics.properties_and_attributes import IndividualAttributes
 
 
 class Node(Updateable):
-    # TODO: clean this up, without being all caps it looks like a modifiable attribute of a Node, not a class const
-    default_population = 1000
-
     # ability to resolve between Nodes
     res_in_degrees = 2.5 / 60
 
@@ -30,19 +27,24 @@ class Node(Updateable):
                  node_attributes: NodeAttributes = None,
                  meta: dict = None):
         """
-        Represent a Node (the metapopulation unit)
+        A Node in EMOD is synonymous with a group of people (model agents). A node typically represents a spatial
+        geography (for example, a city, province, or country), but does not have to. Arguments to Node construction
+        define states of the agents (individual_properties), their initial attributes and distributions
+        (initial_attributes), and attributes of the node (group) as a whole (node_attributes).
 
         Args:
-            lat: Latitude in degrees
-            lon: Longitude in degrees
-            pop: Population
-            name: name of the node
-            area: Area
-            forced_id: A custom id instead of the default ID based on lat/lon
-            individual_attributes: `emod_api.demographics.PropertiesAndAttributes.IndividualAttributes`
-            individual_properties: `emod_api.demographics.PropertiesAndAttributes.IndividualProperty`
-            node_attributes: `emod_api.demographics.PropertiesAndAttributes.NodeAttributes`
-            meta: A metadata dictionary for a Node. Entries in here are effectively comments as EMOD
+            lat (float): Latitude of the node in degrees.
+            lon (float): Longitude of the node in degrees.
+            pop (int): Initial population of the node.
+            name (str): Name of the node.
+            area (float): Area of the node. # TODO: units unknown
+            forced_id (int): ID of the node
+            individual_attributes (IndividualAttributes): Specifies initial distributions of various agent attributes,
+                such as age, fertility, and mortality.
+            individual_properties (IndividualProperties): Specifies the utilized IndividualProperty objects for the
+                node, which define properties of individual model agents.
+            node_attributes (NodeAttributes): Specifies node-specific attributes.
+            meta (dict): A metadata dictionary for a Node. Entries in here are effectively comments as EMOD
                   binaries do not recognize node-level metadata.
         """
         super().__init__()

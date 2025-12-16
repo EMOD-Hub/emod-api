@@ -142,6 +142,11 @@ class IndividualProperty(Updateable):
 
 
 class IndividualProperties(Updateable):
+    """
+    A container class for holding IndividualProperty objects used by Node objects. It simply contains functionality for
+    adding, removing, and retrieving contained IndividualProperty objects with some light consistency checking
+    (preventing duplicate-named IndividualProperties).
+    """
 
     class DuplicateIndividualPropertyException(Exception):
         pass
@@ -232,32 +237,81 @@ class IndividualAttributes(Updateable):
                  innate_immune_distribution2: int = None
                  ):
         """
+        Defines the initial distribution of attributes for model agents for all disease setups. These are used by Node
+        objects and can be defined separately per-node. Some attributes utilize simple distributions, some utilize
+        complex distributions, some can utilize either simple or complex. For those that can utilize simple or complex
+        distributions, only one may be specified (it is a user choice). It is highly unlikely a user will utilize this
+        class directly, as it exists primarily for ensuring proper serialization to JSON for EMOD input file
+        representation. The standard, user-facing interface for updating the distributions used is in the Demographics
+        class in emodpy.demographics .
+
+        Supported simple distributions and the meaning of their parameters are defined in the
+        emod_api.utils.distributions submodule.
+
+        Further information can be found at:
         https://docs.idmod.org/projects/emod-generic/en/latest/parameter-demographics.html#individual-attributes
 
         Args:
-            age_distribution_flag:
-            age_distribution1:
-            age_distribution2:
-            age_distribution:
-            susceptibility_distribution_flag:
-            susceptibility_distribution1:
-            susceptibility_distribution2:
-            susceptibility_distribution:
-            prevalence_distribution_flag:
-            prevalence_distribution1:
-            prevalence_distribution2:
-            risk_distribution_flag:
-            risk_distribution1:
-            risk_distribution2:
-            migration_heterogeneity_distribution_flag:
-            migration_heterogeneity_distribution1:
-            migration_heterogeneity_distribution2:
-            fertility_distribution:
-            mortality_distribution_male:
-            mortality_distribution_female:
-            innate_immune_distribution_flag:
-            innate_immune_distribution1:
-            innate_immune_distribution2:
+            age_distribution_flag (int, optional): Toggles the type of simple distribution for representing age,
+                determining the distribution-specific interpretation of age_distribution1 and age_distribution2.
+                Mutually exclusive with a complex age distribution (age_distribution).
+            age_distribution1 (int, optional): If age_distribution_flag is not None, the specified simple
+                distribution-dependent first argument.
+            age_distribution2 (int, optional): If age_distribution_flag is not None, the specified simple
+                distribution-dependent second argument (if any).
+            age_distribution (AgeDistribution, optional): If provided, defines a complex age distribution. Mutually
+                exclusive with a simple age distribution (age_distribution_flag).
+
+            susceptibility_distribution_flag (int, optional): Toggles the type of simple distribution for representing
+                susceptibility, determining the distribution-specific interpretation of susceptibility_distribution1
+                and susceptibility_distribution2. Mutually exclusive with a complex susceptibility distribution
+                (susceptibility_distribution).
+            susceptibility_distribution1 (int, optional): If susceptibility_distribution_flag is not None, the
+                specified simple distribution-dependent first argument.
+            susceptibility_distribution2 (int, optional): If susceptibility_distribution_flag is not None, the
+                specified simple distribution-dependent second argument (if any).
+            susceptibility_distribution (SusceptibilityDistribution, optional): If provided, defines a complex
+                susceptibility distribution. Mutually exclusive with a simple susceptibility distribution
+                (susceptibility_distribution_flag).
+
+            prevalence_distribution_flag (int, optional): Toggles the type of simple distribution for representing
+                prevalence, determining the distribution-specific interpretation of prevalence_distribution1 and
+                prevalence_distribution2.
+            prevalence_distribution1 (int, optional): If prevalence_distribution_flag is not None, the specified simple
+                distribution-dependent first argument.
+            prevalence_distribution2 (int, optional): If prevalence_distribution_flag is not None, the specified simple
+                distribution-dependent second argument (if any).
+
+            risk_distribution_flag (int, optional): Toggles the type of simple distribution for representing risk,
+                determining the distribution-specific interpretation of risk_distribution1 and risk_distribution2.
+            risk_distribution1 (int, optional): If risk_distribution_flag is not None, the specified simple
+                distribution-dependent first argument.
+            risk_distribution2 (int, optional): If risk_distribution_flag is not None, the specified simple
+                distribution-dependent second argument (if any).
+
+            migration_heterogeneity_distribution_flag (int, optional): Toggles the type of simple distribution for
+                representing migration heterogeneity, determining the distribution-specific interpretation of
+                migration_heterogeneity_distribution1 and migration_heterogeneity_distribution2.
+            migration_heterogeneity_distribution1 (int, optional): If migration_heterogeneity_distribution_flag is not
+                None, the specified simple distribution-dependent first argument.
+            migration_heterogeneity_distribution2 (int, optional): If migration_heterogeneity_distribution_flag is not
+                None, the specified simple distribution-dependent second argument (if any).
+
+            fertility_distribution (FertilityDistribution, optional): If provided, defines a complex fertility
+                distribution for females.
+
+            mortality_distribution_male (MortalityDistribution, optional): If provided, defines a complex mortality
+                distribution for males.
+            mortality_distribution_female (MortalityDistribution, optional): If provided, defines a complex mortality
+                distribution for females.
+
+            innate_immune_distribution_flag (int, optional): Toggles the type of simple distribution for representing
+                innate immunity, determining the distribution-specific interpretation of innate_immune_distribution1
+                and innate_immune_distribution2.
+            innate_immune_distribution1 (int, optional): If innate immune_distribution_flag is not None, the specified
+                simple distribution-dependent first argument.
+            innate_immune_distribution2 (int, optional): If innate immune_distribution_flag is not None, the specified
+                simple distribution-dependent second argument (if any).
         """
         super().__init__()
 
@@ -562,26 +616,32 @@ class NodeAttributes(Updateable):
                  infectivity_multiplier: float = None,
                  extra_attributes: dict = None):
         """
+        Defines node-specific attributes for all disease setups, utilized by Node objects.
+
+        Further information can be found at:
         https://docs.idmod.org/projects/emod-generic/en/latest/parameter-demographics.html#nodeattributes
+        https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-demographics.html#nodeattributes
 
         Args:
-            airport:
-            altitude:
-            area:
-            birth_rate:
-            country:
-            growth_rate:
-            name:
-            latitude:
-            longitude:
-            metadata:
-            initial_population:
-            region:
-            seaport:
-            larval_habitat_multiplier:
-            initial_vectors_per_species:
-            infectivity_multiplier:
-            extra_attributes:
+            airport (int, optional): Whether the node has an airport (1 for true, 0 for false).
+            altitude (float, optional): Altitude of the node (in meters).
+            area (float, optional): Spatial size of the node (TODO: unknown units)
+            birth_rate (float, optional): The birth rate in births/day/woman .
+            country (str, optional): Name of the country the node is in.
+            growth_rate (float, optional): TODO: unknown
+            name (str, optional): Name of the node
+            latitude (float, optional): Latitude of the node in degrees.
+            longitude (float, optional): Longitude of the node in degrees.
+            metadata (dict, optional): An arbitrary dict of metaaata key/values to add to the node for notation.
+            initial_population (int, optional): The initial number of people/agents in the node.
+            region (int, optional): Whether the node has a road network (1 for true, 0 for false).
+            seaport (int, optional):  Whether the node has a seaport (1 for true, 0 for false).
+            larval_habitat_multiplier (list(float), optional): The value(s) by which to scale the larval habitat
+                availability specified in the configuration file with Larval_Habitat_Types.
+            initial_vectors_per_species ((dict or int), optional): The initial number of vectors per species in the
+                node.
+            infectivity_multiplier (float, optional): TODO: unknown
+            extra_attributes (dict, optional): An arbitrary dict of attribute key/values to add to the node.
         """
         super().__init__()
         self.airport = airport

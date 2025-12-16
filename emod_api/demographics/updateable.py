@@ -1,9 +1,10 @@
-from typing import Dict, Union
+from typing import Any, Dict, Union
 
 
 class Updateable:
     """
-    (Base) class that provides update() method for each class that inherits from this class.
+    (Base) class that provides update() method for each class that inherits from this class, in particular demographic-
+    related classes.
     """
     def __init__(self):
         self.parameter_dict = {}
@@ -42,11 +43,16 @@ class Updateable:
                     # not an Updateable being overridden, do direct assignment
                     setattr(self, attribute_name, new_attribute_value)
 
-    def add_parameter(self, key, value):
+    def add_parameter(self, key: str, value: Any) -> None:
         """
         Adds a user defined key-value pair to demographics.
-        :param key: Key
-        :param value: Value
-        :return: None
+
+        Args:
+            key (str): parameter name to add to the object.
+            value (any): Custom value to assign to the new key.
+
+        Returns:
+            Nothing
+
         """
         self.parameter_dict[key] = value
