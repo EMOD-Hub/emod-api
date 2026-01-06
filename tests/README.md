@@ -5,6 +5,15 @@ The files in this folder are named for the **emod_api** modules that they cover.
  - `/unittests` contains very basic and fast tests which are always run with the test suite. 
  - `/data` holds files that are necessary for running the tests like campaign files, config files, migration files, etc.
 
+## Installation
+
+To run the tests, you need to install extra dependencies.  Please use the following command
+in the root directory:
+
+`$ pip install -e .[test]`
+
+NOTE: You can execute this command even if you already did "pip install -e ."
+
 ## Running the Tests
 
 Run the tests using the following command from the root directory of the project:

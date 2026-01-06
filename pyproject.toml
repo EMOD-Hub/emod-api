@@ -27,6 +27,7 @@ dependencies = [
     "geographiclib",
     "scikit-learn",
     "lz4",
+	"python-snappy==0.6.1"
 ]
 license = "MIT"
 classifiers = [

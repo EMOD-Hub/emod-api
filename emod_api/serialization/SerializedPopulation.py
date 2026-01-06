@@ -25,7 +25,6 @@ class SerializedPopulation:
         self.next_infection_suid = None
         self.next_infection_suid_initialized = False
         self.dtk = dft.read(file)
-        self._nodes = [n for n in self.dtk.nodes]
 
     @property
     def nodes(self):
@@ -62,12 +61,12 @@ class SerializedPopulation:
                 individual_1.m_is_infected = True
 
         """
-        return self._nodes
+        return self.dtk.nodes
 
     def flush(self):
         """Save all made changes to the node(s)."""
-        for idx in range(len(self._nodes)):
-            self.dtk.nodes[idx] = self._nodes[idx]
+        for idx in range(len(self.dtk.nodes)):
+            self.dtk.nodes[idx] = self.dtk.nodes[idx]
 
     def write(self, output_file: str = "my_sp_file.dtk"):
         """Write the population to a file.
@@ -112,10 +111,10 @@ class SerializedPopulation:
                 print(sp.get_next_individual_suid(0))
                 {'id': 2}
         """
-        suid = self._nodes[node_id]["m_IndividualHumanSuidGenerator"]["next_suid"]
-        self._nodes[node_id]["m_IndividualHumanSuidGenerator"]["id"] = (
+        suid = self.dtk.nodes[node_id]["m_IndividualHumanSuidGenerator"]["next_suid"]
+        self.dtk.nodes[node_id]["m_IndividualHumanSuidGenerator"]["id"] = (
             suid["id"]
-            + self._nodes[node_id]["m_IndividualHumanSuidGenerator"]["numtasks"]
+            + self.dtk.nodes[node_id]["m_IndividualHumanSuidGenerator"]["numtasks"]
         )
         return dict(suid)
 

@@ -1,12 +1,15 @@
 #!/usr/bin/python
 
 from __future__ import print_function
-import emod_api.serialization.dtkFileTools as dft
-import emod_api.serialization.dtkFileSupport as support
+import os
+import gc
 import os
 import tempfile
 import unittest
 import time
+import emod_api.serialization.dtkFileTools as dft
+import emod_api.serialization.dtkFileSupport as support
+import emod_api.serialization.SerializedPopulation as SerPop
 from tests import manifest
 
 
@@ -1204,6 +1207,245 @@ class TestReadVersion5(TestReadVersionFour, TestReadWrite):
 
         test_emod_sccs_date = time.strptime(dest.header['emod_info']['emod_sccs_date'])
         self.assertEqual(test_emod_sccs_date, time.strptime(header5_extension['emod_info']["emod_sccs_date"]))
+
+
+
+sim_keys_to_remove = [
+    'campaignFilename',
+    'custom_reports_filename',
+    'm_RngFactory',
+    'rng',
+    'demographic_tracking',
+    'enable_spatial_output',
+    'enable_property_output',
+    'enable_default_report',
+    'enable_event_report',
+    'enable_node_event_report',
+    'enable_coordinator_event_report',
+    'enable_surveillance_event_report',
+    'loadbalance_filename',
+    'm_ParasiteCohortSuidGenerator',
+    'm_VectorBiteSuidGenerator'
+]
+
+human_keys_to_remove = [
+    'is_pregnant',
+    'pregnancy_timer',
+    'm_mc_weight',
+    'm_daily_mortality_rate', 
+    'susceptibility',
+    'interventions',
+    'Inf_Sample_Rate',
+    'cumulativeInfs',
+    'm_new_infection_state',
+    'StateChange',
+    'migration_mod',
+    'migration_type',
+    'migration_destination',
+    'migration_time_until_trip',
+    'migration_time_at_destination',
+    'migration_is_destination_new_home',
+    'migration_will_return',
+    'migration_outbound',
+    'max_waypoints',
+    'waypoints',
+    'waypoints_trip_type',
+    'home_node_id',
+    'Properties',
+    'waiting_for_family_trip',
+    'leave_on_family_trip',
+    'is_on_family_trip',
+    'family_migration_type',
+    'family_migration_time_until_trip',
+    'family_migration_time_at_destination',
+    'family_migration_is_destination_new_home',
+    'family_migration_destination',
+    'm_newly_symptomatic',
+    'm_strain_exposure',
+    'm_total_exposure',
+    'm_male_gametocytes',
+    'm_female_gametocytes',
+    'm_female_gametocytes_by_strain',
+    'm_gametocytes_detected',
+    'm_clinical_symptoms_new',
+    'm_clinical_symptoms_continuing',
+    'm_initial_infected_hepatocytes',
+    'm_DiagnosticMeasurement'
+]
+
+class TestReadVersion6(unittest.TestCase):
+
+    def xtest_reduce_dtk_file(self):
+        input_file = os.path.join(manifest.serialization_folder, "state-00004.dtk")
+        pop = SerPop.SerializedPopulation(input_file)
+
+        print(pop.dtk.simulation.keys())
+        for key in sim_keys_to_remove:
+            del pop.dtk.simulation[key]
+        print(pop.dtk.simulation.keys())
+
+        for node in pop.nodes:
+            for human in node.individualHumans:
+                for key in human_keys_to_remove:
+                    if key in human:
+                        del human[key]
+                if node.suid.id == 1:
+                    human.m_age = 1111
+                elif node.suid.id == 2:
+                    human.m_age = 2222
+                else:
+                    human.m_age = 3333
+
+        output_file = os.path.join(manifest.serialization_folder, "state-00004-reduced.dtk")
+        pop.write(output_file)
+        return
+
+    def test_read_write(self):
+        input_file = os.path.join(manifest.serialization_folder, "state-00004-reduced.dtk")
+        pop = SerPop.SerializedPopulation(input_file)
+
+        # -------------------------------------------------
+        # --- Verify that you can read the simulation data
+        # -------------------------------------------------
+        self.assertEqual( 2, pop.dtk.simulation.sim_type )
+        self.assertEqual( 300, pop.dtk.simulation.falciparumPfEMP1Vars )
+        self.assertEqual( 3, len(pop.nodes) )
+        self.assertEqual( 0, len(pop.dtk.simulation.nodes)) # zero because nodes are stored separately
+
+        pop.dtk.simulation.falciparumPfEMP1Vars = 777
+        self.assertEqual( 777, pop.dtk.simulation.falciparumPfEMP1Vars )
+
+        # ---------------------------------------------------------
+        # --- Verify that you can get a node without the iterator
+        # --- and be able to access it as expected.
+        # ---------------------------------------------------------
+        node_1 = pop.nodes[0]
+        self.assertEqual(1, node_1.suid.id)
+        self.assertEqual(1, node_1.externalId)
+        self.assertEqual(1.0, node_1.mosquito_weight)
+        self.assertEqual(3, len(node_1.m_vectorpopulations))
+        self.assertEqual(5, len(node_1.individualHumans))
+
+        node_1.mosquito_weight = 1.1
+        self.assertEqual(1.1, node_1.mosquito_weight)
+        node_1.store()
+        node_1 = None
+        gc.collect()
+
+        node_2 = pop.nodes[1]
+        self.assertEqual(2, node_2.suid.id)
+        self.assertEqual(2, node_2.externalId)
+        self.assertEqual(1.0, node_2.mosquito_weight)
+        self.assertEqual(3, len(node_2.m_vectorpopulations))
+        self.assertEqual(2, len(node_2.individualHumans))
+
+        node_2.mosquito_weight = 2.2
+        self.assertEqual(2.2, node_2.mosquito_weight)
+        node_2.store()
+        node_2 = None
+        gc.collect()
+
+        node_3 = pop.nodes[2]
+        self.assertEqual(3, node_3.suid.id)
+        self.assertEqual(3, node_3.externalId)
+        self.assertEqual(1.0, node_3.mosquito_weight)
+        self.assertEqual(3, len(node_3.m_vectorpopulations))
+        self.assertEqual(7, len(node_3.individualHumans))
+        node_3.mosquito_weight = 3.3
+        self.assertEqual(3.3, node_3.mosquito_weight)
+        node_3.store()
+        node_3 = None
+        gc.collect()
+
+        # --------------------------------------------------------------
+        # --- Verify that you can iterate over the nodes and the humans
+        # --------------------------------------------------------------
+        node_1_human_suids = [ 2, 5, 8, 11, 14 ]
+        node_2_human_suids = [ 3, 6 ]
+        node_3_human_suids = [ 4, 7, 10, 13, 16, 19, 22 ]
+        prev_human_suid = -1
+        for index, node in enumerate(pop.nodes):
+            if index == 0:
+                self.assertEqual(1, node.suid.id)
+                self.assertEqual(1.1, node.mosquito_weight)
+                self.assertEqual(5, len(node.individualHumans))
+            elif index == 1:
+                self.assertEqual(2, node.suid.id)
+                self.assertEqual(2.2, node.mosquito_weight)
+                self.assertEqual(2, len(node.individualHumans))
+            elif index == 2:
+                self.assertEqual(3, node.suid.id)
+                self.assertEqual(3.3, node.mosquito_weight)
+                self.assertEqual(7, len(node.individualHumans))
+            for human in node.individualHumans:
+                # verify that human suids are changing and correct per node
+                if prev_human_suid != -1:
+                    self.assertTrue( (human.suid.id != prev_human_suid) and (prev_human_suid != -1))
+                prev_human_suid = human.suid.id
+                if node.suid.id == 1:
+                    self.assertIn(human.suid.id, node_1_human_suids)
+                    self.assertEqual(1111, human.m_age)
+                elif node.suid.id == 2:
+                    self.assertIn(human.suid.id, node_2_human_suids)
+                    self.assertEqual(2222, human.m_age)
+                else:
+                    self.assertIn(human.suid.id, node_3_human_suids)
+                    self.assertEqual(3333, human.m_age)
+
+        # --------------------------------------------------------
+        # --- Update ages then verify they have been updated
+        # --------------------------------------------------------
+        for node in pop.nodes:
+            for human in node.individualHumans:
+                if node.suid.id == 1:
+                    self.assertEqual(1111, human.m_age)
+                    human.m_age += 11
+                    self.assertEqual(1122, human.m_age)
+                elif node.suid.id == 2:
+                    self.assertEqual(2222, human.m_age)
+                    human.m_age += 22
+                    self.assertEqual(2244, human.m_age)
+                else:
+                    self.assertEqual(3333, human.m_age)
+                    human.m_age += 33
+                    self.assertEqual(3366, human.m_age)
+        
+        # verify ages have been updated
+        for node in pop.nodes:
+            for human in node.individualHumans:
+                if node.suid.id == 1:
+                    self.assertEqual(1122, human.m_age)
+                elif node.suid.id == 2:
+                    self.assertEqual(2244, human.m_age)
+                else:
+                    self.assertEqual(3366, human.m_age)
+
+        # -------------------------------------------------------------------
+        # --- Verify that we can save the file, read it and get the new ages.
+        # -------------------------------------------------------------------
+        output_file = os.path.join(manifest.output_folder, "TestReadVersion6.test_read_write.state-00004.dtk")
+        pop.write(output_file)
+        pop = None
+        gc.collect()
+
+        pop_modified = SerPop.SerializedPopulation(output_file)
+        self.assertEqual( 2, pop_modified.dtk.simulation.sim_type )
+        self.assertEqual( 777, pop_modified.dtk.simulation.falciparumPfEMP1Vars )
+        self.assertEqual( 3, len(pop_modified.nodes) )
+        for node in pop_modified.nodes:
+            for human in node.individualHumans:
+                if node.suid.id == 1:
+                    self.assertEqual(1.1, node.mosquito_weight)
+                    self.assertEqual(1122, human.m_age)
+                elif node.suid.id == 2:
+                    self.assertEqual(2.2, node.mosquito_weight)
+                    self.assertEqual(2244, human.m_age)
+                else:
+                    self.assertEqual(3.3, node.mosquito_weight)
+                    self.assertEqual(3366, human.m_age)
+        pop_modified = None
+        gc.collect()
+        os.remove(output_file)
 
 
 if __name__ == "__main__":
