@@ -26,6 +26,10 @@ Ubuntu: ```[sudo] apt install libdev-snappy```
 
 CentOS: ```[sudo] yum install snappy-devel``` (not yet tested)
 
+NOTE: The python-snappy version needs to be 0.6.1.  Newer versions have problems
+working correctly with emod-api.
+
+
 ## User Stories
 
 Input
