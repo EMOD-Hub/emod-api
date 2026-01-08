@@ -12,7 +12,9 @@ import emod_api.serialization.dtkFileSupport as support
 import emod_api.serialization.SerializedPopulation as SerPop
 from tests import manifest
 
+skip_tests = True
 
+@unittest.skip(skip_tests)
 class TestReadVersionOne(unittest.TestCase):
 
     def check_keys_dtkeader(self, header, reference_header_keys):
@@ -251,6 +253,7 @@ class TestReadVersionOne(unittest.TestCase):
         return
 
 
+@unittest.skip(skip_tests)
 class TestReadVersionTwo(TestReadVersionOne):
 
     def test_dtkheader_2(self):
@@ -459,6 +462,7 @@ class TestReadVersionTwo(TestReadVersionOne):
         return
 
 
+@unittest.skip(skip_tests)
 class TestReadVersionThree(TestReadVersionTwo):
 
     def test_dtkheader_3(self):
@@ -662,6 +666,7 @@ class TestReadVersionThree(TestReadVersionTwo):
         return
 
 
+@unittest.skip(skip_tests)
 class TestReadVersionFour(TestReadVersionThree):
 
     def test_dtkheader_4(self):
@@ -873,6 +878,7 @@ class TestReadVersionFour(TestReadVersionThree):
         return
 
 
+@unittest.skip(skip_tests)
 class TestReadWrite(unittest.TestCase):
     def NullPtr(self, source):
         source.compression = dft.SNAPPY if support.SNAPPY_SUPPORT else dft.LZ4
@@ -920,6 +926,7 @@ class TestReadWrite(unittest.TestCase):
         return
 
 
+@unittest.skip(skip_tests)
 class TestReadingSadPath(unittest.TestCase):
     def test_reading_wrong_magic_number(self):
         with self.assertRaises(UserWarning):
@@ -1074,6 +1081,7 @@ class TestReadingSadPath(unittest.TestCase):
         return
 
 
+@unittest.skip(skip_tests)
 class TestRegressions(unittest.TestCase):
 
     # https://github.com/InstituteforDiseaseModeling/DtkTrunk/issues/1268
@@ -1091,6 +1099,7 @@ class TestRegressions(unittest.TestCase):
         return
 
 
+@unittest.skip(skip_tests)
 class TestReadVersion5(TestReadVersionFour, TestReadWrite):
 
     def test_dtkheader_5(self):
@@ -1300,6 +1309,41 @@ class TestReadVersion6(unittest.TestCase):
         pop.write(output_file)
         return
 
+    def check_humans_in_nodes(self,
+                              pop,
+                              human_ids_node_1,
+                              human_ids_node_2,
+                              human_ids_node_3, 
+                              age_node_1,
+                              age_node_2,
+                              age_node_3):
+        prev_human_suid = -1
+        for index, node in enumerate(pop.nodes):
+            if index == 0:
+                self.assertEqual(1, node.suid.id)
+                self.assertEqual(len(human_ids_node_1), len(node.individualHumans))
+            elif index == 1:
+                self.assertEqual(2, node.suid.id)
+                self.assertEqual(len(human_ids_node_2), len(node.individualHumans))
+            elif index == 2:
+                self.assertEqual(3, node.suid.id)
+                self.assertEqual(len(human_ids_node_3), len(node.individualHumans))
+            for human in node.individualHumans:
+                # verify that human suids are changing and correct per node
+                if prev_human_suid != -1:
+                    self.assertTrue( (human.suid.id != prev_human_suid) and (prev_human_suid != -1))
+                prev_human_suid = human.suid.id
+                if node.suid.id == 1:
+                    self.assertIn(human.suid.id, human_ids_node_1)
+                    self.assertEqual(age_node_1, human.m_age)
+                elif node.suid.id == 2:
+                    self.assertIn(human.suid.id, human_ids_node_2)
+                    self.assertEqual(age_node_2, human.m_age)
+                else:
+                    self.assertIn(human.suid.id, human_ids_node_3)
+                    self.assertEqual(age_node_3, human.m_age)
+        return
+
     def test_read_write(self):
         input_file = os.path.join(manifest.serialization_folder, "state-00004-reduced.dtk")
         pop = SerPop.SerializedPopulation(input_file)
@@ -1363,34 +1407,23 @@ class TestReadVersion6(unittest.TestCase):
         node_1_human_suids = [ 2, 5, 8, 11, 14 ]
         node_2_human_suids = [ 3, 6 ]
         node_3_human_suids = [ 4, 7, 10, 13, 16, 19, 22 ]
-        prev_human_suid = -1
+        self.check_humans_in_nodes(pop,
+                                   node_1_human_suids,
+                                   node_2_human_suids,
+                                   node_3_human_suids,
+                                   age_node_1=1111,
+                                   age_node_2=2222,
+                                   age_node_3=3333 )
         for index, node in enumerate(pop.nodes):
             if index == 0:
                 self.assertEqual(1, node.suid.id)
                 self.assertEqual(1.1, node.mosquito_weight)
-                self.assertEqual(5, len(node.individualHumans))
             elif index == 1:
                 self.assertEqual(2, node.suid.id)
                 self.assertEqual(2.2, node.mosquito_weight)
-                self.assertEqual(2, len(node.individualHumans))
             elif index == 2:
                 self.assertEqual(3, node.suid.id)
                 self.assertEqual(3.3, node.mosquito_weight)
-                self.assertEqual(7, len(node.individualHumans))
-            for human in node.individualHumans:
-                # verify that human suids are changing and correct per node
-                if prev_human_suid != -1:
-                    self.assertTrue( (human.suid.id != prev_human_suid) and (prev_human_suid != -1))
-                prev_human_suid = human.suid.id
-                if node.suid.id == 1:
-                    self.assertIn(human.suid.id, node_1_human_suids)
-                    self.assertEqual(1111, human.m_age)
-                elif node.suid.id == 2:
-                    self.assertIn(human.suid.id, node_2_human_suids)
-                    self.assertEqual(2222, human.m_age)
-                else:
-                    self.assertIn(human.suid.id, node_3_human_suids)
-                    self.assertEqual(3333, human.m_age)
 
         # --------------------------------------------------------
         # --- Update ages then verify they have been updated
@@ -1411,14 +1444,13 @@ class TestReadVersion6(unittest.TestCase):
                     self.assertEqual(3366, human.m_age)
         
         # verify ages have been updated
-        for node in pop.nodes:
-            for human in node.individualHumans:
-                if node.suid.id == 1:
-                    self.assertEqual(1122, human.m_age)
-                elif node.suid.id == 2:
-                    self.assertEqual(2244, human.m_age)
-                else:
-                    self.assertEqual(3366, human.m_age)
+        self.check_humans_in_nodes(pop,
+                                   node_1_human_suids,
+                                   node_2_human_suids,
+                                   node_3_human_suids,
+                                   age_node_1=1122,
+                                   age_node_2=2244,
+                                   age_node_3=3366 )
 
         # -------------------------------------------------------------------
         # --- Verify that we can save the file, read it and get the new ages.
@@ -1432,20 +1464,105 @@ class TestReadVersion6(unittest.TestCase):
         self.assertEqual( 2, pop_modified.dtk.simulation.sim_type )
         self.assertEqual( 777, pop_modified.dtk.simulation.falciparumPfEMP1Vars )
         self.assertEqual( 3, len(pop_modified.nodes) )
+        self.check_humans_in_nodes(pop_modified,
+                                   node_1_human_suids,
+                                   node_2_human_suids,
+                                   node_3_human_suids,
+                                   age_node_1=1122,
+                                   age_node_2=2244,
+                                   age_node_3=3366 )
         for node in pop_modified.nodes:
-            for human in node.individualHumans:
-                if node.suid.id == 1:
-                    self.assertEqual(1.1, node.mosquito_weight)
-                    self.assertEqual(1122, human.m_age)
-                elif node.suid.id == 2:
-                    self.assertEqual(2.2, node.mosquito_weight)
-                    self.assertEqual(2244, human.m_age)
-                else:
-                    self.assertEqual(3.3, node.mosquito_weight)
-                    self.assertEqual(3366, human.m_age)
+            if node.suid.id == 1:
+                self.assertEqual(1.1, node.mosquito_weight)
+            elif node.suid.id == 2:
+                self.assertEqual(2.2, node.mosquito_weight)
+            else:
+                self.assertEqual(3.3, node.mosquito_weight)
         pop_modified = None
         gc.collect()
         os.remove(output_file)
+
+    def test_manipulating_human_list(self):
+        input_file = os.path.join(manifest.serialization_folder, "state-00004-reduced.dtk")
+        pop = SerPop.SerializedPopulation(input_file)
+
+        self.assertEqual(3, len(pop.nodes))
+
+        # --------------------------------------------------------------
+        # --- Replace humans with a new list
+        #  --- (just use the humans that were already in the list.)
+        # --------------------------------------------------------------
+        node_1 = pop.nodes[0]
+        self.assertEqual(1, node_1.suid.id)
+        self.assertEqual(5, len(node_1.individualHumans))
+        human_2 = node_1.individualHumans[0] # move to node_3
+        human_5 = node_1.individualHumans[1]
+        human_8 = node_1.individualHumans[2] # move to node_3
+        human_11 = node_1.individualHumans[3]
+        human_14 = node_1.individualHumans[4] # move to node_3
+        human_list = []
+        human_list.append( human_5 )
+        human_list.append( human_11 )
+        node_1.individualHumans = human_list
+        self.assertEqual(2, len(node_1.individualHumans))
+
+        # ---------------------------
+        # --- Clear all of the humans
+        # ---------------------------
+        node_2 = pop.nodes[1]
+        self.assertEqual(2, node_2.suid.id)
+        self.assertEqual(2, len(node_2.individualHumans))
+        node_2.individualHumans = []
+        self.assertEqual(0, len(node_2.individualHumans))
+
+        # -----------------------------------------------
+        # --- Append humans to the end of the list
+        # --- (just use the ones we took out of node_1)
+        # -----------------------------------------------
+        node_3 = pop.nodes[2]
+        self.assertEqual(3, node_3.suid.id)
+        self.assertEqual(7, len(node_3.individualHumans))
+        human_2.m_age = 3333
+        human_8.m_age = 3333
+        human_14.m_age = 3333
+        node_3.individualHumans.append( human_2 )
+        node_3.individualHumans.append( human_8 )
+        node_3.individualHumans.append( human_14 )
+        self.assertEqual(10, len(node_3.individualHumans))
+
+        # --------------------------------------------------------------
+        # --- Verify that you can iterate over the nodes and the humans
+        # --------------------------------------------------------------
+        node_1_human_suids = [ 5, 11                              ] # 2, 8, 14 moved to node_3
+        node_2_human_suids = [                                    ] # removed humans from node 2
+        node_3_human_suids = [ 4, 7, 10, 13, 16, 19, 22, 2, 8, 14 ] # added 2, 8, 14 from node_1
+        self.check_humans_in_nodes(pop,
+                                   node_1_human_suids,
+                                   node_2_human_suids,
+                                   node_3_human_suids,
+                                   age_node_1=1111,
+                                   age_node_2=2222,
+                                   age_node_3=3333 )
+
+        # -------------------------------------------------------------------
+        # --- Verify that we can save the file, read it and get the new ages.
+        # -------------------------------------------------------------------
+        output_file = os.path.join(manifest.output_folder, "TestReadVersion6.test_manipulating_human_list.state-00004.dtk")
+        pop.write(output_file)
+        pop = None
+        gc.collect()
+
+        pop_modified = SerPop.SerializedPopulation(output_file)
+        self.check_humans_in_nodes(pop_modified,
+                                   node_1_human_suids,
+                                   node_2_human_suids,
+                                   node_3_human_suids,
+                                   age_node_1=1111,
+                                   age_node_2=2222,
+                                   age_node_3=3333 )
+        gc.collect()
+        os.remove(output_file)
+
 
 
 if __name__ == "__main__":

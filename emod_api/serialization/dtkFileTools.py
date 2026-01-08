@@ -568,9 +568,13 @@ class DtkFileV6(object):
                      node_suid,
                      chunk_size,
                      chunk):
-            if len(chunk) != chunk_size:
+            if chunk is None and chunk_size != 0:
+                msg = f"Chunk is None but chunk size is {chunk_size} for {obj_type_str} chunk of file '{filename}'"
+                raise UserWarning(msg)
+            elif (chunk is not None) and (len(chunk) != chunk_size):
                 msg = f"Only read {len(chunk)} bytes of {chunk_size} for {obj_type_str} chunk of file '{filename}'"
                 raise UserWarning(msg)
+            
             self._v6_compression_str = v6_compression_str
             self._node_suid = node_suid
             self._chunk_size = chunk_size
@@ -687,6 +691,7 @@ class DtkFileV6(object):
             """
             Replace the existing JSON with the provided list of IndividualHuman dictionaries.
             """
+            self._json = {}
             self._json['human_collection'] = human_list
             self._num_humans = len(human_list)
             self.store()
@@ -744,10 +749,11 @@ class DtkFileV6(object):
             Set the value for the given key in the node JSON dictionary.
             Cannot set the 'individualHumans' key directly.
             """
-            if key == 'individualHumans':
-                raise RuntimeError("Cannot set individualHumans property directly")
             self.load()
-            self._json[key] = value
+            if key == 'individualHumans':
+                self.individualHumans = value
+            else:
+                self._json[key] = value
         
         def __delitem__(self, key):
             """
@@ -829,12 +835,37 @@ class DtkFileV6(object):
                 gc.collect()
             return
         
+        def _clear_human_list(self):
+            """
+            Clear the human list for the node.
+            """
+            self.__parent__._remove_humans_for_node(self._node_chunk.node_suid)
+            self._human_list = DtkFileV6.HumanListV6(node=self, human_chunk_list=[])
+            return
+
         @property
         def individualHumans(self):
             """
             Return a list of IndividualHuman dictionaries for the node.
             """
             return self._human_list
+
+        @individualHumans.setter
+        def individualHumans(self, json_dict_list):
+            self._clear_human_list()
+            human_chunk = DtkFileV6.HumanCollectionChunkV6(
+                filename="no file",
+                obj_type_str="human",
+                v6_compression_str=None,
+                node_suid=self._node_chunk.node_suid,
+                num_humans=0,
+                chunk_size=0,
+                chunk=None)
+            human_chunk.set_json(json_dict_list)
+            self.__parent__._human_chunks.append(human_chunk)
+            self._human_list._add_human_chunk(human_chunk)
+            #print(f"Set {len(json_dict_list)} humans for node SUID {self._node_chunk.node_suid} and num_humans-{len(self._human_list)}")
+            return
 
     class NodeListV6(object):
         """
@@ -887,8 +918,17 @@ class DtkFileV6(object):
             for human_chunk in self._human_chunk_list:
                 self._num_humans += human_chunk.num_humans
             self._human_chunk_index = 0
-            self._current_human_collection = None
-            if len(self._human_chunk_list) > 0:
+            self._current_collection = None
+            self._current_min_index = 0
+            self._current_max_index = 0
+            self.__init_current()
+            return
+
+        def __init_current(self):
+            """
+            Initialize the current human collection chunk.
+            """
+            if (len(self._human_chunk_list) > 0) and (self._current_collection is None):
                 self._current_collection = self._human_chunk_list[0].get_json()
                 self._current_min_index = 0
                 self._current_max_index = len(self._current_collection) - 1
@@ -896,6 +936,15 @@ class DtkFileV6(object):
                     msg = f"Number of humans in first human chunk [{len(self._current_collection)}]"
                     msg += f" does not match num_humans attribute [{self._human_chunk_list[0].num_humans}]"
                     raise RuntimeError(msg)
+            return
+
+        def _add_human_chunk(self, human_chunk):
+            """
+            Add a new human collection chunk to the list.
+            """
+            self._human_chunk_list.append(human_chunk)
+            self._num_humans += human_chunk.num_humans
+            self.__init_current()
             return
 
         def __iter__(self):
@@ -912,6 +961,9 @@ class DtkFileV6(object):
             0-based _current_min_index and _current_max_index are the min and max indices of the
             currently loaded human collection chunk and are inclusive.
             """
+            if self._num_humans == 0:
+                return
+            
             if human_index < self._current_min_index:
                 while human_index < self._current_min_index:
                     self._human_chunk_list[ self._human_chunk_index].store()
@@ -925,7 +977,7 @@ class DtkFileV6(object):
                         raise RuntimeError("Number of humans in first human chunk does not match num_humans attribute")
             else:
                 while human_index > self._current_max_index:
-                    self._human_chunk_list[ self._human_chunk_index].store()
+                    self._human_chunk_list[ self._human_chunk_index ].store()
                     self._human_chunk_index += 1
                     if self._human_chunk_index >= len(self._human_chunk_list):
                         raise IndexError("Index {0} is out of range for human collection".format(human_index))
@@ -933,7 +985,7 @@ class DtkFileV6(object):
                     self._current_min_index = self._current_max_index + 1
                     self._current_max_index = self._current_min_index + len(self._current_collection) - 1
                     if len(self._current_collection) != self._human_chunk_list[self._human_chunk_index].num_humans:
-                        raise RuntimeError("Number of humans in first human chunk does not match num_humans attribute")
+                        raise RuntimeError(f"current collection = {len(self._current_collection)} but num_humans = {self._human_chunk_list[self._human_chunk_index].num_humans}")
             return
         
         def __getitem__(self, human_index):
@@ -956,8 +1008,18 @@ class DtkFileV6(object):
         def __len__(self):
             return self._num_humans
 
-        def append(self, item):
-            raise NotImplementedError("Appending to human list is not supported")
+        def append(self, human_dict):
+            human_index = self._num_humans
+            if self._human_chunk_index != (len(self._human_chunk_list) - 1):
+                self._human_chunk_list[ self._human_chunk_index ].store()
+                self._human_chunk_index = len(self._human_chunk_list) - 1
+                self._current_collection = self._human_chunk_list[self._human_chunk_index].get_json()
+                self._current_min_index = self._num_humans - len(self._current_collection)
+                self._current_max_index = self._num_humans - 1
+            self._current_collection.append(human_dict)
+            self._current_max_index += 1
+            self._num_humans += 1
+            self._human_chunk_list[ self._human_chunk_index ]._num_humans += 1
 
     def __init__(self, header=None, filename='', handle=None):
         """
@@ -1025,6 +1087,17 @@ class DtkFileV6(object):
                         human_chunk_list.append(human_chunk)
                 self._nodes.append(DtkFileV6.NodeV6(self, node_chunk, human_chunk_list))
 
+        return
+
+    def _remove_humans_for_node(self, node_suid):
+        """
+        Remove all human chunks for the specified node SUID.
+        """
+        new_human_chunks = []
+        for human_chunk in self._human_chunks:
+            if human_chunk.node_suid != node_suid:
+                new_human_chunks.append(human_chunk)
+        self._human_chunks = new_human_chunks
         return
 
     @property
