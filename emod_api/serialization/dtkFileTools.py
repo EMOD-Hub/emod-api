@@ -118,6 +118,7 @@ class DtkHeader(support.SerialObject):
 # --- DtkFile
 # -----------------------------------------------------------------------------
 
+
 class DtkFile(object):
 
     class Contents(object):
@@ -279,11 +280,12 @@ class DtkFile(object):
         return
 
 # -----------------------------------------------------------------------------
-# --- DtkFileV1 
+# --- DtkFileV1
 # ---
 # --- "Original version": single payload chunk with simulation and all nodes,
 # --- uncompressed or snappy or LZ4
 # -----------------------------------------------------------------------------
+
 
 class DtkFileV1(DtkFile):
 
@@ -312,6 +314,7 @@ class DtkFileV1(DtkFile):
 # --- "First chunked version": multiple payload chunks, one for simulation and
 # --- one each for nodes
 # -----------------------------------------------------------------------------
+
 
 class DtkFileV2(DtkFile):
 
@@ -374,6 +377,7 @@ class DtkFileV2(DtkFile):
 # --- "Second chunked version": multiple payload chunks, simulation and
 # --- node objects are "root" objects in each chunk
 # -----------------------------------------------------------------------------
+
 
 class DtkFileV3(DtkFile):
 
@@ -441,6 +445,8 @@ class DtkFileV3(DtkFile):
 # --- "Metadata update": compressed: true|false + engine: NONE|LZ4|SNAPPY replaced
 # --- with compression: NONE|LZ4|SNAPPY
 # -----------------------------------------------------------------------------
+
+
 class DtkFileV4(DtkFileV3):
 
     def __init__(self, header=None, filename='', handle=None):
@@ -455,6 +461,7 @@ class DtkFileV4(DtkFileV3):
 # ---
 # --- "Emod info added": emod_info added to header
 # -----------------------------------------------------------------------------
+
 
 class DtkFileV5(DtkFileV4):
     def __init__(self, header=None, filename='', handle=None):
@@ -482,6 +489,7 @@ class DtkFileV5(DtkFileV4):
 # -----------------------------------------------------------------------------
 # --- DtkHeaderV6
 # -----------------------------------------------------------------------------
+
 
 class DtkHeaderV6(support.SerialObject):
     """
@@ -540,6 +548,7 @@ class DtkHeaderV6(support.SerialObject):
 # --- node_chunk_sizes, human_compressions, human_node_suids, human_chunk_sizes added to header
 # -----------------------------------------------------------------------------
 
+
 class DtkFileV6(object):
     """
     The V6 file moves the humans out of the JSON serialized for the node and puts
@@ -574,7 +583,7 @@ class DtkFileV6(object):
             elif (chunk is not None) and (len(chunk) != chunk_size):
                 msg = f"Only read {len(chunk)} bytes of {chunk_size} for {obj_type_str} chunk of file '{filename}'"
                 raise UserWarning(msg)
-            
+
             self._v6_compression_str = v6_compression_str
             self._node_suid = node_suid
             self._chunk_size = chunk_size
@@ -607,7 +616,7 @@ class DtkFileV6(object):
             self._json = json_data
             self.store()
             return
-        
+
         def store(self):
             """
             Compress and store the JSON dictionary as a chunk.
@@ -672,11 +681,11 @@ class DtkFileV6(object):
                      chunk_size,
                      chunk):
             super(DtkFileV6.HumanCollectionChunkV6, self).__init__(filename,
-                                                         obj_type_str,
-                                                         v6_compression_str,
-                                                         node_suid,
-                                                         chunk_size,
-                                                         chunk)
+                                                                   obj_type_str,
+                                                                   v6_compression_str,
+                                                                   node_suid,
+                                                                   chunk_size,
+                                                                   chunk)
             self._num_humans = num_humans
             return
 
@@ -743,7 +752,7 @@ class DtkFileV6(object):
             else:
                 self.load()
                 return self._json[key]
-        
+
         def __setitem__(self, key, value):
             """
             Set the value for the given key in the node JSON dictionary.
@@ -754,7 +763,7 @@ class DtkFileV6(object):
                 self.individualHumans = value
             else:
                 self._json[key] = value
-        
+
         def __delitem__(self, key):
             """
             Delete the given key from the node JSON dictionary.
@@ -764,11 +773,11 @@ class DtkFileV6(object):
                 raise RuntimeError("Cannot set individualHumans property directly")
             self.load()
             del self._json[key]
-        
+
         def __iter__(self):
             self.load()
             return iter(self._json)
-        
+
         def __len__(self):
             self.load()
             return len(self._json)
@@ -783,7 +792,7 @@ class DtkFileV6(object):
             """
             self.load()
             return list(super(DtkFileV6.NodeV6, self).keys())
-    
+
         def load(self):
             """
             Load the node JSON dictionary from the chunk if it is not already loaded.
@@ -830,11 +839,11 @@ class DtkFileV6(object):
                 self._node_chunk = node_chunk
                 self._human_list = human_list
 
-                 # clear json to free memory
+                # clear json to free memory
                 self._json = None
                 gc.collect()
             return
-        
+
         def _clear_human_list(self):
             """
             Clear the human list for the node.
@@ -864,7 +873,6 @@ class DtkFileV6(object):
             human_chunk.set_json(json_dict_list)
             self.__parent__._human_chunks.append(human_chunk)
             self._human_list._add_human_chunk(human_chunk)
-            #print(f"Set {len(json_dict_list)} humans for node SUID {self._node_chunk.node_suid} and num_humans-{len(self._human_list)}")
             return
 
     class NodeListV6(object):
@@ -898,7 +906,7 @@ class DtkFileV6(object):
         def __len__(self):
             length = len(self._node_list)
             return length
-        
+
         def append(self, node_chunk):
             self._node_list.append(node_chunk)
             return
@@ -963,10 +971,10 @@ class DtkFileV6(object):
             """
             if self._num_humans == 0:
                 return
-            
+
             if human_index < self._current_min_index:
                 while human_index < self._current_min_index:
-                    self._human_chunk_list[ self._human_chunk_index].store()
+                    self._human_chunk_list[self._human_chunk_index].store()
                     self._human_chunk_index -= 1
                     if self._human_chunk_index < 0:
                         raise IndexError("Index {0} is out of range for human collection".format(human_index))
@@ -977,7 +985,7 @@ class DtkFileV6(object):
                         raise RuntimeError("Number of humans in first human chunk does not match num_humans attribute")
             else:
                 while human_index > self._current_max_index:
-                    self._human_chunk_list[ self._human_chunk_index ].store()
+                    self._human_chunk_list[self._human_chunk_index].store()
                     self._human_chunk_index += 1
                     if self._human_chunk_index >= len(self._human_chunk_list):
                         raise IndexError("Index {0} is out of range for human collection".format(human_index))
@@ -987,7 +995,7 @@ class DtkFileV6(object):
                     if len(self._current_collection) != self._human_chunk_list[self._human_chunk_index].num_humans:
                         raise RuntimeError(f"current collection = {len(self._current_collection)} but num_humans = {self._human_chunk_list[self._human_chunk_index].num_humans}")
             return
-        
+
         def __getitem__(self, human_index):
             """
             Return the IndividualHuman dictionary at the specified index.
@@ -1004,14 +1012,13 @@ class DtkFileV6(object):
                 self.__update_current_collection__(human_index)
             self._current_collection[human_index - self._current_min_index] = value
             return
-        
+
         def __len__(self):
             return self._num_humans
 
         def append(self, human_dict):
-            human_index = self._num_humans
             if self._human_chunk_index != (len(self._human_chunk_list) - 1):
-                self._human_chunk_list[ self._human_chunk_index ].store()
+                self._human_chunk_list[self._human_chunk_index].store()
                 self._human_chunk_index = len(self._human_chunk_list) - 1
                 self._current_collection = self._human_chunk_list[self._human_chunk_index].get_json()
                 self._current_min_index = self._num_humans - len(self._current_collection)
@@ -1019,7 +1026,7 @@ class DtkFileV6(object):
             self._current_collection.append(human_dict)
             self._current_max_index += 1
             self._num_humans += 1
-            self._human_chunk_list[ self._human_chunk_index ]._num_humans += 1
+            self._human_chunk_list[self._human_chunk_index]._num_humans += 1
 
     def __init__(self, header=None, filename='', handle=None):
         """
@@ -1072,12 +1079,12 @@ class DtkFileV6(object):
                 chunk_size = int(size_string, 16)
                 chunk_data = handle.read(chunk_size)
                 human_chunk = DtkFileV6.HumanCollectionChunkV6(filename,
-                                                     "human",
-                                                     v6_compression_str,
-                                                     node_suid,
-                                                     num_humans,
-                                                     chunk_size,
-                                                     chunk_data)
+                                                               "human",
+                                                               v6_compression_str,
+                                                               node_suid,
+                                                               num_humans,
+                                                               chunk_size,
+                                                               chunk_data)
                 self._human_chunks.append(human_chunk)
 
             for node_chunk in self._node_chunks:
@@ -1150,7 +1157,7 @@ class DtkFileV6(object):
             node.store()
         for human_chunk in self._human_chunks:
             human_chunk.store()
-        
+
         self.__header__['date'] = time.strftime('%a %b %d %H:%M:%S %Y')
         self.__header__['sim_compression'] = self._sim_chunk.v6_compression_str
         self.__header__['sim_chunk_size'] = format(self._sim_chunk.chunk_size, '016x')
@@ -1189,6 +1196,7 @@ class DtkFileV6(object):
 # -----------------------------------------------------------------------------
 # --- Reading Functions
 # -----------------------------------------------------------------------------
+
 
 def read(filename):
 
@@ -1285,6 +1293,7 @@ def __check_chunk_sizes__(chunk_sizes):
             raise UserWarning("Invalid chunk size: {0}".format(size))
     return
 
+
 def __check_chunk_sizes_v6__(header):
     #        "version": 6,
     #        "author": "IDM",
@@ -1320,6 +1329,7 @@ def __check_chunk_sizes_v6__(header):
 # -----------------------------------------------------------------------------
 # --- Writing Functions
 # -----------------------------------------------------------------------------
+
 
 def write(dtk_file, filename):
 
