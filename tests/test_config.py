@@ -530,7 +530,6 @@ class ConfigTest(unittest.TestCase):
             "idmType:VectorGene",
             "idmType:VectorGeneDriver",
             "idmType:VectorSpeciesParameters",
-            "idmType:WaningConfigList",
             "idmType:WaningEffect",
             "idmType:WaningEffectCollection"
         ]
