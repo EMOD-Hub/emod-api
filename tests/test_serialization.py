@@ -1480,7 +1480,8 @@ class TestReadVersion6(unittest.TestCase):
                 self.assertEqual(3.3, node.mosquito_weight)
         pop_modified = None
         gc.collect()
-        #os.remove(output_file)
+        if os.path.exists(output_file):
+            os.remove(output_file)
 
     def test_manipulating_human_list(self):
         input_file = os.path.join(manifest.serialization_folder, "state-00004-reduced.dtk")
@@ -1561,7 +1562,8 @@ class TestReadVersion6(unittest.TestCase):
                                    age_node_2=2222,
                                    age_node_3=3333 )
         gc.collect()
-        #os.remove(output_file)
+        if os.path.exists(output_file):
+            os.remove(output_file)
 
 
 
