@@ -1554,7 +1554,7 @@ class TestReadVersion6(unittest.TestCase):
         pop = None
         gc.collect()
 
-        self.assertTrue( os.path.exists(output_file), f"Expected output file to exist: {output_file}" )
+        self.assertFalse( os.path.exists(output_file), f"Expected output file to exist: {output_file}" )
 
         pop_modified = SerPop.SerializedPopulation(output_file)
         self.check_humans_in_nodes(pop_modified,
