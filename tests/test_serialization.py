@@ -1459,8 +1459,6 @@ class TestReadVersion6(unittest.TestCase):
         pop.write(output_file)
         pop = None
         gc.collect()
-        
-        self.assertTrue( os.path.exists(output_file), f"Expected output file to exist: {output_file}" )
 
         pop_modified = SerPop.SerializedPopulation(output_file)
         self.assertEqual( 2, pop_modified.dtk.simulation.sim_type )
@@ -1553,8 +1551,6 @@ class TestReadVersion6(unittest.TestCase):
         pop.write(output_file)
         pop = None
         gc.collect()
-
-        self.assertFalse( os.path.exists(output_file), f"Expected output file to exist: {output_file}" )
 
         pop_modified = SerPop.SerializedPopulation(output_file)
         self.check_humans_in_nodes(pop_modified,
