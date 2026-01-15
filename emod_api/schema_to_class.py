@@ -199,7 +199,9 @@ def get_schema(schema_path=None):
 
     # print("schema_path: ", schema_path)
 
-    if schema_path is None:
+    if schema_path is None and _schema_path is not None:
+        schema_path = _schema_path
+    elif schema_path is None:
         schema_path = "schema.json"
 
     if isinstance(schema_path, dict):
