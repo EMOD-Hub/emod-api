@@ -130,17 +130,17 @@ def find(name: str,
         handle: some iterable data structure, can be a list of
                 nodes, a node, list of individuals, etc
         currentlevel: just a string to print out where the found item
-                is located e.g. "dtk.nodes" or "dtk.node.individuals"
+                is located e.g. "dtk.nodes" or "dtk.nodes[1].individuals"
 
     Examples:
         What is the exact paramteter name used for the age of an individual?::
 
             SerPop.find("age", node)
             ...
-            1998   Found in:  dtk.nodes.individualHumans[999].m_age
-            1999   Found in:  dtk.nodes.individualHumans[999].susceptibility.age
-            2000   Found in:  dtk.nodes.m_vectorpopulations[0].EggQueues[0].age
-            2001   Found in:  dtk.nodes.m_vectorpopulations[0].EggQueues[1].age
+            1998   Found in:  dtk.nodes[i].individualHumans[999].m_age
+            1999   Found in:  dtk.nodes[i].individualHumans[999].susceptibility.age
+            2000   Found in:  dtk.nodes[i].m_vectorpopulations[0].EggQueues[0].age
+            2001   Found in:  dtk.nodes[i].m_vectorpopulations[0].EggQueues[1].age
             ...
     """
     global COUNTER
@@ -181,7 +181,7 @@ def get_parameters(handle: Union[str, collections.Iterable],
         handle: some iterable data structure, can be a list of
                 nodes, a node, list of individuals, etc
         currentlevel: just a string to print out where the found item
-                is located e.g. "dtk.nodes" or "dtk.node.individuals
+                is located e.g. "dtk.nodes" or "dtk.nodes[1].individuals
     Examples:
         Print all parameters in serialized population file::
             for n in sorted(SerPop.get_parameters(node)):

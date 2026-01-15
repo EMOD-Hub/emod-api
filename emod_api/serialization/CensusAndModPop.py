@@ -13,14 +13,6 @@ def change_ser_pop(input_serpop_path, mod_fn=None, save_file_path=None):
 
     Assuming a single node file for now.
     """
-    # print( f"change_ser_pop called with 'path'={input_serpop_path}, 'save_file_path'={save_file_path}." )
-
-    """
-    if not os.path.exists( input_serpop_path ):
-        print( f"Couldn't find specified serialized population file: {input_serpop_path}." )
-        sys.exit(0)
-    """
-
     if mod_fn is None:
         print("Calling with no mod_fn serves to test whether the .dtk input file can be loaded, but makes no change.")
 
