@@ -1,5 +1,6 @@
 import unittest
 
+
 class EmodapiMigrationImportTest(unittest.TestCase):
     def setUp(self) -> None:
         self.expected_items = None
@@ -31,15 +32,3 @@ class EmodapiMigrationImportTest(unittest.TestCase):
         import emod_api.migration.migration as migration
         self.verify_expected_items_present(namespace=migration)
         pass
-
-    def test_migration_client_import(self):
-        self.expected_items = [
-            'run'
-        ]
-        import emod_api.migration.client.client as client
-        self.verify_expected_items_present(namespace=client)
-        pass
-
-
-if __name__ == '__main__':
-    unittest.main()

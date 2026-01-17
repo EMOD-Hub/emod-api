@@ -13,14 +13,12 @@ from platform import system
 from tempfile import mkstemp
 import unittest
 from sys import platform
-from emod_api.migration import Migration, from_file, from_params, from_demog_and_param_gravity, to_csv, examine_file, \
-    from_demog_and_param_gravity_webservice
+from emod_api.migration.migration import Migration, from_file, from_params, from_demog_and_param_gravity, to_csv, examine_file, from_csv
 from emod_api.migration.migration import from_csv
 import pandas as pd
 import io
 from contextlib import redirect_stdout
-
-CWD = Path(__file__).parent.absolute()
+from tests import manifest
 
 
 class MigrationTests(unittest.TestCase):
@@ -33,21 +31,9 @@ class MigrationTests(unittest.TestCase):
     def setUpClass(cls):
 
         cls.user = environ["USERNAME"] if system() == "Windows" else environ["USER"]
-        filename = CWD / "data" / "migration" / "Kenya_Regional_Migration_from_Census.bin"
+        filename = os.path.join(manifest.migration_folder, "Kenya_Regional_Migration_from_Census.bin")
         cls.kenya_regional_migration = from_file(filename)
         cls.guinea_pig = Migration()
-
-        return
-
-    def setUp(self):
-        return
-
-    def tearDown(self):
-        return
-
-    @classmethod
-    def tearDownClass(cls):
-        return
 
     def test_defaults(self):
         """
@@ -532,8 +518,7 @@ class MigrationTests(unittest.TestCase):
         return
 
     def test_to_csv(self):
-        filename = "data/migration/Seattle_30arcsec_local_migration.bin"
-        output = "data/migration/seattle_csv.csv"
+        filename = os.path.join(manifest.migration_folder, "Seattle_30arcsec_local_migration.bin")
 
         f = io.StringIO()
         with redirect_stdout(f):
@@ -548,11 +533,11 @@ class MigrationTests(unittest.TestCase):
         self.assertFalse(data_frame.isnull().values.any())
 
     def test_examine_file(self):
-        filename = "data/migration/Seattle_30arcsec_local_migration.bin"
-        output = "data/migration/seattle_csv.csv"
+        filename = os.path.join(manifest.migration_folder, "Seattle_30arcsec_local_migration.bin")
+        output = os.path.join(manifest.output_folder, "seattle_csv.csv")
 
         expected_output = ["Author:", "DatavalueCount:", "DateCreated:", "GenderDataType:", "IdReference:",
-                            "InterpolationType:", "MigrationType:", "NodeCount:","NodeOffsets:", "Tool:","Nodes:"]
+                           "InterpolationType:", "MigrationType:", "NodeCount:", "NodeOffsets:", "Tool:", "Nodes:"]
 
         f = io.StringIO()
         with redirect_stdout(f):
@@ -686,7 +671,7 @@ class MigrationTests(unittest.TestCase):
 
     def test_from_file(self):
         """Test happy path for from_file()."""
-        local = from_file(CWD / "data" / "migration" / "Seattle_30arcsec_local_migration.bin")
+        local = from_file(os.path.join(manifest.migration_folder, "Seattle_30arcsec_local_migration.bin"))
         self.assertEqual(local.Author, "jsteinkraus")
         self.assertEqual(local.DateCreated, datetime(year=2011, month=9, day=26, hour=9, minute=59, second=35))
         self.assertEqual(local.DatavalueCount, 8)
@@ -695,7 +680,7 @@ class MigrationTests(unittest.TestCase):
         self.assertEqual(local.Tool, "createmigrationheader.py")
         self.assertEqual(local.MigrationType, 1)
 
-        regional = from_file(CWD / "data" / "migration" / "Seattle_30arcsec_regional_migration.bin")
+        regional = from_file(os.path.join(manifest.migration_folder, "Seattle_30arcsec_regional_migration.bin"))
         self.assertEqual(regional.Author, "jsteinkraus")
         self.assertEqual(regional.DateCreated, datetime(year=2011, month=9, day=26, hour=9, minute=59, second=35))
         self.assertEqual(regional.DatavalueCount, 30)
@@ -703,9 +688,6 @@ class MigrationTests(unittest.TestCase):
         self.assertEqual(regional.NodeCount, 124)
         self.assertEqual(regional.Tool, "createmigrationheader.py")
         self.assertEqual(regional.MigrationType, 3)
-
-        # tested in most test_get_xxx() functions above
-        # migration = Migration.from_file(CWD / "data" / "migration" / "Kenya_Regional_Migration_from_Census.bin"))
 
         return
 
@@ -744,7 +726,7 @@ class MigrationTests(unittest.TestCase):
         return
 
     def test_from_demog_and_param_gravity(self):
-        demographics_file = CWD / 'data' / 'demographics' / 'Seattle_30arcsec_demographics.json'
+        demographics_file = os.path.join(manifest.demo_folder, 'Seattle_30arcsec_demographics.json')
 
         migration = from_demog_and_param_gravity(demographics_file, gravity_params=[0.1, 0.2, 0.3, 0.4],
                                                  id_ref='from_demog_and_param_gravity_test',
@@ -784,7 +766,7 @@ class MigrationTests(unittest.TestCase):
                 self.assertAlmostEqual(distance, calculated_distance, delta=2)  # km
 
         id_ref = 'from_demog_and_param_gravity_distance'
-        demographics_file = CWD / 'data' / 'demographics' / 'gravity_webservice_vs_local_distance_only.json'
+        demographics_file = os.path.join(manifest.demo_folder, 'gravity_webservice_vs_local_distance_only.json')
         locations = [[0, 0],
                      [0, 1],
                      [0, 2],
@@ -813,55 +795,41 @@ class MigrationTests(unittest.TestCase):
         migration_local = from_demog_and_param_gravity(demographics_file, gravity_params=[1, 1, 1, -1],
                                                        id_ref=id_ref, migration_type=Migration.REGIONAL)
 
-        migration_local_file = CWD / 'data' / 'migration' / 'gravity_distance.bin'
-
-        if migration_local_file.is_file():
-            migration_local_file.unlink()
-
+        migration_local_file = Path(os.path.join(manifest.output_folder, 'gravity_distance.bin'))
         migration_local.to_file(migration_local_file)
 
-        import emod_api.migration as mi
-        import io
-        from contextlib import redirect_stdout
         f = io.StringIO()
         with redirect_stdout(f):
-            mi.to_csv(migration_local_file)
+            to_csv(migration_local_file)
         migration_rate = f.getvalue().split("\n")
 
         verify_distance(migration_rate, locations)
 
     def test_from_demog_and_param_gravity_with_reference(self):
-        demographics_file = CWD / 'data' / 'demographics' / 'Seattle_30arcsec_demographics.json'
+        demographics_file = os.path.join(manifest.demo_folder, 'Seattle_30arcsec_demographics.json')
 
         migration = from_demog_and_param_gravity(demographics_file, gravity_params=[0.1, 0.2, 0.3, 0.4],
                                                  id_ref='from_demog_and_param_gravity_test',
                                                  migration_type=Migration.LOCAL)
 
-        migration_file = CWD / 'data' / 'migration' / 'test_from_demog_and_param_gravity_with_reference.bin'
-        if migration_file.is_file():
-            migration_file.unlink()
+        migration_file = Path(os.path.join(manifest.output_folder, 'test_from_demog_and_param_gravity_with_reference.bin'))
         migration.to_file(migration_file)
 
-        reference_file = CWD / 'data' / 'migration' / 'migration_gravity_model_reference.bin'
-
+        reference_file = Path(os.path.join(manifest.migration_folder, 'migration_gravity_model_reference.bin'))
         self.compare_migration_file_to_reference(migration_file, reference_file, exact_compare=False)
 
     def test_from_csv(self):
-        if Path("test_migration.bin").exists():
-            Path("test_migration.bin").unlink()
-
-        if Path("test_migration.csv").exists():
-            Path("test_migration.csv").unlink()
-
         temp = {'source': [1, 2, 5],
                 'destination': [2, 3, 4],
                 'rate': [0.1, 0.2, 0.3]}
-        csv_file = Path("test_migration.csv")
-        pd.DataFrame.from_dict(temp).to_csv(csv_file, index=False)
 
+        csv_file = Path(os.path.join(manifest.output_folder, "test_migration.csv"))
+        pd.DataFrame.from_dict(temp).to_csv(csv_file, index=False)
         migration = from_csv(csv_file, id_ref="testing")
-        migration.to_file("test_migration.bin")
-        migration_from_bin = from_file("test_migration.bin")
+
+        migration_file = os.path.join(manifest.output_folder, "test_migration.bin")
+        migration.to_file(migration_file)
+        migration_from_bin = from_file(migration_file)
 
         for source, destination, rate in zip(temp['source'], temp['destination'], temp['rate']):
             self.assertEqual(migration[source][destination], rate)
@@ -869,21 +837,18 @@ class MigrationTests(unittest.TestCase):
 
     def test_from_csv_empty_file(self):
         with self.assertRaises(AssertionError):
-            from_csv(Path(CWD, "data", "migration", "test_migration_without_content.csv"), id_ref="testing")
+            from_csv(Path(os.path.join(manifest.migration_folder, "test_migration_without_content.csv")), id_ref="testing")
 
     def compare_migration_file_to_reference(self, migration_file, migration_reference_file, exact_compare=True):
         self.assertTrue(migration_file.is_file())
         self.assertTrue(migration_reference_file.is_file())
-        import emod_api.migration as mi
-        import io
-        from contextlib import redirect_stdout
         f = io.StringIO()
         with redirect_stdout(f):
-            mi.to_csv(migration_file)
+            to_csv(migration_file)
         migration_rate = f.getvalue().split("\n")
         f = io.StringIO()
         with redirect_stdout(f):
-            mi.to_csv(migration_reference_file)
+            to_csv(migration_reference_file)
         migration_rate_reference = f.getvalue().split("\n")
         if exact_compare:
             self.assertListEqual(migration_rate, migration_rate_reference)

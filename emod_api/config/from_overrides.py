@@ -30,12 +30,10 @@ def _load_json(filepath, post_process=None, ignore_notfound=True):
 
 def _recursive_json_overrider( ref_json, flat_input_json ):
     """
-    Useful function that recursively navigates a pretty arbitrarily structured json config looking 
+    Useful function that recursively navigates a pretty arbitrarily structured json config looking
     for key-value parameters in the leaves.
     """
-    special_nodes = [
-            "Vector_Species_Params", "Malaria_Drug_Params", "TB_Drug_Params", "HIV_Drug_Params", "STI_Network_Params_By_Property", "TBHIV_Drug_Params"
-            ]
+    special_nodes = ["Vector_Species_Params", "Malaria_Drug_Params", "TB_Drug_Params", "HIV_Drug_Params", "STI_Network_Params_By_Property", "TBHIV_Drug_Params"]
     if ref_json is None:
         print( "Null ref_json (param1) passed into _recursive_json_overrider." )
         raise ValueError
@@ -67,12 +65,12 @@ def _recursive_json_overrider( ref_json, flat_input_json ):
                 flat_input_json[val] = ref_json[val]
 
 
-def flattenConfig( configjson_path, new_config_name="config.json" ):
+def flattenConfig(configjson_path, new_config_name="config.json", use_full_out_path=False):
     """
     Historically called 'flattening' but really a function that takes a parameter override
     json config that includes a Default_Config_Path and produces a config.json from the two.
     """ 
-    if os.path.exists( configjson_path ) == False:
+    if not os.path.exists(configjson_path):
         raise
 
     configjson_flat = {}
@@ -120,8 +118,11 @@ def flattenConfig( configjson_path, new_config_name="config.json" ):
 
     # let's write out a flat version in case someone wants
     # to use regression examples as configs for debug mode
-    with open( configjson_path.replace( os.path.basename(configjson_path), new_config_name ), 'w', newline='\r\n') as handle:
-        handle.write( json.dumps(configjson, sort_keys=True, indent=4) )
+    outfile = new_config_name
+    if not use_full_out_path:
+        outfile = configjson_path.replace(os.path.basename(configjson_path), new_config_name)
+    with open(outfile, 'w') as fid01:
+        json.dump(configjson, fid01, sort_keys=True, indent=4)
     
     return configjson
 

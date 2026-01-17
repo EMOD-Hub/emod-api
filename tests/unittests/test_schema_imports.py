@@ -1,5 +1,6 @@
 import unittest
 
+
 class EmodapiSchemaImportTest(unittest.TestCase):
     def setUp(self) -> None:
         self.expected_items = None
@@ -17,23 +18,6 @@ class EmodapiSchemaImportTest(unittest.TestCase):
     def tearDown(self) -> None:
         pass
 
-    def test_get_schema_import(self):
-        self.expected_items = [
-            "dtk_to_schema"
-        ]
-        import emod_api.schema.get_schema as eass
-        self.verify_expected_items_present(namespace=eass)
-        pass
-
-    def test_post_schema_import(self):
-        self.expected_items = [
-            "application",
-            "idm_type_schemas"
-        ]
-        import emod_api.schema.dtk_post_process_schema as eaps
-        self.verify_expected_items_present(namespace=eaps)
-        pass
-
     def test_schema_to_class_import(self):
         self.expected_items = [
             "get_class_with_defaults"
@@ -41,5 +25,3 @@ class EmodapiSchemaImportTest(unittest.TestCase):
         import emod_api.schema_to_class as eas2c
         self.verify_expected_items_present(namespace=eas2c)
         pass
-
-

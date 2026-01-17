@@ -18,7 +18,6 @@ from emod_api.demographics import Demographics as Demog
 # for from_demog_and_param_gravity()
 from geographiclib.geodesic import Geodesic
 
-from .client import client
 
 class Layer(dict):
 
@@ -59,11 +58,12 @@ class Layer(dict):
     # def Nodes(self) -> dict:
     #     return self._nodes
 
-    def __getitem__(self, key):
+    def __getitem__(self,
+                    key: int) -> dict:
         """Allows indexing directly into this object with source node id
 
         Args:
-            key (int): source node id
+            key: source node id
 
         Returns:
             Dictionary of outbound rates for the given node id
@@ -102,10 +102,10 @@ class Migration(object):
     and saved to a file with the to_file() method.
     Given migration = Migration(), syntax is as follows:
 
-    age and gender agnostic:  migration[source_id][dest_id]
-    age dependent:            migration[source_id:age]          # age should be >= 0, ages > last bucket value use last bucket value
-    gender dependent:         migration[source_id:gender]       # gender one of Migration.MALE or Migration.FEMALE
-    age and gender dependent: migration[source_id:gender:age]   # gender one of Migration.MALE or Migration.FEMALE
+    age and gender agnostic:  `migration[source_id][dest_id]`
+    age dependent:            `migration[source_id:age]`          # age should be >= 0, ages > last bucket value use last bucket value
+    gender dependent:         `migration[source_id:gender]`       # gender one of Migration.MALE or Migration.FEMALE
+    age and gender dependent: `migration[source_id:gender:age]`   # gender one of Migration.MALE or Migration.FEMALE
 
     EMOD/DTK format migration files (and associated metadata files) can be written with migration.to_file(<filename>).
     EMOD/DTK format migration files (with associated metadata files) can be read with migration.from_file(<filename>).
@@ -139,7 +139,7 @@ class Migration(object):
         self._agesyears = []
         try:
             self._author = _author()
-        except Exception as ex:
+        except Exception:
             self._author = "Mystery Guest"
         self._datecreated = datetime.now()
         self._genderdatatype = self.SAME_FOR_BOTH_GENDERS
@@ -155,7 +155,7 @@ class Migration(object):
     def _create_layers(self):
 
         self._layers = []
-        for gender in range(0, self._genderdatatype+1):
+        for gender in range(0, self._genderdatatype + 1):
             for age in range(0, len(self.AgesYears) if self.AgesYears else 1):
                 self._layers.append(Layer())
 
@@ -303,7 +303,7 @@ class Migration(object):
         # offsets = {}
         # for index, node in enumerate(sorted(nodes)):
         #     offsets[node] = index * 12 * count
-        offsets = {node: 12*index*count for index, node in enumerate(sorted(nodes))}
+        offsets = {node: 12 * index * count for index, node in enumerate(sorted(nodes))}
         return offsets
 
     @property
@@ -506,7 +506,8 @@ class Migration(object):
     }
 
 
-def from_file(binaryfile: Path, metafile: Path = None):
+def from_file(binaryfile: Path,
+              metafile: Path = None) -> Migration:
     """Reads migration data file from given binary (and associated JSON metadata file)
 
     Args:
@@ -551,7 +552,7 @@ def from_file(binaryfile: Path, metafile: Path = None):
 
     node_count = metadata[_NODECOUNT]
     node_offsets = jason[_NODEOFFSETS]
-    if len(node_offsets) != 16*node_count:
+    if len(node_offsets) != 16 * node_count:
         raise RuntimeError(f"Length of node offsets string {len(node_offsets)} != 16 * node count {node_count}.")
     offsets = _parse_node_offsets(node_offsets, node_count)
     datavalue_count = metadata[_DATAVALUECOUNT]
@@ -600,21 +601,21 @@ def examine_file(filename):
 def _author() -> str:
     username = "Unknown"
     if system() == "Windows":
-        username = environ["USERNAME"] 
+        username = environ["USERNAME"]
     elif "USER" in environ:
         username = environ["USER"]
-    return username 
+    return username
 
 
 def _parse_node_offsets(string: str, count: int) -> dict:
 
-    assert len(string) == 16*count, f"Length of node offsets string {len(string)} != 16 * node count {count}."
+    assert len(string) == 16 * count, f"Length of node offsets string {len(string)} != 16 * node count {count}."
 
     offsets = {}
     for index in range(count):
         base = 16 * index
         offset = base + 8
-        offsets[int(string[base:base+8], 16)] = int(string[offset:offset+8], 16)
+        offsets[int(string[base:base + 8], 16)] = int(string[offset:offset + 8], 16)
 
     return offsets
 
@@ -650,7 +651,13 @@ utility functions emodpy-utils?
 """
 
 
-def from_params(demographics_file_path=None, pop=1e6, num_nodes=100, mig_factor=1.0, frac_rural=0.3, id_ref="from_params", migration_type=Migration.LOCAL):
+def from_params(demographics_file_path=None,
+                pop=1e6,
+                num_nodes=100,
+                mig_factor=1.0,
+                frac_rural=0.3,
+                id_ref="from_params",
+                migration_type=Migration.LOCAL):
     """
     This function is for creating a migration file that goes with a (multinode)
     demographics file created from a few parameters, as opposed to one from real-world data.
@@ -855,7 +862,9 @@ def to_csv(filename: Path):
                     print(display(node, gender, age, destination, rate))
 
 
-def from_csv(filename: Path, id_ref, mig_type=None):
+def from_csv(filename: Path,
+             id_ref,
+             mig_type=None) -> Migration:
     """Create migration from csv file. The file should have columns 'source' for the source node, 'destination' for the destination node, and 'rate' for the migration rate.
 
     Args:
@@ -863,7 +872,6 @@ def from_csv(filename: Path, id_ref, mig_type=None):
 
     Returns:
         Migration object
-
     """
     migration = Migration()
     migration.IdReference = id_ref

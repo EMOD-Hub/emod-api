@@ -3,7 +3,8 @@ import emod_api.demographics.Demographics as Demographics
 import json
 import emod_api.demographics.PreDefinedDistributions as Distributions
 
-from prodict import Prodict
+from emod_api.config import default_from_schema_no_validation as dfs
+from tests import manifest
 
 class DemoConfigTest(unittest.TestCase):
     def setUp(self) -> None:
@@ -11,8 +12,8 @@ class DemoConfigTest(unittest.TestCase):
         self.reset_config()
 
     def get_config_as_object(self):
-        with open("default_config.json", 'r') as c_file:
-            config_obj = Prodict.from_dict(json.load(c_file))
+        schema_name = manifest.generic_schema_path
+        config_obj = dfs.get_default_config_from_schema(schema_name, as_rod=True)
         return config_obj
 
     def reset_config(self):
@@ -63,7 +64,7 @@ class DemoConfigTest(unittest.TestCase):
             self.assertEqual(len(demog.implicits), 5+index)
             demog.implicits[-1](self.config)
             if not index:
-                self.assertTrue("Enable_Infection_Rate_Overdispersion" not in self.config.parameters)
+                self.assertEqual(self.config.parameters.Enable_Infection_Rate_Overdispersion, 0)
             else:
                 self.assertEqual(self.config.parameters.Enable_Infection_Rate_Overdispersion, 1)
 
@@ -86,7 +87,7 @@ class DemoConfigTest(unittest.TestCase):
 
     def test_set_mortality_distribution(self):
         demog = Demographics.from_template_node()
-        self.config.parameters.Death_Rate_Dependence = "DISEASE_MORTALITY"
+        self.config.parameters.Death_Rate_Dependence = "NONDISEASE_MORTALITY_BY_YEAR_AND_AGE_FOR_EACH_GENDER"
 
         mortality_distribution = Distributions.SEAsia_Diag
         demog.SetMortalityDistribution(mortality_distribution)

@@ -1,46 +1,36 @@
 # emod-api
-Python library/utilities/tools for interacting with DTK input and output files
 
-Developer note: Any .py file in emod_api will be included in the package.
-
-![](https://github.com/institutefordiseasemodeling/emod-api/workflows/Package%20and%20test%20on%20Ubuntu/badge.svg)  
-![](https://github.com/institutefordiseasemodeling/emod-api/workflows/Package%20and%20test%20on%20Windows/badge.svg)
+[![Run tests](https://github.com/EMOD-Hub/emod-api/actions/workflows/run-tests.yml/badge.svg?branch=main)](https://github.com/EMOD-Hub/emod-api/actions/workflows/run-tests.yml)
+[![Lint](https://github.com/EMOD-Hub/emod-api/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/EMOD-Hub/emod-api/actions/workflows/lint.yml)
+[![Test and deploy to staging](https://github.com/EMOD-Hub/emod-api/actions/workflows/test_and_publish_package_to_staging.yml/badge.svg?branch=main)](https://github.com/EMOD-Hub/emod-api/actions/workflows/test_and_publish_package_to_staging.yml)
 
 ## Documentation
 
-Documentation available at https://docs.idmod.org/projects/emod-api/en/latest/.
+Documentation available at https://emod-hub.github.io/emod-api/.
 
 To build the documentation locally, do the following:
 
 1. Create and activate a venv.
-2. Navigate to the root directory of the repo and enter the following
-
+2. Navigate to the root directory of the repo.
     ```
-    pip install -r requirements.txt
-    cd docs
-    pip install -r requirements.txt
-    cd ..
-    pip install -e .
+    python -m pip install .[docs]
     ```
 
 ## Dependencies
 
 ### Linux
 
-emod-api can use Snappy [de]compression (python-snappy, actually) as necessary if it is installed
-which requires libdev-snappy (Debian/Ubuntu) or snappy-devel (RedHat/CentOS) on Linux.
+emod-api can use Snappy [de]compression (python-snappy) as necessary if it is installed which requires libdev-snappy (Debian/Ubuntu) or snappy-devel (RedHat/CentOS) on Linux.
 
 Ubuntu: ```[sudo] apt install libdev-snappy```
 
 CentOS: ```[sudo] yum install snappy-devel``` (not yet tested)
 
-### Windows
+NOTE: The python-snappy version needs to be 0.6.1.  Newer versions have problems
+working correctly with emod-api.
 
-If Snappy compression support is desired or needed, consider downloading and installing the latest
-python-snappy package for Windows from Christoph Gohlke's python package website:
-https://www.lfd.uci.edu/~gohlke/pythonlibs/#python-snappy
 
-## user stories
+## User Stories
 
 Input
 - User wants to be able to create a minimal working config.json for any sim type guaranteed to work with a given Eradication binary.
@@ -58,49 +48,33 @@ Output
 
 ## Dev Tips
 
-- To build package: `python setup.py build`
-
-- To build wheel (.whl): `python setup.py bdist_wheel`
-
-- To import package, you can either:
-  - Set symlink to built module in build subdirectory
-  - do python setup.py install
-  - do python setup.py develop
+- To build package:
+    `python -m build --wheel`
 
 - To install package (fill in actual version number in filename):  
-`    pip install dist/emod_api...whl`
+    `python -m pip install dist/emod_api...whl`
 
-- To update the installed package (fill in actual version number in filename):  
-`    pip install --upgrade dist/emod_api...whl`
-
-## Capability Wishlist Based on Known Use Cases rather than Systematic Coverage
+## Capability Wishlist
 
 - Migration files: users should never have to edit migration binary or header files.
 - Serialization: Population manipulation, such as adding IPs or adding risk factors.
 - Demographics: HINT matrices should not be created directly in demographics.
 - Demographics: Population demographic initalization should be easier and reliable.
-- Config: param_overrides & w5ml & custom events.
+- Config: param_overrides and custom events.
 
-### Running tests
+## Running tests
 
-`python3 tests/channel_reports.py`  
-`python3 tests/serialization.py`  
-`python3 tests/spatial_reports.py`  
-`python3 tests/weather_files.py`  
+Please see the documentation for [testing](/tests/README.md).
 
-
-# Community
+## Community
 
 The EMOD Community is made up of researchers and software developers, primarily focused on malaria and HIV research.
-We value mutual respect, openness, and a collaborative spirit. If these values resonate with you, 
-we invite you to join our EMOD Slack Community by completing this form:
+We value mutual respect, openness, and a collaborative spirit. If these values resonate with you, we invite you to join our EMOD Slack Community by completing this form:
 
 https://forms.office.com/r/sjncGvBjvZ
 
-
-# Disclaimer
+## Disclaimer
 
 The code in this repository was developed by IDM and other collaborators to support our joint research on flexible agent-based modeling.
- We've made it publicly available under the MIT License to provide others with a better understanding of our research and an opportunity to build upon it for 
- their own work. We make no representations that the code works as intended or that we will provide support, address issues that are found, or accept pull requests.
- You are welcome to create your own fork and modify the code to suit your own modeling needs as permitted under the MIT License.
+We've made it publicly available under the MIT License to provide others with a better understanding of our research and an opportunity to build upon it for their own work. We make no representations that the code works as intended or that we will provide support, address issues that are found, or accept pull requests.
+You are welcome to create your own fork and modify the code to suit your own modeling needs as permitted under the MIT License.
