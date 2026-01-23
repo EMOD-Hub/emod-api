@@ -54,11 +54,6 @@ docs = [
 lint = [
     "flake8",
 ]
-packaging = [
-    "build",
-    "twine",
-    "bump2version",
-]
 test = [
     "emod-common",
     "emod-generic",
@@ -75,3 +70,13 @@ Issues = "https://github.com/EMOD-Hub/emod-api/issues"
 
 [tool.setuptools.packages]
 find = {include = ["emod_api*"]}
+
+[tool.bumpversion]
+current_version = "2.0.40"
+commit = true
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+
+[[tool.bumpversion.files]]
+filename = "emod_api/__init__.py"
