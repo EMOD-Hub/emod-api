@@ -406,10 +406,13 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
     elif (classname.startswith("idmType:")):
         if classname in schema_idm:
             schema_blob = schema_idm[classname]
-            for key_str in schema_blob.keys():
-                if key_str in ["class", "Sim_Types"]:
-                    continue
-                ret_json[key_str] = get_default(schema_blob[key_str], schema)
+            if ("default" in schema_blob):
+                ret_json = eval_default(schema_blob["default"])
+            else:
+                for key_str in schema_blob.keys():
+                    if key_str in ["class", "Sim_Types"]:
+                        continue
+                    ret_json[key_str] = get_default(schema_blob[key_str], schema)
         else:
             raise ValueError(f"ERROR: '{classname}' not found in schema.")
 
