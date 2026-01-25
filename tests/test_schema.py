@@ -147,7 +147,12 @@ class TestSchemaCommon():
     def test_vector_key(self):
         # Schema processing assumes "Vector2d" is not a thing
         def fun_not_vector(key_in, val_in):
-            return ("Vector2d" not in key_in and "Vector2d" not in val_in)
+            ret_val = True
+            if (type(key_in) is str and "Vector2d" in key_in):
+                ret_val = False
+            if (type(val_in) is str and "Vector2d" in val_in):
+                ret_val = False
+            return ret_val
 
         test_true = self.rabbit_hole(self.schema_json, fun_not_vector)
         assert test_true
@@ -163,10 +168,14 @@ class TestSchemaCommon():
             "idmAbstractType:CampaignEvent",
             "idmAbstractType:EventCoordinator",
             "idmAbstractType:NodeSet",
-            "idmAbstractType:Intervention",
         ]
         for req_key in list_required:
             assert req_key in schema_idm
+
+        # Node and individual interventions may be nested; move them up one level
+        if "idmAbstractType:Intervention" in schema_idm:
+            iv_obj = schema_idm.pop("idmAbstractType:Intervention")
+            schema_idm.update(iv_obj)
 
         # The idm_key is either an abstract type name or a concrete object name
         for idm_key in schema_idm:
