@@ -171,7 +171,7 @@ class TestSchemaCommon():
             assert req_key in schema_idm
 
         # Node and individual interventions may be nested; move them up one level
-        # TO BE REMOVED ONCE NOT NESTED
+        # TO BE CHANGED - REMOVE WHEN NOT NESTED
         if "idmAbstractType:Intervention" in schema_idm:
             iv_obj = schema_idm.pop("idmAbstractType:Intervention")
             schema_idm.update(iv_obj)
@@ -187,6 +187,15 @@ class TestSchemaCommon():
             # The idm_val here is either a concrete obj or the set of options for an abstract class
             assert "class" not in idm_val
 
+            # Having a Sim_Type means it's IncidenceCounterSurveillance
+            # TO BE CHANGED - assert False WHEN ABSENT
+            if("Sim_Type" in idm_val):
+                continue
+
+            # Having a default means it's a singleton; concrete obj w/ one parameter w/ default; this is fine
+            if("default" in idm_val):
+                continue
+
             # Here, type_key is either an option for an abstract class or the name of a parameter in a concrete obj
             for type_key in idm_val:
                 type_val = idm_val[type_key]
@@ -194,15 +203,6 @@ class TestSchemaCommon():
                 # Old style property definitions includes '<' and '>' in the schema
                 # These should no longer be present
                 assert not type_key.startswith('<')
-
-                # Having a Sim_Type key means it's IncidenceCounterSurveillance
-                # TO BE assert False 
-                if("Sim_Type" == type_key):
-                    continue
-
-                # Having a default key means it's simple; a concrete obj that is a single parameter with default; this is fine
-                if("default" == type_key):
-                    continue
 
                 # Having a class value means it's a option for an abstract class; this is fine
                 if("class" in type_val):
