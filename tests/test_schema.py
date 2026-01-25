@@ -181,7 +181,7 @@ class TestSchemaCommon():
 
             # Here, type_key is either an option for an abstract class or the name of a parameter in a concrete obj
             for type_key in idm_val:
-                type_val = idm_obj[type_key]
+                type_val = idm_val[type_key]
 
                 # Old style property definitions includes '<' and '>' in the schema
                 # These should no longer be present
@@ -199,7 +199,7 @@ class TestSchemaCommon():
                 assert "min" not in type_val
 
                 # Getting here means it's a concrete object without a default; better have a type
-                assert "type" not in type_val
+                assert "type" in type_val
 
         self.succeeded = True
 
