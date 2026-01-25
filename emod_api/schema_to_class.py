@@ -244,6 +244,8 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
                 default = eval_default(schema_obj["default"])
             elif ("type" in schema_obj):
                 default = get_class_with_defaults(schema_obj["type"], schema_json=schema)
+            else:
+                raise ValueError("No 'default' or 'type' in object.")
         except Exception as ex:
             raise ValueError(f"ERROR for object: {schema_obj}: {ex}")
         return default
