@@ -530,7 +530,7 @@ class ConfigTest(unittest.TestCase):
             "idmType:VectorGene",
             "idmType:VectorGeneDriver",
             "idmType:VectorSpeciesParameters",
-            "idmType:WaningEffect",
+            # "idmType:WaningEffect",  # WaningEffect is an AbstractType for Malaria
             "idmType:WaningEffectCollection"
         ]
 
