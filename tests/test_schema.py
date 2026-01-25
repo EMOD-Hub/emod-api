@@ -144,6 +144,15 @@ class TestSchemaCommon():
         assert test_true
         self.succeeded = True
 
+    def test_vector_key(self):
+        # Schema processing assumes "Vector2d" is not a thing
+        def fun_not_vector(key_in, val_in):
+            return ("Vector2d" not in key_in and "Vector2d" not in val_in)
+
+        test_true = self.rabbit_hole(self.schema_json, fun_not_vector)
+        assert test_true
+        self.succeeded = True
+
     def test_required_idmTypes(self):
         # Required keys in schema
         assert 'idmTypes' in self.schema_json
@@ -158,6 +167,39 @@ class TestSchemaCommon():
         ]
         for req_key in list_required:
             assert req_key in schema_idm
+
+        # The idm_key is either an abstract type name or a concrete object name
+        for idm_key in schema_idm:
+            idm_val = schema_idm[idm_key]
+
+            # All idmType entries should be objects (no lists)
+            assert type(idm_val) is dict
+
+            # Instances of abstract obj have the "class" key; should not be at this level
+            # The idm_val is either a concrete obj or the set of options for an abstract class
+            assert "class" not in idm_val
+
+            # Here, type_key is either an option for an abstract class or the name of a parameter in a concrete obj
+            for type_key in idm_val:
+                type_val = idm_obj[type_key]
+
+                # Old style property definitions includes '<' and '>' in the schema
+                # These should no longer be present
+                assert not type_key.startswith('<')
+
+                # Having a class value means it's a option for an abstract class; this is fine
+                if("class" in type_val):
+                    continue
+
+                # Having a default value means it's a parameter in a concrete obj; this is fine
+                if("default" in type_val):
+                    continue
+
+                # Having a "min" WITHOUT a "default" is an error
+                assert "min" not in type_val
+
+                # Getting here means it's a concrete object without a default; better have a type
+                assert "type" not in type_val
 
         self.succeeded = True
 
