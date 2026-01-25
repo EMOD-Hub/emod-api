@@ -189,7 +189,7 @@ class TestSchemaCommon():
 
             # Having a Sim_Type means it's IncidenceCounterSurveillance
             # TO BE CHANGED - assert False WHEN ABSENT
-            if("Sim_Type" in idm_val):
+            if("Sim_Types" in idm_val):
                 continue
 
             # Having a default means it's a singleton; concrete obj w/ one parameter w/ default; this is fine
