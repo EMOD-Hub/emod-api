@@ -26,6 +26,6 @@ jobs:
       - run-tests
     steps:
       - name: Bump version
-        uses: callowayproject/bump-my-version@1.2.6
+        uses: callowayproject/bump-my-version@v1
         with:
           args: patch -vv
