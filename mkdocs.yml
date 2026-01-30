@@ -34,7 +34,7 @@ nav:
   - API reference: autoapi/
   - Related projects:
     - emodpy: https://emod-hub.github.io/emodpy/
-    - EMOD-Generic: https://docs.idmod.org/projects/emod-generic
+    - EMOD-Generic: https://emod-hub.github.io/EMOD-Generic/
     - idmtools: https://docs.idmod.org/projects/idmtools/
 
 plugins:
