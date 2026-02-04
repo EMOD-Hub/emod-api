@@ -1,5 +1,3 @@
-from typing import List, Dict, Union
-
 import emod_api.demographics.demographic_exceptions as demog_ex
 from emod_api.demographics.Updateable import Updateable
 from emod_api.utils import check_dimensionality
@@ -7,9 +5,9 @@ from emod_api.utils import check_dimensionality
 
 class MortalityDistribution(Updateable):
     def __init__(self,
-                 ages_years: List[float],
-                 mortality_rate_matrix: Union[List[List[float]], List[float]],
-                 calendar_years: List[float] = None):
+                 ages_years: list[float],
+                 mortality_rate_matrix: list[list[float]] | list[float],
+                 calendar_years: list[float] = None):
         """
         A natural mortality distribution for one gender in units of "annual death rate for an individual". If the
         distribution is time-dependent, pass in a list of times (calendar_years).
@@ -23,15 +21,15 @@ class MortalityDistribution(Updateable):
         the nearest age and/or timepoint of supplied data.
 
         Args:
-            ages_years: (List[float]) A list of ages (in years) that mortality data will be provided for. Must be a
+            ages_years: (list[float]) A list of ages (in years) that mortality data will be provided for. Must be a
                 list of monotonically increasing floats within range 0 <= age <= 200 .
-            mortality_rate_matrix: (List[List[float]] or List[float]) A 2-d grid of mortality rates in units of
+            mortality_rate_matrix: (list[list[float]] or list[float]) A 2-d grid of mortality rates in units of
                 "annual death rate for an individual". The first data dimension (index) is by age, the second data
                 dimension is by calendar year. For M ages (in years) and N calendars years, the dimensionality of this
                 matrix must be MxN . Alternately, a 1-d array of mortality rates may be given and will be interpreted
                 as a time-independent "for all time" distribution. This option is only available if the calendar_years
                 argument is not used.
-            calendar_years: (List[float]) (optional) A list of times (in calendar years) that mortality data will be
+            calendar_years: (list[float]) (optional) A list of times (in calendar years) that mortality data will be
                 provided for. Must be a list of monotonically increasing floats within range 1900 <= year <= 2200 .
                 If not provided, a default single calendar year (1900) will be used that effectively means
                 "for all time".
@@ -95,7 +93,7 @@ class MortalityDistribution(Updateable):
     def _axis_scale_factors(cls):
         return [365.0, 1]
 
-    def to_dict(self, validate: bool = True) -> Dict:
+    def to_dict(self, validate: bool = True) -> dict:
         distribution_dict = {
             'AxisNames': self._axis_names(),
             'AxisScaleFactors': self._axis_scale_factors(),
@@ -109,7 +107,7 @@ class MortalityDistribution(Updateable):
         return distribution_dict
 
     @classmethod
-    def from_dict(cls, distribution_dict: Dict):
+    def from_dict(cls, distribution_dict: dict):
         cls._validate(distribution_dict=distribution_dict, source_is_dict=True)
         return cls(ages_years=distribution_dict['PopulationGroups'][0],
                    mortality_rate_matrix=distribution_dict['ResultValues'],
@@ -158,7 +156,7 @@ class MortalityDistribution(Updateable):
     }
 
     @classmethod
-    def _validate(cls, distribution_dict: Dict, source_is_dict: bool):
+    def _validate(cls, distribution_dict: dict, source_is_dict: bool):
         """
         Validate a MortalityDistribution in dict form
 

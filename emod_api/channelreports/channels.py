@@ -5,7 +5,6 @@
 from datetime import datetime
 import json
 from pathlib import Path
-from typing import Dict, List, Union
 import pandas as pd
 
 _CHANNELS = "Channels"
@@ -97,7 +96,7 @@ class Header(object):
         return self._timeStamp
 
     @time_stamp.setter
-    def time_stamp(self, timestamp: Union[datetime, str]) -> None:
+    def time_stamp(self, timestamp: datetime | str) -> None:
         """datetime or string"""
         self._timeStamp = (
             f"{timestamp:%a %B %d %Y %H:%M:%S}"
@@ -160,7 +159,7 @@ class Header(object):
         assert self._numTimeSteps > 0, "numTimeSteps must be > 0"
         return
 
-    def as_dictionary(self) -> Dict:
+    def as_dictionary(self) -> dict:
         # https://stackoverflow.com/questions/38987/how-do-i-merge-two-dictionaries-in-a-single-expression
         return {
             **{
@@ -179,7 +178,7 @@ class Header(object):
 
 class Channel(object):
 
-    def __init__(self, title: str, units: str, data: List) -> None:
+    def __init__(self, title: str, units: str, data: list) -> None:
         self._title = title
         self._units = units
         self._data = data
@@ -216,7 +215,7 @@ class Channel(object):
         self._data[key] = value
         return
 
-    def as_dictionary(self) -> Dict:
+    def as_dictionary(self) -> dict:
         return {self.title: {_UNITS: self.units, _DATA: list(self.data)}}
 
 
@@ -253,7 +252,7 @@ class ChannelReport(object):
         return self._header.time_stamp
 
     @time_stamp.setter
-    def time_stamp(self, time_stamp: Union[datetime, str]) -> None:
+    def time_stamp(self, time_stamp: datetime | str) -> None:
         self._header.time_stamp = time_stamp
         return
 
@@ -316,11 +315,11 @@ class ChannelReport(object):
         return len(self._channels)
 
     @property
-    def channel_names(self) -> List:
+    def channel_names(self) -> list:
         return sorted(self._channels)
 
     @property
-    def channels(self) -> Dict:
+    def channels(self) -> dict:
         """Channel objects keyed on channel name/title"""
         return self._channels
 
@@ -407,7 +406,7 @@ class ChannelReport(object):
 
         return
 
-    def to_csv(self, filename: Union[str, Path], channel_names: List[str] = None, transpose: bool = False) -> None:
+    def to_csv(self, filename: str | Path, channel_names: list[str] = None, transpose: bool = False) -> None:
 
         """
         Write each channel from the report to a row, CSV style, in the given file.

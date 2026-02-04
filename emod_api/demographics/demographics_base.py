@@ -7,7 +7,7 @@ import tempfile
 import warnings
 from collections import Counter
 from functools import partial
-from typing import List, Iterable, Any, Dict, Union
+from collections.abc import Iterable
 
 import numpy as np
 import pandas as pd
@@ -41,7 +41,7 @@ class DemographicsBase(BaseInputFile):
     class DuplicateNodeNameException(Exception):
         pass
 
-    def __init__(self, nodes: List[Node], idref: str, default_node: Node = None):
+    def __init__(self, nodes: list[Node], idref: str, default_node: Node = None):
         super().__init__(idref=idref)
         # TODO: node ids should be required to be UNIQUE to prevent later failures when running EMOD. Any update to
         #  self.nodes should trigger a check/error if needed.
@@ -105,7 +105,7 @@ class DemographicsBase(BaseInputFile):
                 self.nodes[index].update(map_ids_overlay[node.forced_id])
 
     def send(self,
-             write_to_this: Union[int, str, os.PathLike],
+             write_to_this: int | str | os.PathLike,
              return_from_forked_sender: bool = False):
         """
         Write data to a file descriptor as specified by the caller. It must be a pipe,
@@ -238,7 +238,7 @@ class DemographicsBase(BaseInputFile):
         self._verify_node_name_uniqueness()
 
     @staticmethod
-    def _duplicates_check(items: Iterable[Any]) -> List[Any]:
+    def _duplicates_check(items: Iterable) -> list:
         """
         Simple function that detects and returns the duplicates in an provide iterable.
         Args:
@@ -268,7 +268,7 @@ class DemographicsBase(BaseInputFile):
             raise self.DuplicateNodeNameException(f"Duplicate node names detected: {duplicates_str}")
 
     @property
-    def _all_nodes(self) -> List[Node]:
+    def _all_nodes(self) -> list[Node]:
         # only HIV is using a default node object right now, malaria currently uses self.raw
         # None protection if users are using self.raw default node access
         default_node = [] if self.default_node is None else [self.default_node]
@@ -276,19 +276,19 @@ class DemographicsBase(BaseInputFile):
         return all_nodes
 
     @property
-    def _all_node_names(self) -> List[int]:
+    def _all_node_names(self) -> list[int]:
         return [node.name for node in self._all_nodes]
 
     @property
-    def _all_nodes_by_name(self) -> Dict[int, Node]:
+    def _all_nodes_by_name(self) -> dict[int, Node]:
         return {node.name: node for node in self._all_nodes}
 
     @property
-    def _all_node_ids(self) -> List[int]:
+    def _all_node_ids(self) -> list[int]:
         return [node.id for node in self._all_nodes]
 
     @property
-    def _all_nodes_by_id(self) -> Dict[int, Node]:
+    def _all_nodes_by_id(self) -> dict[int, Node]:
         return {node.id: node for node in self._all_nodes}
 
     def get_node_by_id(self, node_id: int) -> Node:
@@ -303,7 +303,7 @@ class DemographicsBase(BaseInputFile):
         """
         return list(self.get_nodes_by_id(node_ids=[node_id]).values())[0]
 
-    def get_nodes_by_id(self, node_ids: List[int]) -> Dict[int, Node]:
+    def get_nodes_by_id(self, node_ids: list[int]) -> dict[int, Node]:
         """
         Returns the Node objects requested by their node id.
 
@@ -340,7 +340,7 @@ class DemographicsBase(BaseInputFile):
         """
         return list(self.get_nodes_by_name(node_names=[node_name]).values())[0]
 
-    def get_nodes_by_name(self, node_names: List[str]) -> Dict[str, Node]:
+    def get_nodes_by_name(self, node_names: list[str]) -> dict[str, Node]:
         """
         Returns the Node objects requested by their node name.
 
@@ -450,7 +450,7 @@ class DemographicsBase(BaseInputFile):
         self.SetMigrationPattern("srt")
 
     def SetOneWayMigration(self,
-                           rates_path: Union[str, os.PathLike],
+                           rates_path: str | os.PathLike,
                            id_ref: str = 'long term migration'):
         """
         Set one way migration. You can use the x_Regional_Migration configuration parameter to tune/calibrate.
@@ -476,7 +476,7 @@ class DemographicsBase(BaseInputFile):
     def SetSimpleVitalDynamics(self,
                                crude_birth_rate: CrudeRate = CrudeRate(40),
                                crude_death_rate: CrudeRate = CrudeRate(20),
-                               node_ids: List = None):
+                               node_ids: list = None):
         """
         Set fertility, mortality, and initial age with single birth rate and single mortality rate.
 
@@ -495,7 +495,7 @@ class DemographicsBase(BaseInputFile):
     #  https://github.com/InstituteforDiseaseModeling/emod-api-old/issues/790
     def SetEquilibriumVitalDynamics(self,
                                     crude_birth_rate: CrudeRate = CrudeRate(40),
-                                    node_ids: List = None):
+                                    node_ids: list = None):
         """
         Set fertility, mortality, and initial age with single rate and mortality to achieve steady state population.
 
@@ -513,7 +513,7 @@ class DemographicsBase(BaseInputFile):
                                                  wb_births_df: pd.DataFrame,
                                                  country: str,
                                                  year: int,
-                                                 node_ids: List = None):
+                                                 node_ids: list = None):
         """
         Set steady-state fertility, mortality, and initial age with rates from world bank, for given country and year.
 
@@ -560,7 +560,7 @@ class DemographicsBase(BaseInputFile):
     # DTK is births per person per day.
     def SetBirthRate(self,
                      birth_rate: float,
-                     node_ids: List = None):
+                     node_ids: list = None):
         """
         Set Default birth rate to birth_rate. Turn on Vital Dynamics and Births implicitly.
         """
@@ -581,7 +581,7 @@ class DemographicsBase(BaseInputFile):
         self.implicits.append(DT._set_population_dependent_birth_rate)
 
     def SetMortalityRate(self,
-                         mortality_rate: CrudeRate, node_ids: List[int] = None):
+                         mortality_rate: CrudeRate, node_ids: list[int] = None):
         """
         Set constant mortality rate to mort_rate. Turn on Enable_Natural_Mortality implicitly.
         """
@@ -606,7 +606,7 @@ class DemographicsBase(BaseInputFile):
             self.implicits.append(DT._set_mortality_age_gender)
 
     def SetMortalityDistribution(self, distribution: MortalityDistribution = None,
-                                 node_ids: List[int] = None):
+                                 node_ids: list[int] = None):
         """
         Set a default mortality distribution for all nodes or per node. Turn on Enable_Natural_Mortality implicitly.
 
@@ -629,7 +629,7 @@ class DemographicsBase(BaseInputFile):
             self.implicits.append(DT._set_mortality_age_gender)
 
     def SetMortalityDistributionFemale(self, distribution: MortalityDistribution = None,
-                                       node_ids: List[int] = None):
+                                       node_ids: list[int] = None):
         """
         Set a default female mortality distribution for all nodes or per node. Turn on Enable_Natural_Mortality
             implicitly.
@@ -654,7 +654,7 @@ class DemographicsBase(BaseInputFile):
             self.implicits.append(DT._set_mortality_age_gender)
 
     def SetMortalityDistributionMale(self, distribution: MortalityDistribution = None,
-                                     node_ids: List[int] = None):
+                                     node_ids: list[int] = None):
         """
         Set a default male mortality distribution for all nodes or per node. Turn on Enable_Natural_Mortality
             implicitly.
@@ -679,9 +679,9 @@ class DemographicsBase(BaseInputFile):
             self.implicits.append(DT._set_mortality_age_gender)
 
     def SetMortalityOverTimeFromData(self,
-                                     data_csv: Union[str, os.PathLike],
+                                     data_csv: str | os.PathLike,
                                      base_year: int,
-                                     node_ids: List = None):
+                                     node_ids: list = None):
         """
         Set default mortality rates for all nodes or per node. Turn on mortality configs implicitly. You can use
         the x_Other_Mortality configuration parameter to tune/calibrate.
@@ -768,7 +768,7 @@ class DemographicsBase(BaseInputFile):
         if self.implicits is not None:
             self.implicits.append(DT._set_mortality_age_gender_year)
 
-    def SetAgeDistribution(self, distribution: AgeDistribution, node_ids: List[int] = None):
+    def SetAgeDistribution(self, distribution: AgeDistribution, node_ids: list[int] = None):
         """
         Set a default age distribution for all nodes or per node. Sets distribution type to COMPLEX implicitly.
         Args:
@@ -888,7 +888,7 @@ class DemographicsBase(BaseInputFile):
 
         self.SetInitialAgeExponential(description=description)  # use default rate
 
-    def SetOverdispersion(self, new_overdispersion_value, nodes: List = None):
+    def SetOverdispersion(self, new_overdispersion_value, nodes: list = None):
         """
         Set the overdispersion value for the specified nodes (all if empty).
         """
@@ -919,10 +919,10 @@ class DemographicsBase(BaseInputFile):
 
         DT.InitPrevUniform(self, min_init_prev, max_init_prev, description)
 
-    def AddMortalityByAgeSexAndYear(self, age_bin_boundaries_in_years: List[float],
-                                    year_bin_boundaries: List[float],
-                                    male_mortality_rates: List[List[float]],
-                                    female_mortality_rates: List[List[float]]):
+    def AddMortalityByAgeSexAndYear(self, age_bin_boundaries_in_years: list[float],
+                                    year_bin_boundaries: list[float],
+                                    male_mortality_rates: list[list[float]],
+                                    female_mortality_rates: list[list[float]]):
         warnings.warn('AddMortalityByAgeSexAndYear() is deprecated. Please use the emodpy Demographics method: '
                       'set_mortality_distribution()', DeprecationWarning, stacklevel=2)
 
@@ -980,7 +980,7 @@ class DemographicsBase(BaseInputFile):
                                        start_rate: float,
                                        inflection_rate: float,
                                        end_rate: float,
-                                       node_ids: List = None) -> List[float]:
+                                       node_ids: list = None) -> list[float]:
         """
         Set fertility rates that vary over time based on a model with two linear regions. Note that fertility rates
         use GFR units: babies born per 1000 women of child-bearing age annually. You can use the x_Birth configuration
@@ -1045,12 +1045,12 @@ class DemographicsBase(BaseInputFile):
     def infer_natural_mortality(self,
                                 file_male,
                                 file_female,
-                                interval_fit: List[Union[int, float]] = None,
+                                interval_fit: list[int | float] = None,
                                 which_point='mid',
                                 predict_horizon=2050,
                                 csv_out=False,
                                 n=0,  # I don't know what this means
-                                results_scale_factor=1.0 / 365.0) -> [Dict, Dict]:
+                                results_scale_factor=1.0 / 365.0) -> [dict, dict]:
         """
         Calculate and set the expected natural mortality by age, sex, and year from data, predicting what it would
         have been without disease (HIV-only).

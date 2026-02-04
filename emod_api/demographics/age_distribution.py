@@ -1,5 +1,3 @@
-from typing import List, Dict
-
 import emod_api.demographics.demographic_exceptions as demog_ex
 
 from emod_api.demographics.Updateable import Updateable
@@ -8,8 +6,8 @@ from emod_api.utils import check_dimensionality
 
 class AgeDistribution(Updateable):
     def __init__(self,
-                 ages_years: List[float],
-                 cumulative_population_fraction: List[float]):
+                 ages_years: list[float],
+                 cumulative_population_fraction: list[float]):
         """
         A cumulative population age distribution in fraction units 0 to 1. This is used as part of initializing the
         population in an EMOD simulation.
@@ -22,9 +20,9 @@ class AgeDistribution(Updateable):
         closest corresponding age will be selected.
 
         Args:
-            ages_years: (List[float]) A list of ages (in years) that population fraction data will be provided for.
+            ages_years: (list[float]) A list of ages (in years) that population fraction data will be provided for.
                 Must be a list of monotonically increasing floats within range 0 <= age <= 200 .
-            cumulative_population_fraction: (List[float]) A list of cumulative population fractions corresponding to
+            cumulative_population_fraction: (list[float]) A list of cumulative population fractions corresponding to
                 the provided ages_years list. Must be a list of monotonically increasing floats within range
                 0 <= fraction <= 1 .
 
@@ -50,7 +48,7 @@ class AgeDistribution(Updateable):
     def _rate_scale_factor(cls):
         return 365.0  # convert ages in years to days
 
-    def to_dict(self, validate: bool = True) -> Dict:
+    def to_dict(self, validate: bool = True) -> dict:
         distribution_dict = {
             'ResultValues': self.ages_years,
             'DistributionValues': self.cumulative_population_fraction,
@@ -61,7 +59,7 @@ class AgeDistribution(Updateable):
         return distribution_dict
 
     @classmethod
-    def from_dict(cls, distribution_dict: Dict):
+    def from_dict(cls, distribution_dict: dict):
         cls._validate(distribution_dict=distribution_dict, source_is_dict=True)
         return cls(ages_years=distribution_dict['ResultValues'],
                    cumulative_population_fraction=distribution_dict['DistributionValues'])
@@ -104,7 +102,7 @@ class AgeDistribution(Updateable):
     }
 
     @classmethod
-    def _validate(cls, distribution_dict: Dict, source_is_dict: bool):
+    def _validate(cls, distribution_dict: dict, source_is_dict: bool):
         """
         Validate an AgeDistribution in dict form
 

@@ -1,6 +1,3 @@
-from typing import Dict
-
-
 class Updateable:
     """
     (Base) class that provides update() method for each class that inherits from this class.
@@ -11,7 +8,7 @@ class Updateable:
     def to_dict(self) -> dict:
         raise NotImplementedError
 
-    def update(self, overlay_object: ["Updateable", Dict], allow_nones: bool = False) -> None:
+    def update(self, overlay_object: ["Updateable", dict], allow_nones: bool = False) -> None:
         """
         Updates an object with the values from overlay_object.
 

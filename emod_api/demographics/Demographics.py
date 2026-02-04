@@ -9,7 +9,6 @@ import numpy as np
 import os
 import pandas as pd
 
-from typing import List, Dict
 
 from emod_api.demographics import DemographicsTemplates as DT
 from emod_api.demographics.Node import Node
@@ -276,7 +275,7 @@ class Demographics(DemographicsBase):
     This class is a container of data necessary to produce a EMOD-valid demographics input file. It can be initialized
     from an existing valid demographics.joson type file or from an array of valid Nodes.
     """
-    def __init__(self, nodes: List[Node], idref: str = "Gridded world grump2.5arcmin", base_file: str = None,
+    def __init__(self, nodes: list[Node], idref: str = "Gridded world grump2.5arcmin", base_file: str = None,
                  default_node: Node = None):
         """
         A class to create demographics.
@@ -298,7 +297,7 @@ class Demographics(DemographicsBase):
                 DT.NoInitialPrevalence(self)  # does this need to be called?
                 DT.InitAgeUniform(self)
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         self.verify_demographics_integrity()
         self.raw["Nodes"] = [node.to_dict() for node in self.nodes]
         self.raw["Metadata"]["NodeCount"] = len(self.nodes)

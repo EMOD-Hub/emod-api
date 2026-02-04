@@ -11,7 +11,6 @@ from datetime import datetime
 import getpass
 import json
 import numpy as np
-from typing import Dict, List
 
 
 IDREF_LEGACY = "Legacy"
@@ -86,7 +85,7 @@ class Metadata(object):
 
     def __init__(
         self,
-        node_ids: List[int],
+        node_ids: list[int],
         datavalue_count: int,
         author: str = None,
         created: datetime = None,
@@ -156,7 +155,7 @@ class Metadata(object):
         return len(self.nodes)
 
     @property
-    def node_ids(self) -> List[int]:
+    def node_ids(self) -> list[int]:
         return sorted(self.nodes.keys())
 
     @property
@@ -168,7 +167,7 @@ class Metadata(object):
         return self._update_frequency
 
     @property
-    def nodes(self) -> Dict[int, int]:
+    def nodes(self) -> dict[int, int]:
         """WeatherNodes offsets keyed by node id."""
         return self._nodes
 
@@ -228,7 +227,7 @@ class Weather(object):
     def __init__(
         self,
         filename: str = None,
-        node_ids: List[int] = None,
+        node_ids: list[int] = None,
         datavalue_count: int = None,
         author: str = None,
         created: datetime = None,
@@ -312,7 +311,7 @@ class Weather(object):
         return self._metadata.node_count
 
     @property
-    def node_ids(self) -> List[int]:
+    def node_ids(self) -> list[int]:
         return self._metadata.node_ids
 
     @property
@@ -326,7 +325,7 @@ class Weather(object):
     # end pass-through
 
     @property
-    def nodes(self) -> Dict[int, WeatherNode]:
+    def nodes(self) -> dict[int, WeatherNode]:
         """WeatherNodes indexed by node id."""
         return self._nodes
 

@@ -1,5 +1,3 @@
-from typing import List, Dict
-
 import emod_api.demographics.demographic_exceptions as demog_ex
 
 from emod_api.demographics.Updateable import Updateable
@@ -8,8 +6,8 @@ from emod_api.utils import check_dimensionality
 
 class SusceptibilityDistribution(Updateable):
     def __init__(self,
-                 ages_years: List[float],
-                 susceptible_fraction: List[float]):
+                 ages_years: list[float],
+                 susceptible_fraction: list[float]):
         """
 
         A by-age susceptibility to infection distribution in fraction units 0 to 1. This is used whenever an agent is
@@ -32,9 +30,9 @@ class SusceptibilityDistribution(Updateable):
         just 0 or 1).
 
         Args:
-            ages_years: (List[float]) A list of ages (in years) that susceptibility fraction data will be provided for.
+            ages_years: (list[float]) A list of ages (in years) that susceptibility fraction data will be provided for.
                 Must be a list of monotonically increasing floats within range 0 <= age <= 200 years.
-            susceptible_fraction: (List[float]) A list of susceptibility fractions corresponding to the provided
+            susceptible_fraction: (list[float]) A list of susceptibility fractions corresponding to the provided
                 ages_years list. These represent the chances an initialized agent at a given age will be susceptible to
                 infection. Must be a list of floats within range 0 <= fraction <= 1 .
 
@@ -60,7 +58,7 @@ class SusceptibilityDistribution(Updateable):
     def _rate_scale_factor(cls):
         return 1
 
-    def to_dict(self, validate: bool = True) -> Dict:
+    def to_dict(self, validate: bool = True) -> dict:
         # susceptibility distribution dicts MUST be in ages_days. objs must be in ages_years
         distribution_dict = {
             'ResultValues': self.susceptible_fraction,
@@ -72,7 +70,7 @@ class SusceptibilityDistribution(Updateable):
         return distribution_dict
 
     @classmethod
-    def from_dict(cls, distribution_dict: Dict):
+    def from_dict(cls, distribution_dict: dict):
         # susceptibility distribution dicts MUST be in ages_days. objs must be in ages_years
         cls._validate(distribution_dict=distribution_dict, source_is_dict=True)
         ages_years = [days / 365 for days in distribution_dict['DistributionValues']]
@@ -113,7 +111,7 @@ class SusceptibilityDistribution(Updateable):
     }
 
     @classmethod
-    def _validate(cls, distribution_dict: Dict, source_is_dict: bool):
+    def _validate(cls, distribution_dict: dict, source_is_dict: bool):
         """
         Validate a SusceptibilityDistribution in dict form
 
