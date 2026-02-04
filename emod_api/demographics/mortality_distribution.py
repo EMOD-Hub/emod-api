@@ -116,12 +116,12 @@ class MortalityDistribution(Updateable):
     # True means message relevant to verifying a mortality dictionary, False means messages relevant to verifying an obj
     _validation_messages = {
         'fixed_value_check': {
-            True: "key: %s value: %s does not match expected value: %s",
+            True: "key: {0} value: {1} does not match expected value: {2}",
             False: None  # These are all properties of the obj and cannot be made invalid
         },
         'population_group_length_check': {
             True: "PopulationGroups expected to be a 2-d array of floats. The first dimension length must be two, but "
-                  "is length %d",
+                  "is length {0}",
             False: None  # This is a property of the obj and cannot be made invalid
         },
         'data_dimensionality_check': {
@@ -130,12 +130,12 @@ class MortalityDistribution(Updateable):
                    "given. If calendar_years is NOT given, it MAY be a 1-d list of values."
         },
         'data_dimensionality_check_dim0': {
-            True: "ResultValues first dimension length %d does not match the PopulationGroups[0] age bin count %d",
-            False: "mortality_rate_matrix first dimension length: %d does not match the ages_years length: %d"
+            True: "ResultValues first dimension length {0} does not match the PopulationGroups[0] age bin count {1}",
+            False: "mortality_rate_matrix first dimension length: {0} does not match the ages_years length: {1}"
         },
         'data_dimensionality_check_dim1': {
-            True: "ResultValues second dimension length %d does not match the PopulationGroups[1] time bin count: %d",
-            False: "mortality_rate_matrix second dimension length: %d does not match the calendar_years length: %d"
+            True: "ResultValues second dimension length {0} does not match the PopulationGroups[1] time bin count: {1}",
+            False: "mortality_rate_matrix second dimension length: {0} does not match the calendar_years length: {1}"
         },
         'age_range_check': {
             True: "PopulationGroups[0] age values must be: 0 <= age <= 200 in years",
@@ -146,12 +146,12 @@ class MortalityDistribution(Updateable):
             False: "All calendar_years values must be: 1900 <= time <= 2200 calendar year"
         },
         'age_monotonicity_check': {
-            True: "PopulationGroups[0] ages in years must monotonically increase but do not, index: %d value: %s",
-            False: "ages_years values must monotonically increase but do not, index: %d value: %s"
+            True: "PopulationGroups[0] ages in years must monotonically increase but do not, index: {0} value: {1}",
+            False: "ages_years values must monotonically increase but do not, index: {0} value: {1}"
         },
         'time_monotonicity_check': {
-            True: "PopulationGroups[1] times in calendar years must monotonically increase but do not, index: %d value: %s",
-            False: "calendar_years values must monotonically increase but do not, index: %d value: %s"
+            True: "PopulationGroups[1] times in calendar years must monotonically increase but do not, index: {0} value: {1}",
+            False: "calendar_years values must monotonically increase but do not, index: {0} value: {1}"
         }
     }
 
@@ -177,7 +177,7 @@ class MortalityDistribution(Updateable):
             for key, expected_value in expected_values.items():
                 value = distribution_dict[key]
                 if value != expected_value:
-                    message = cls._validation_messages['fixed_value_check'][source_is_dict] % (key, value, expected_value)
+                    message = cls._validation_messages['fixed_value_check'][source_is_dict].format(key, value, expected_value)
                     raise demog_ex.InvalidFixedValueException(message)
 
         # ensure the data table is MxN for the population groups == [M, N]
@@ -185,7 +185,7 @@ class MortalityDistribution(Updateable):
         data_table = distribution_dict['ResultValues']
         if source_is_dict is True:
             if len(population_groups) != 2:
-                message = cls._validation_messages['population_group_length_check'][source_is_dict] % (len(population_groups))
+                message = cls._validation_messages['population_group_length_check'][source_is_dict].format(len(population_groups))
                 raise demog_ex.InvalidPopulationGroupLengthException(message)
 
         # ensure the data table has the correct dimensionality. It must be 2-d.
@@ -200,11 +200,11 @@ class MortalityDistribution(Updateable):
         n_ages = len(ages)
         n_times = len(times)
         if len(data_table) != n_ages:
-            message = cls._validation_messages['data_dimensionality_check_dim0'][source_is_dict] % (len(data_table), n_ages)
+            message = cls._validation_messages['data_dimensionality_check_dim0'][source_is_dict].format(len(data_table), n_ages)
             raise demog_ex.InvalidDataDimensionDim0Exception(message)
         for i in range(len(data_table)):
             if len(data_table[i]) != n_times:
-                message = cls._validation_messages['data_dimensionality_check_dim1'][source_is_dict] % (len(data_table[i]), n_times)
+                message = cls._validation_messages['data_dimensionality_check_dim1'][source_is_dict].format(len(data_table[i]), n_times)
                 raise demog_ex.InvalidDataDimensionDim1Exception(message)
 
         # ensure the age and time lists are ascending and in reasonable ranges
@@ -217,9 +217,9 @@ class MortalityDistribution(Updateable):
 
         for i in range(1, len(ages)):
             if ages[i] - ages[i - 1] <= 0:
-                message = cls._validation_messages['age_monotonicity_check'][source_is_dict] % (i, ages[i])
+                message = cls._validation_messages['age_monotonicity_check'][source_is_dict].format(i, ages[i])
                 raise demog_ex.NonMonotonicAgeException(message)
         for i in range(1, len(times)):
             if times[i] - times[i - 1] <= 0:
-                message = cls._validation_messages['time_monotonicity_check'][source_is_dict] % (i, times[i])
+                message = cls._validation_messages['time_monotonicity_check'][source_is_dict].format(i, times[i])
                 raise demog_ex.NonMonotonicTimeException(message)
