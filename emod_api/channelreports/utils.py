@@ -4,7 +4,6 @@ Helper functions, primarily for property reports, which are channel reports.
 
 import json
 from pathlib import Path
-from typing import Dict, List, Optional, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -25,10 +24,10 @@ __all__ = [
     "__title_for"]
 
 
-def property_report_to_csv(source_file: Union[str, Path],
-                           csv_file: Union[str, Path],
-                           channels: Optional[List[str]] = None,
-                           groupby: Optional[List[str]] = None,
+def property_report_to_csv(source_file: str | Path,
+                           csv_file: str | Path,
+                           channels: list[str] | None = None,
+                           groupby: list[str] | None = None,
                            transpose: bool = False) -> None:
 
     """
@@ -66,7 +65,7 @@ def property_report_to_csv(source_file: Union[str, Path],
     return
 
 
-def read_json_file(filename: Union[str, Path]) -> Dict:
+def read_json_file(filename: str | Path) -> dict:
 
     with Path(filename).open("r", encoding="utf-8") as file:
         json_data = json.load(file)
@@ -74,7 +73,7 @@ def read_json_file(filename: Union[str, Path]) -> Dict:
     return json_data
 
 
-def get_report_channels(json_data: Dict) -> Dict:
+def get_report_channels(json_data: dict) -> dict:
 
     try:
         channel_data = json_data['Channels']
@@ -112,7 +111,7 @@ def _validate_property_report_ips(groupby, channel_data) -> None:
     return
 
 
-def accumulate_channel_data(channels: List[str], verbose: bool, groupby: List[str], channel_data: Dict) -> Dict[str, np.ndarray]:
+def accumulate_channel_data(channels: list[str], verbose: bool, groupby: list[str], channel_data: dict) -> dict[str, np.ndarray]:
 
     """
     Extract selected channel(s) from property report data.
@@ -156,7 +155,7 @@ def accumulate_channel_data(channels: List[str], verbose: bool, groupby: List[st
     return trace_values
 
 
-def __get_trace_name(channel_title: str, key_value_pairs: List[str], groupby: List[str]) -> str:
+def __get_trace_name(channel_title: str, key_value_pairs: list[str], groupby: list[str]) -> str:
 
     """
     Return "canonical" trace name for a given channel, IP:value list, and groupby list.
@@ -197,8 +196,8 @@ def __get_trace_name(channel_title: str, key_value_pairs: List[str], groupby: Li
     return trace_name
 
 
-def save_to_csv(trace_values: Dict[str, np.ndarray],
-                filename: Union[str, Path],
+def save_to_csv(trace_values: dict[str, np.ndarray],
+                filename: str | Path,
                 transpose: bool = False) -> None:
 
     """
@@ -220,10 +219,10 @@ def save_to_csv(trace_values: Dict[str, np.ndarray],
     return
 
 
-def plot_traces(trace_values: Dict[str, np.ndarray],
-                norm_values: Optional[Union[int, np.ndarray]],
+def plot_traces(trace_values: dict[str, np.ndarray],
+                norm_values: int | np.ndarray | None,
                 overlay: bool,
-                channels: List[str],
+                channels: list[str],
                 title: str,
                 legend: bool) -> plt.Figure:
 
@@ -291,7 +290,7 @@ def plot_traces(trace_values: Dict[str, np.ndarray],
     return figure
 
 
-def __index_for(trace_name: str, channels: List[str], trace_keys: List[str], normalize: bool, overlay: bool) -> int:
+def __index_for(trace_name: str, channels: list[str], trace_keys: list[str], normalize: bool, overlay: bool) -> int:
 
     if overlay:
         # all pools of the same channel overlaid
@@ -312,7 +311,7 @@ def __index_for(trace_name: str, channels: List[str], trace_keys: List[str], nor
     return index + 1
 
 
-def __title_for(trace_name: str, channels: List[str], overlay: bool):
+def __title_for(trace_name: str, channels: list[str], overlay: bool):
 
     # use channel name
     if overlay:

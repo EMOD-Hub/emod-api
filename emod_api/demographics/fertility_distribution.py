@@ -1,5 +1,3 @@
-from typing import List, Dict
-
 import emod_api.demographics.demographic_exceptions as demog_ex
 
 from emod_api.demographics.Updateable import Updateable
@@ -8,9 +6,9 @@ from emod_api.utils import check_dimensionality
 
 class FertilityDistribution(Updateable):
     def __init__(self,
-                 ages_years: List[float],
-                 calendar_years: List[float],
-                 pregnancy_rate_matrix: List[List[float]]):
+                 ages_years: list[float],
+                 calendar_years: list[float],
+                 pregnancy_rate_matrix: list[list[float]]):
         """
         A pregancies/births distribution in units of "annual birth rate per 1000 women". For alternative representations
         of fertlity/birth in EMOD, see config parameter Birth_Rate_Dependence for more details.
@@ -103,7 +101,7 @@ class FertilityDistribution(Updateable):
     def _axis_scale_factors(cls):
         return [365.0, 1]
 
-    def to_dict(self, validate: bool = True) -> Dict:
+    def to_dict(self, validate: bool = True) -> dict:
         distribution_dict = {
             'AxisNames': self._axis_names(),
             'AxisScaleFactors': self._axis_scale_factors(),
@@ -165,7 +163,7 @@ class FertilityDistribution(Updateable):
     }
 
     @classmethod
-    def _validate(cls, distribution_dict: Dict, source_is_dict: bool):
+    def _validate(cls, distribution_dict: dict, source_is_dict: bool):
         """
         Validate a FertilityDistribution in dict form
 
