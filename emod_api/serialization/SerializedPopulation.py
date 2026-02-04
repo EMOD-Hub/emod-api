@@ -1,5 +1,4 @@
 """Class to load and manipulate a saved population."""
-import collections
 import difflib
 import emod_api.serialization.dtkFileTools as dft
 
