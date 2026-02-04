@@ -4,6 +4,10 @@
 [![Lint](https://github.com/EMOD-Hub/emod-api/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/EMOD-Hub/emod-api/actions/workflows/lint.yml)
 [![Test and deploy to staging](https://github.com/EMOD-Hub/emod-api/actions/workflows/test_and_publish_package_to_staging.yml/badge.svg?branch=main)](https://github.com/EMOD-Hub/emod-api/actions/workflows/test_and_publish_package_to_staging.yml)
 
+## Python Version
+
+Python 3.13 is the recommended and supported version.
+
 ## Documentation
 
 Documentation available at https://emod-hub.github.io/emod-api/.
