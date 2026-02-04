@@ -66,7 +66,7 @@ class AgeDistribution(Updateable):
 
     _validation_messages = {
         'fixed_value_check': {
-            True: "key: %s value: %s does not match expected value: %s",
+            True: "key: {0} value: {1} does not match expected value: {2}",
             False: None  # These are all properties of the obj and cannot be made invalid
         },
         'data_dimensionality_check_ages': {
@@ -82,22 +82,22 @@ class AgeDistribution(Updateable):
             False: 'ages_years and cumulative_population_fraction must be the same length but are not'
         },
         'age_range_check': {
-            True: "ResultValues age values must be: 0 <= age <= 200 in years. Out-of-range index:values : %s",
-            False: "All ages_years values must be: 0 <= age <= 200 in years. Out-of-range index:values : %s"
+            True: "ResultValues age values must be: 0 <= age <= 200 in years. Out-of-range index:values : {0}",
+            False: "All ages_years values must be: 0 <= age <= 200 in years. Out-of-range index:values : {0}"
         },
         'distribution_range_check': {
             True: "DistributionValues cumulative fractions must be: 0 <= fraction <= 1. "
-                  "Out-of-range index:values : %s",
+                  "Out-of-range index:values : {0}",
             False: "All cumulative_population_fraction values must be: 0 <= fraction <= 1. "
-                   "Out-of-range index:values : %s"
+                   "Out-of-range index:values : {0}"
         },
         'age_monotonicity_check': {
-            True: "ResultValues ages in years must monotonically increase but do not, index: %d value: %s",
-            False: "ages_years values must monotonically increase but do not, index: %d value: %s"
+            True: "ResultValues ages in years must monotonically increase but do not, index: {0} value: {1}",
+            False: "ages_years values must monotonically increase but do not, index: {0} value: {1}"
         },
         'distribution_monotonicity_check': {
-            True: "DistributionValues cumulative fractions must monotonically increase but do not, index: %d value: %s",
-            False: "cumulative_population_fraction values must monotonically increase but do not, index: %d value: %s"
+            True: "DistributionValues cumulative fractions must monotonically increase but do not, index: {0} value: {1}",
+            False: "cumulative_population_fraction values must monotonically increase but do not, index: {0} value: {1}"
         },
     }
 
@@ -120,7 +120,7 @@ class AgeDistribution(Updateable):
             for key, expected_value in expected_values.items():
                 value = distribution_dict[key]
                 if value != expected_value:
-                    message = cls._validation_messages['fixed_value_check'][source_is_dict] % (key, value, expected_value)
+                    message = cls._validation_messages['fixed_value_check'][source_is_dict].format(key, value, expected_value)
                     raise demog_ex.InvalidFixedValueException(message)
 
         # ensure the ages and distribution values are both 1-d iterables of the same length
@@ -144,20 +144,20 @@ class AgeDistribution(Updateable):
         out_of_range = [f"{index}:{age}" for index, age in enumerate(ages) if (age < 0) or (age > 200)]
         if len(out_of_range) > 0:
             oor_str = ', '.join(out_of_range)
-            message = cls._validation_messages['age_range_check'][source_is_dict] % oor_str
+            message = cls._validation_messages['age_range_check'][source_is_dict].format(oor_str)
             raise demog_ex.AgeOutOfRangeException(message)
         out_of_range = [f"{index}:{value}" for index, value in enumerate(distribution_values)
                         if (value < 0) or (value > 1)]
         if len(out_of_range) > 0:
             oor_str = ', '.join(out_of_range)
-            message = cls._validation_messages['distribution_range_check'][source_is_dict] % oor_str
+            message = cls._validation_messages['distribution_range_check'][source_is_dict].format(oor_str)
             raise demog_ex.DistributionOutOfRangeException(message)
 
         for i in range(1, len(ages)):
             if ages[i] - ages[i - 1] <= 0:
-                message = cls._validation_messages['age_monotonicity_check'][source_is_dict] % (i, ages[i])
+                message = cls._validation_messages['age_monotonicity_check'][source_is_dict].format(i, ages[i])
                 raise demog_ex.NonMonotonicAgeException(message)
         for i in range(1, len(distribution_values)):
             if distribution_values[i] - distribution_values[i - 1] <= 0:
-                message = cls._validation_messages['distribution_monotonicity_check'][source_is_dict] % (i, distribution_values[i])
+                message = cls._validation_messages['distribution_monotonicity_check'][source_is_dict].format(i, distribution_values[i])
                 raise demog_ex.NonMonotonicDistributionException(message)

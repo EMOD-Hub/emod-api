@@ -141,8 +141,7 @@ class DemographicsGenerator:
         self.res_in_degrees = arcsec_to_deg(self.res_in_arcsec)
         if logger:
             logger.debug(
-                "Setting resolution to %s arcseconds (%s deg.) from selection: %s"
-                % (self.res_in_arcsec, self.res_in_degrees, res_in_arcsec)
+                f"Setting resolution to {self.res_in_arcsec} arcseconds ({self.res_in_degrees} deg.) from selection: {res_in_arcsec}"
             )
 
     def generate_nodes(self,
@@ -266,7 +265,7 @@ class DemographicsGenerator:
         if self.resolution == CUSTOM_RESOLUTION:
             reference_id = "Custom user"
         else:
-            reference_id = "Gridded world grump%darcsec" % self.res_in_arcsec
+            reference_id = f"Gridded world grump{self.res_in_arcsec}arcsec"
 
         metadata = {
             "Author": "idm",
