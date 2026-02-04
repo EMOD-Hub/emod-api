@@ -6,7 +6,6 @@ import warnings
 import emod_api.schema_to_class as s2c
 
 
-
 def _set_defaults_for_schema_group(dc_param,
                                    schema_section,
                                    schema):

@@ -9,7 +9,6 @@ from emod_api.demographics.susceptibility_distribution_old import Susceptibility
 from emod_api.demographics.Updateable import Updateable
 
 
-
 # TODO: most of the documentation in this file consists of stand-in stubs. Needs to be filled in.
 #  https://github.com/InstituteforDiseaseModeling/emod-api/issues/695
 
