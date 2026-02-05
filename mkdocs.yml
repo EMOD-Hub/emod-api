@@ -1,7 +1,7 @@
 site_name: emod-api
-site_url: https://docs.idmod.org/projects/emod-api/en/latest/
+site_url: https://emod-hub.github.io/emod-api/
 repo_name: EMOD-Hub/emod-api
-repo_url: https://github.com/EMOD-Hub/emod-api
+repo_url: https://github.com/EMOD-Hub/emod-api/
 
 theme:
   name: material
@@ -30,11 +30,10 @@ theme:
 
 nav:
   - Home: index.md
-  - FAQ: faq.md
   - Plotters: plotters.md
-  - API Reference: autoapi/
-  - Related Projects:
-    - emodpy: https://docs.idmod.org/projects/emodpy/
+  - API reference: autoapi/
+  - Related projects:
+    - emodpy: https://emod-hub.github.io/emodpy/
     - EMOD-Generic: https://docs.idmod.org/projects/emod-generic
     - idmtools: https://docs.idmod.org/projects/idmtools/
 
@@ -55,17 +54,25 @@ plugins:
   - mkdocstrings:
 
 markdown_extensions:
+  - admonition:
+  - attr_list:  # enables HTMl and CSS classes to inline elements
   - def_list:
-  - pymdownx.caret:
-  - pymdownx.mark:
-  - pymdownx.tilde:
-  - pymdownx.snippets:
-  - pymdownx.blocks.details:
-  - pymdownx.highlight:
-      linenums: true
-      default_lang: 'python'
-  - pymdownx.arithmatex:
+  - md_in_html:  # enables grids
+  - pymdownx.arithmatex:  # Latex processing for math equations
       generic: true
+  - pymdownx.blocks.caption:  # captions for images, tables, etc.
+  - pymdownx.blocks.details:  # allows nesting of collapsible code
+  - pymdownx.caret:  # superscripts
+  - pymdownx.details:  # collapsible elements
+  - pymdownx.highlight:  # syntax highlighting for code blocks
+      linenums: true  # adds line numbers to code blocks automatically
+      anchor_linenums: true  # adds HTML anchors (#L1, #L2, etc.) to each line so you can link to specific ones.
+      default_lang: 'python'
+  - pymdownx.mark:  # text highlighting
+  - pymdownx.snippets:  # snippet reuse functionality
+      auto_append:
+        - docs/bib.md
+  - pymdownx.tilde:  # subscripts
 
 copyright: Copyright &copy; 2025 Gates Foundation. All rights reserved.
 
@@ -84,7 +91,7 @@ extra:
       href: "https://www.gatesfoundation.org/Terms-of-Use"
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/EMOD-Hub/emod-api
+      link: https://github.com/EMOD-Hub/
     - icon: fontawesome/regular/envelope
       link: mailto:idm@gatesfoundation.org
     - icon: octicons/globe-24

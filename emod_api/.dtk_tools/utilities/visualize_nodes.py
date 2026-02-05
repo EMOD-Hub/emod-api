@@ -33,7 +33,7 @@ def get_country_shape(country):
 
 
 def plot_geojson_shape(coords):
-    if isinstance(coords[0][0], collections.Iterable):
+    if isinstance(coords[0][0], collections.abc.Iterable):
         for c in coords:
             plot_geojson_shape(c)
     else:

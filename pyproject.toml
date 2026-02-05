@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "emod-api"
-version = "2.0.38"
+version = "2.0.42"
 description = "Core tools for modeling using EMOD"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -17,6 +17,13 @@ authors = [
     {name = "Ye Chen", email = "ye.chen@gatesfoundation.org"},
 ]
 keywords = ['modeling', 'IDM']
+
+# ---------------------------------------------------------------
+# I want to add "python-snappy==0.6.1", but it requires SnappyC
+# to already to be installed on Linux.  It needs to be 0.6.1,
+# because more recent versions don't work correctly with our code.
+# ---------------------------------------------------------------
+
 dependencies = [
     "matplotlib",
     "scipy",
@@ -26,7 +33,7 @@ dependencies = [
     "pyproj",
     "geographiclib",
     "scikit-learn",
-    "lz4",
+    "lz4"
 ]
 license = "MIT"
 classifiers = [

@@ -6,7 +6,7 @@
 
 ## Documentation
 
-Documentation available at https://docs.idmod.org/projects/emod-api/en/latest/.
+Documentation available at https://emod-hub.github.io/emod-api/.
 
 To build the documentation locally, do the following:
 
@@ -25,6 +25,10 @@ emod-api can use Snappy [de]compression (python-snappy) as necessary if it is in
 Ubuntu: ```[sudo] apt install libdev-snappy```
 
 CentOS: ```[sudo] yum install snappy-devel``` (not yet tested)
+
+NOTE: The python-snappy version needs to be 0.6.1.  Newer versions have problems
+working correctly with emod-api.
+
 
 ## User Stories
 

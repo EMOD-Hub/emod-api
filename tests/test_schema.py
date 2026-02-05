@@ -144,6 +144,18 @@ class TestSchemaCommon():
         assert test_true
         self.succeeded = True
 
+    def test_vector_key(self):
+        # Schema processing assumes "Vector2d" is not in any key string
+        def fun_not_vector(key_in, val_in):
+            ret_val = True
+            if (type(key_in) is str and "Vector2d" in key_in):
+                ret_val = False
+            return ret_val
+
+        test_true = self.rabbit_hole(self.schema_json, fun_not_vector)
+        assert test_true
+        self.succeeded = True
+
     def test_required_idmTypes(self):
         # Required keys in schema
         assert 'idmTypes' in self.schema_json
@@ -154,10 +166,57 @@ class TestSchemaCommon():
             "idmAbstractType:CampaignEvent",
             "idmAbstractType:EventCoordinator",
             "idmAbstractType:NodeSet",
-            "idmAbstractType:Intervention",
         ]
         for req_key in list_required:
             assert req_key in schema_idm
+
+        # Node and individual interventions may be nested; move them up one level
+        # TO BE CHANGED - REMOVE WHEN NOT NESTED
+        if "idmAbstractType:Intervention" in schema_idm:
+            iv_obj = schema_idm.pop("idmAbstractType:Intervention")
+            schema_idm.update(iv_obj)
+
+        # The idm_key is either an abstract type name or a concrete object name
+        for idm_key in schema_idm:
+            idm_val = schema_idm[idm_key]
+
+            # All idmType entries should be objects (no lists)
+            assert type(idm_val) is dict
+
+            # Options for an abstract class have the "class" key; that should not be at this level
+            # The idm_val here is either a concrete obj or the set of options for an abstract class
+            assert "class" not in idm_val
+
+            # Having a Sim_Type means it's IncidenceCounterSurveillance
+            # TO BE CHANGED - assert False WHEN ABSENT
+            if("Sim_Types" in idm_val):
+                continue
+
+            # Having a default means it's a singleton; concrete obj w/ one parameter w/ default; this is fine
+            if("default" in idm_val):
+                continue
+
+            # Here, type_key is either an option for an abstract class or the name of a parameter in a concrete obj
+            for type_key in idm_val:
+                type_val = idm_val[type_key]
+
+                # Old style property definitions includes '<' and '>' in the schema
+                # These should no longer be present
+                assert not type_key.startswith('<')
+
+                # Having a class value means it's a option for an abstract class; this is fine
+                if("class" in type_val):
+                    continue
+
+                # Having a default value means it's a parameter in a concrete obj; this is fine
+                if("default" in type_val):
+                    continue
+
+                # Having a "min" WITHOUT a "default" is an error
+                assert "min" not in type_val
+
+                # Getting here means it's a concrete object parameter without a default; better have a type
+                assert "type" in type_val
 
         self.succeeded = True
 

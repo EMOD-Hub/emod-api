@@ -243,11 +243,9 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
             if ("default" in schema_obj):
                 default = eval_default(schema_obj["default"])
             elif ("type" in schema_obj):
-                type_name = schema_obj["type"]
-                if ("Vector2d idmType:AdditionalRestrictions" in type_name):
-                    default = list()
-                else:
-                    default = get_class_with_defaults(type_name, schema_json=schema)
+                default = get_class_with_defaults(schema_obj["type"], schema_json=schema)
+            else:
+                raise ValueError("No 'default' or 'type' in object.")
         except Exception as ex:
             raise ValueError(f"ERROR for object: {schema_obj}: {ex}")
         return default
@@ -373,7 +371,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
         schema_blob = schema_idm[abstract_key6a][classname]
         ret_json["class"] = schema_blob["class"]
         for key_str in schema_blob.keys():
-            if key_str in ["class", "Sim_Types", "Vector2d idmType:AdditionalRestrictions"]:
+            if key_str in ["class", "Sim_Types"]:
                 continue
             ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
@@ -382,7 +380,7 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
         schema_blob = schema_idm[abstract_key6b][classname]
         ret_json["class"] = schema_blob["class"]
         for key_str in schema_blob.keys():
-            if key_str in ["class", "Sim_Types", "Vector2d idmType:AdditionalRestrictions"]:
+            if key_str in ["class", "Sim_Types"]:
                 continue
             ret_json[key_str] = get_default(schema_blob[key_str], schema)
 
@@ -408,31 +406,13 @@ def get_class_with_defaults(classname, schema_path=None, schema_json=None):
     elif (classname.startswith("idmType:")):
         if classname in schema_idm:
             schema_blob = schema_idm[classname]
-            if type(schema_blob) is list:
-                ret_json = list()
-                schema_blob = schema_blob[0]
-                if ('NodeListConfig' in classname):  # KF: Need to remove NodeListConfig
-                    schema_blob = dict()
-            new_elem = dict()
-            for type_key in schema_blob.keys():
-                if type_key.startswith("<"):
-                    continue
-                try:
-                    if "default" in schema_blob[type_key]:
-                        new_elem[type_key] = eval_default(schema_blob[type_key]["default"])
-                    elif "min" in schema_blob[type_key]:
-                        new_elem[type_key] = schema_blob[type_key]["min"]
-                    elif "type" in schema_blob[type_key]:
-                        new_elem[type_key] = get_class_with_defaults(schema_blob[type_key]["type"], schema_json=schema)
-                    elif type_key != "class":
-                        new_elem[type_key] = dict()
-                except Exception as ex:
-                    raise ValueError(f"ERROR: {ex}")
-            if type(ret_json) is list:
-                if new_elem:
-                    ret_json.append(new_elem)
+            if ("default" in schema_blob):
+                ret_json = eval_default(schema_blob["default"])
             else:
-                ret_json.update(new_elem)
+                for key_str in schema_blob.keys():
+                    if key_str in ["class", "Sim_Types"]:
+                        continue
+                    ret_json[key_str] = get_default(schema_blob[key_str], schema)
         else:
             raise ValueError(f"ERROR: '{classname}' not found in schema.")
 

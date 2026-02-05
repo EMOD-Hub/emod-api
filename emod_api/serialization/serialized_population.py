@@ -25,7 +25,6 @@ class SerializedPopulation:
         self.next_infection_suid = None
         self.next_infection_suid_initialized = False
         self.dtk = dft.read(file)
-        self._nodes = [n for n in self.dtk.nodes]
 
     @property
     def nodes(self):
@@ -62,12 +61,12 @@ class SerializedPopulation:
                 individual_1.m_is_infected = True
 
         """
-        return self._nodes
+        return self.dtk.nodes
 
     def flush(self):
         """Save all made changes to the node(s)."""
-        for idx in range(len(self._nodes)):
-            self.dtk.nodes[idx] = self._nodes[idx]
+        for idx in range(len(self.dtk.nodes)):
+            self.dtk.nodes[idx] = self.dtk.nodes[idx]
 
     def write(self, output_file: str = "my_sp_file.dtk"):
         """Write the population to a file.
@@ -112,17 +111,17 @@ class SerializedPopulation:
                 print(sp.get_next_individual_suid(0))
                 {'id': 2}
         """
-        suid = self._nodes[node_id]["m_IndividualHumanSuidGenerator"]["next_suid"]
-        self._nodes[node_id]["m_IndividualHumanSuidGenerator"]["id"] = (
+        suid = self.dtk.nodes[node_id]["m_IndividualHumanSuidGenerator"]["next_suid"]
+        self.dtk.nodes[node_id]["m_IndividualHumanSuidGenerator"]["id"] = (
             suid["id"]
-            + self._nodes[node_id]["m_IndividualHumanSuidGenerator"]["numtasks"]
+            + self.dtk.nodes[node_id]["m_IndividualHumanSuidGenerator"]["numtasks"]
         )
         return dict(suid)
 
 
 # Some useful functions
 def find(name: str,
-         handle: Union[str, collections.Iterable],
+         handle: Union[str, collections.abc.Iterable],
          currentlevel: str = "dtk.nodes"):
     """Recursively searches for a paramters that matches or is close to name and prints out where to find it in the file.
 
@@ -150,7 +149,7 @@ def find(name: str,
         COUNTER += 1
         return
 
-    if isinstance(handle, str) or not isinstance(handle, collections.Iterable):
+    if isinstance(handle, str) or not isinstance(handle, collections.abc.Iterable):
         return
 
     # key can be a string or on dict/list/..
@@ -162,7 +161,7 @@ def find(name: str,
         )
         try:
             tmp = handle[key]
-            if isinstance(tmp, collections.Iterable):
+            if isinstance(tmp, collections.abc.Iterable):
                 find(name, key, level + "[]")
             else:
                 find(name, key, level)
@@ -174,7 +173,7 @@ def find(name: str,
             find(name, handle[key], level)  # check if string is key for a dict
 
 
-def get_parameters(handle: Union[str, collections.Iterable],
+def get_parameters(handle: Union[str, collections.abc.Iterable],
                    currentlevel: str = "dtk.nodes"):
     """Return a set of all parameters in the serialized population file. Helpful to get an overview about what is in the serialized population file.
 
@@ -194,7 +193,7 @@ def get_parameters(handle: Union[str, collections.Iterable],
         param.add(currentlevel)
         return param
 
-    if not isinstance(handle, collections.Iterable):
+    if not isinstance(handle, collections.abc.Iterable):
         return param
 
     for _, d in enumerate(handle):
