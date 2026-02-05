@@ -1,4 +1,3 @@
-import unittest
 import json
 import os
 from emod_api import campaign as api_campaign
@@ -22,7 +21,7 @@ def generate_sample_campaign_event(my_campaign, schema_path):
     return event
 
 
-class TestCampaign(unittest.TestCase):
+class TestCampaign():
     def setUp(self):
         self.campaign = api_campaign
         self.schema_path = manifest.common_schema_path
@@ -97,7 +96,3 @@ class TestCampaign(unittest.TestCase):
         event = "TestEvent"
         mapped_event = self.campaign.get_event(event, old=True)
         self.assertEqual(mapped_event, event)
-
-
-if __name__ == '__main__':
-    unittest.main()

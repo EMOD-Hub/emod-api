@@ -6,14 +6,13 @@ import os
 import pathlib
 import random
 import tempfile
-import unittest
 import emod_api.weather.weather as weather
 from emod_api.weather.weather import Weather, Metadata, WeatherNode
 
 from tests import manifest
 
 
-class TestWeatherNode(unittest.TestCase):
+class TestWeatherNode():
     def test_ctor(self):
         _NODE_ID = 42
         _NUM_VALUES = 365
@@ -29,7 +28,7 @@ class TestWeatherNode(unittest.TestCase):
         return
 
 
-class TestMetadata(unittest.TestCase):
+class TestMetadata():
     def test_ctor(self):
 
         _NODE_IDS = [i for i in range(1, 9)]
@@ -95,7 +94,7 @@ class TestMetadata(unittest.TestCase):
         return
 
 
-class TestWeather(unittest.TestCase):
+class TestWeather():
     def test_ctor(self):
 
         USERNAME = "testuser"

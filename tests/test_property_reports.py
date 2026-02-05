@@ -2,7 +2,6 @@ from functools import reduce
 from pathlib import Path
 import os
 import tempfile
-import unittest
 
 from emod_api.channelreports.utils import property_report_to_csv, read_json_file, get_report_channels, accumulate_channel_data, save_to_csv, plot_traces
 from emod_api.channelreports.utils import __get_trace_name as utils__get_trace_name, __index_for as utils__index_for, __title_for as utils__title_for
@@ -12,7 +11,7 @@ import numpy as np
 from tests import manifest
 
 
-class TestPublicApi(unittest.TestCase):
+class TestPublicApi():
     """Test cases for public API."""
 
     prop_file = os.path.join(manifest.proprep_folder, "propertyReport.json")
@@ -243,7 +242,7 @@ class TestPublicApi(unittest.TestCase):
         return
 
 
-class TestInternalApi(unittest.TestCase):
+class TestInternalApi():
 
     def test__get_trace_name(self):
 

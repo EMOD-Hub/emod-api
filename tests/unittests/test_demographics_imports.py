@@ -1,7 +1,6 @@
-import unittest
 
 
-class EmodapiDemographicsImportTest(unittest.TestCase):
+class EmodapiDemographicsImportTest():
     def setUp(self) -> None:
         self.expected_items = None
         self.found_items = None

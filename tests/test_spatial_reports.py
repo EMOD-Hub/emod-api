@@ -1,4 +1,3 @@
-import unittest
 import numpy as np
 import os
 import pathlib
@@ -8,7 +7,7 @@ from emod_api.spatialreports.spatial import SpatialReport, SpatialNode
 from tests import manifest
 
 
-class TestSpatialNode(unittest.TestCase):
+class TestSpatialNode():
     def test_ctor(self):
 
         _NODE_ID = 42
@@ -24,7 +23,7 @@ class TestSpatialNode(unittest.TestCase):
         return
 
 
-class TestSpatial(unittest.TestCase):
+class TestSpatial():
     def test_ctor(self):
 
         _NUM_TIME_STEPS = 365

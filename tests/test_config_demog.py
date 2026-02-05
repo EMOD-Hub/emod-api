@@ -1,4 +1,3 @@
-import unittest
 import emod_api.demographics.Demographics as Demographics
 import emod_api.demographics.PreDefinedDistributions as Distributions
 
@@ -6,7 +5,7 @@ from emod_api.config import default_from_schema_no_validation as dfs
 from tests import manifest
 
 
-class DemoConfigTest(unittest.TestCase):
+class DemoConfigTest():
     def setUp(self) -> None:
         print(f"\n{self._testMethodName} started...")
         self.reset_config()
@@ -66,7 +65,3 @@ class DemoConfigTest(unittest.TestCase):
         self.assertEqual(len(demog.implicits), 2)
         demog.implicits[-1](self.config)
         self.assertEqual(self.config.parameters.Age_Initialization_Distribution_Type, "DISTRIBUTION_COMPLEX")
-
-
-if __name__ == '__main__':
-    unittest.main()

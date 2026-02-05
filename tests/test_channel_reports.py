@@ -1,4 +1,3 @@
-import unittest
 import os
 from pathlib import Path
 import tempfile
@@ -12,7 +11,7 @@ import json
 from tests import manifest
 
 
-class TestHeader(unittest.TestCase):
+class TestHeader():
 
     _NUM_CHANNELS = 42
     _DTK_VERSION = "master (223ec6f9)"
@@ -112,7 +111,7 @@ class TestHeader(unittest.TestCase):
         return
 
 
-class TestChannel(unittest.TestCase):
+class TestChannel():
 
     _TITLE = "Gas Mileage"
     _UNITS = "picometers per tun"
@@ -161,7 +160,7 @@ class TestChannel(unittest.TestCase):
         return
 
 
-class TestChannels(unittest.TestCase):
+class TestChannels():
     def test_fromFile(self):
 
         chart = ChannelReport(os.path.join(manifest.reports_folder, "InsetChart.json"))
@@ -455,7 +454,7 @@ class TestChannels(unittest.TestCase):
         return
 
 
-class TestInsetJson(unittest.TestCase):
+class TestInsetJson():
     @classmethod
     def setUpClass(cls):
         cls.inset_path = manifest.reports_folder
@@ -476,12 +475,12 @@ class TestInsetJson(unittest.TestCase):
             self.assertIn(channel, csv_df.columns, f"Column {channel} was not found in the csv at {csv_path}")
 
 
-class TestPropReport(unittest.TestCase):
+class TestPropReport():
     @classmethod
     def setUpClass(self):
         self.report_path = os.path.join(manifest.reports_folder, 'prop_dir')
 
-    @unittest.skip("known issue")
+    @pytest.mark.skip("known issue")
     def test_prop_report_json_to_csv(self):
         self.assertTrue(self.report_path.exists(), f"{self.report_path} cannot be found")
         prop_report_json_to_csv(self.report_path)

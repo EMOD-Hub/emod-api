@@ -5,7 +5,6 @@ import os
 import gc
 import os
 import tempfile
-import unittest
 import time
 import emod_api.serialization.dtkFileTools as dft
 import emod_api.serialization.dtkFileSupport as support
@@ -14,8 +13,8 @@ from tests import manifest
 
 skip_tests = False
 
-@unittest.skipIf(skip_tests, "Skipping old tests to focus on V6")
-class TestReadVersionOne(unittest.TestCase):
+@pytest.mark.skipif(skip_tests, "Skipping old tests to focus on V6")
+class TestReadVersionOne():
 
     def check_keys_dtkeader(self, header, reference_header_keys):
         for key in reference_header_keys:
@@ -55,7 +54,7 @@ class TestReadVersionOne(unittest.TestCase):
         self.assertEqual(0, len(dtk.nodes))
         return
 
-    @unittest.skipUnless(support.SNAPPY_SUPPORT, "No Snappy [de]compression support.")
+    @pytest.mark.skipif(not support.SNAPPY_SUPPORT, "No Snappy [de]compression support.")
     def test_reading_compressed_file(self):
 
         dtk = dft.read(os.path.join(manifest.serialization_folder, "version1.dtk"))
@@ -84,7 +83,7 @@ class TestReadVersionOne(unittest.TestCase):
         self.assertEqual(False, human.m_is_infected)
         return
 
-    @unittest.skipIf(support.SNAPPY_SUPPORT, "If Snappy support, test should not raise a UserWarning")
+    @pytest.mark.skipif(support.SNAPPY_SUPPORT, "If Snappy support, test should not raise a UserWarning")
     def test_reading_compressed_file_exception(self):
         with self.assertRaises(UserWarning):
             dft.read(os.path.join(manifest.serialization_folder, "version1.dtk"))
@@ -253,7 +252,7 @@ class TestReadVersionOne(unittest.TestCase):
         return
 
 
-@unittest.skipIf(skip_tests, "Skipping old tests to focus on V6")
+@pytest.mark.skipif(skip_tests, "Skipping old tests to focus on V6")
 class TestReadVersionTwo(TestReadVersionOne):
 
     def test_dtkheader_2(self):
@@ -462,7 +461,7 @@ class TestReadVersionTwo(TestReadVersionOne):
         return
 
 
-@unittest.skipIf(skip_tests, "Skipping old tests to focus on V6")
+@pytest.mark.skipif(skip_tests, "Skipping old tests to focus on V6")
 class TestReadVersionThree(TestReadVersionTwo):
 
     def test_dtkheader_3(self):
@@ -666,7 +665,7 @@ class TestReadVersionThree(TestReadVersionTwo):
         return
 
 
-@unittest.skipIf(skip_tests, "Skipping old tests to focus on V6")
+@pytest.mark.skipif(skip_tests, "Skipping old tests to focus on V6")
 class TestReadVersionFour(TestReadVersionThree):
 
     def test_dtkheader_4(self):
@@ -878,8 +877,8 @@ class TestReadVersionFour(TestReadVersionThree):
         return
 
 
-@unittest.skipIf(skip_tests, "Skipping old tests to focus on V6")
-class TestReadWrite(unittest.TestCase):
+@pytest.mark.skipif(skip_tests, "Skipping old tests to focus on V6")
+class TestReadWrite():
     def NullPtr(self, source):
         source.compression = dft.SNAPPY if support.SNAPPY_SUPPORT else dft.LZ4
         simulation = support.SerialObject(
@@ -926,8 +925,8 @@ class TestReadWrite(unittest.TestCase):
         return
 
 
-@unittest.skipIf(skip_tests, "Skipping old tests to focus on V6")
-class TestReadingSadPath(unittest.TestCase):
+@pytest.mark.skipif(skip_tests, "Skipping old tests to focus on V6")
+class TestReadingSadPath():
     def test_reading_wrong_magic_number(self):
         with self.assertRaises(UserWarning):
             dft.read(os.path.join(manifest.serialization_folder, "bad-magic.dtk"))
@@ -1081,8 +1080,8 @@ class TestReadingSadPath(unittest.TestCase):
         return
 
 
-@unittest.skipIf(skip_tests, "Skipping old tests to focus on V6")
-class TestRegressions(unittest.TestCase):
+@pytest.mark.skipif(skip_tests, "Skipping old tests to focus on V6")
+class TestRegressions():
 
     # https://github.com/InstituteforDiseaseModeling/DtkTrunk/issues/1268
     def test_1268(self):
@@ -1099,7 +1098,7 @@ class TestRegressions(unittest.TestCase):
         return
 
 
-@unittest.skipIf(skip_tests, "Skipping old tests to focus on V6")
+@pytest.mark.skipif(skip_tests, "Skipping old tests to focus on V6")
 class TestReadVersion5(TestReadVersionFour, TestReadWrite):
 
     def test_dtkheader_5(self):
@@ -1282,7 +1281,7 @@ human_keys_to_remove = [
     'm_DiagnosticMeasurement'
 ]
 
-class TestReadVersion6(unittest.TestCase):
+class TestReadVersion6():
 
     def xtest_reduce_dtk_file(self):
         input_file = os.path.join(manifest.serialization_folder, "state-00004.dtk")
@@ -1564,8 +1563,3 @@ class TestReadVersion6(unittest.TestCase):
         gc.collect()
         if os.path.exists(output_file):
             os.remove(output_file)
-
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -1,14 +1,13 @@
-import unittest
 from emod_api.demographics.PropertiesAndAttributes import IndividualAttributes, IndividualProperty
 
 
-class IndividualPropertiesTest(unittest.TestCase):
+class IndividualPropertiesTest():
     def test_default_parameters_to_dict(self):
         individual_property = IndividualProperty(property='blah', values=["blah1", "blah2"])
         self.assertDictEqual(individual_property.to_dict(), {'Property': 'blah', "Values": ["blah1", "blah2"]})  # empty, no keys/values added
 
 
-class TestAgeDistribution(unittest.TestCase):
+class TestAgeDistribution():
     def test_AgeDistribution_constructor_xors_simple_distribution_and_complex_distribution(self):
         # This should work just fine. Default values.
         IndividualAttributes()

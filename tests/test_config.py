@@ -1,4 +1,3 @@
-import unittest
 import os
 import json
 
@@ -38,7 +37,7 @@ def get_lowest_level_po(po, new_po=None):
         raise ValueError('po must be a dictionary.')
 
 
-class ConfigTest(unittest.TestCase):
+class ConfigTest():
     output_folder = manifest.output_folder
     output_filename = None
 
@@ -555,7 +554,7 @@ class ConfigTest(unittest.TestCase):
                                                f" {default}.")
 
 
-class ReadOnlyDictTest(unittest.TestCase):
+class ReadOnlyDictTest():
     def test_schema_to_class(self):
         schema_path = manifest.common_schema_path
         with open(schema_path) as fid01:
@@ -571,7 +570,3 @@ class ReadOnlyDictTest(unittest.TestCase):
         with self.assertRaises(KeyError) as context:
             coordinator.Non_Existing_Parameter = None
         self.assertTrue("'Non_Existing_Parameter' not found in this object." in str(context.exception))
-
-
-if __name__ == '__main__':
-    unittest.main()

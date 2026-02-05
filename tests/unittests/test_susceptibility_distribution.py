@@ -1,11 +1,9 @@
-import unittest
-
 from emod_api.demographics.susceptibility_distribution import SusceptibilityDistribution
 
 import emod_api.demographics.demographic_exceptions as demog_ex
 
 
-class TestSusceptibilityDistribution(unittest.TestCase):
+class TestSusceptibilityDistribution():
     def setUp(self):
         self.ages = [0, 10, 20, 50, 100]  # ages in years for object-form
         self.fractions = [0.9, 0.7, 0.3, 0.5, 0.8]

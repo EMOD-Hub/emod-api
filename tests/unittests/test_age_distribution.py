@@ -1,11 +1,9 @@
-import unittest
-
 from emod_api.demographics.age_distribution import AgeDistribution
 
 import emod_api.demographics.demographic_exceptions as demog_ex
 
 
-class TestAgeDistribution(unittest.TestCase):
+class TestAgeDistribution():
     def setUp(self):
         self.ages = [0, 10, 20, 50, 100]
         self.fractions = [0.0, 0.2, 0.6, 0.9, 1.0]

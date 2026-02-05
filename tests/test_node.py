@@ -1,10 +1,9 @@
-import unittest
 import emod_api.demographics.Node as Node
 import emod_api.demographics.PreDefinedDistributions as Distributions
 from emod_api.demographics.PropertiesAndAttributes import IndividualAttributes, IndividualProperty, IndividualProperties, NodeAttributes
 
 
-class NodeTest(unittest.TestCase):
+class NodeTest():
     def setUp(self) -> None:
         print(f"\n{self._testMethodName} started...")
 
@@ -136,7 +135,3 @@ class NodeTest(unittest.TestCase):
         self.assertIsNone(node.node_attributes.birth_rate)
         node.birth_rate = 0.5
         self.assertEqual(node.birth_rate, 0.5)
-
-
-if __name__ == '__main__':
-    unittest.main()

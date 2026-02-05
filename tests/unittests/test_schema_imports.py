@@ -1,7 +1,6 @@
-import unittest
 
 
-class EmodapiSchemaImportTest(unittest.TestCase):
+class EmodapiSchemaImportTest():
     def setUp(self) -> None:
         self.expected_items = None
         self.found_items = None

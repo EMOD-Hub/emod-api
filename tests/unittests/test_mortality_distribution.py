@@ -1,11 +1,9 @@
-import unittest
-
 from emod_api.demographics.mortality_distribution import MortalityDistribution
 
 import emod_api.demographics.demographic_exceptions as demog_ex
 
 
-class TestMortalityDistribution(unittest.TestCase):
+class TestMortalityDistribution():
     def setUp(self):
         self.ages = [0, 10, 20, 50, 100]
         self.explicit_times = [1950, 1970, 1990]

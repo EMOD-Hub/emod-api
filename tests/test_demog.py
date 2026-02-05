@@ -1,6 +1,5 @@
 import os
 import json
-import unittest
 import csv
 import struct
 import emod_api.demographics.Demographics as Demographics
@@ -25,7 +24,7 @@ import emod_api.demographics.demographic_exceptions as demog_ex
 import pprint
 
 
-class DemogTest(unittest.TestCase):
+class DemogTest():
     def setUp(self) -> None:
         print(f"\n{self._testMethodName} started...")
         self.out_folder = manifest.output_folder
@@ -1384,7 +1383,7 @@ class DemogTest(unittest.TestCase):
         self.assertDictEqual(distribution_copy.to_dict(), Distributions.Constant_Mortality.to_dict())
 
 
-class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
+class DemographicsComprehensiveTests_Mortality():
 
     def setUp(self) -> None:
         print(f"\n{self._testMethodName} started...")
@@ -1634,7 +1633,7 @@ class DemographicsComprehensiveTests_Mortality(unittest.TestCase):
                 self.assertGreater(len(demog.to_dict()['Nodes'][j]['IndividualAttributes']['MortalityDistributionMale']), 0)
 
 
-class DemographicsComprehensiveTests_Fertility(unittest.TestCase):
+class DemographicsComprehensiveTests_Fertility():
 
     def setUp(self) -> None:
         print(f"\n{self._testMethodName} started...")
@@ -1747,7 +1746,7 @@ class DemographicsComprehensiveTests_Fertility(unittest.TestCase):
         demog.generate_file(out_updated_2_filename)
 
 
-class DemographicsOverlayTest(unittest.TestCase):
+class DemographicsOverlayTest():
     def setUp(self) -> None:
         print(f"\n{self._testMethodName} started...")
 
@@ -1959,7 +1958,7 @@ class DemographicsOverlayTest(unittest.TestCase):
         self.assertDictEqual(vd_over_dict["Defaults"], overlay_dict["Defaults"])
 
 
-class DemographicsComprehensiveTests_Migration(unittest.TestCase):
+class DemographicsComprehensiveTests_Migration():
     def setUp(self) -> None:
         print(f"\n{self._testMethodName} started...")
         self.out_folder = manifest.output_folder
@@ -2108,7 +2107,7 @@ class DemographicsComprehensiveTests_Migration(unittest.TestCase):
             pd.DataFrame.from_dict(unpf).to_string(bin_file_contents.replace('_file', f'_file_with_{len(source)}_migrations'))  # .to_csv(bin_file_contents)
 
 
-class DemographicsComprehensiveTests_VitalDynamics(unittest.TestCase):
+class DemographicsComprehensiveTests_VitalDynamics():
 
     def setUp(self) -> None:
         print(f"\n{self._testMethodName} started...")

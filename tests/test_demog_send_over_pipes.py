@@ -1,7 +1,6 @@
 import os
 import sys
 import json
-import unittest
 import emod_api.demographics.Demographics as Demog
 import emod_api.demographics.PreDefinedDistributions as Distributions
 import tempfile
@@ -10,7 +9,7 @@ import copy
 thisplatform = sys.platform
 
 
-class DemographicsTestMisc(unittest.TestCase):
+class DemographicsTestMisc():
     large_demog = ""
     large_expected = ""
 
@@ -34,7 +33,7 @@ class DemographicsTestMisc(unittest.TestCase):
         cls.large_expected = cls.large_demog.to_dict()
         print(f"Total of nodes: {cls.large_expected['Metadata']['NodeCount']} ... file size is aprox 54 MB")
 
-    @unittest.skipIf(thisplatform.startswith("win"), "Not valid on Windows")
+    @pytest.mark.skipif(thisplatform.startswith("win"), "Not valid on Windows")
     def test_linux_send_over_file(self):
         # FUNCTIONAL TEST CASE: Call Send method using a valid File Name
         # EXPECTED: Valid file name is processed and generated objects are the same.
@@ -64,7 +63,7 @@ class DemographicsTestMisc(unittest.TestCase):
         print("...Validation Done...")
         os.remove(tmpfile)
 
-    @unittest.skipIf(thisplatform.startswith("win"), "Not valid on Windows")
+    @pytest.mark.skipif(thisplatform.startswith("win"), "Not valid on Windows")
     def test_linux_send_over_pipe_basic(self):
         # FUNCTIONAL TEST CASE: Call to Send method using a valid Pipe Number
         # EXPECTED: Valid pipe number is handled and demographics file is processed.
@@ -113,7 +112,7 @@ class DemographicsTestMisc(unittest.TestCase):
         elif (processid == 0):
             print("Child method - Done..")
 
-    @unittest.skipIf(thisplatform.startswith("win"), "Not valid on Windows")
+    @pytest.mark.skipif(thisplatform.startswith("win"), "Not valid on Windows")
     def test_linux_send_over_named_pipe(self):
         # FUNCTIONAL TEST CASE: Call to Send method using a valid Named Pipe
 

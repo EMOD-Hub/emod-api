@@ -1,11 +1,9 @@
-import unittest
-
 from emod_api.demographics.fertility_distribution import FertilityDistribution
 
 import emod_api.demographics.demographic_exceptions as demog_ex
 
 
-class TestFertilityDistribution(unittest.TestCase):
+class TestFertilityDistribution():
     def setUp(self):
         self.ages = [15, 20, 42, 44.99]
         self.times = [1950, 1970, 1990]

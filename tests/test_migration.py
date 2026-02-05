@@ -9,7 +9,6 @@ from os import close, environ
 from pathlib import Path
 from platform import system
 from tempfile import mkstemp
-import unittest
 from emod_api.migration.migration import Migration, from_file, from_params, from_demog_and_param_gravity, to_csv, examine_file, from_csv
 import pandas as pd
 import io
@@ -17,7 +16,7 @@ from contextlib import redirect_stdout
 from tests import manifest
 
 
-class MigrationTests(unittest.TestCase):
+class MigrationTests():
 
     user = "unknown"
     kenya_regional_migration = None
@@ -873,7 +872,3 @@ class MigrationTests(unittest.TestCase):
         reference_json["Metadata"].pop("DateCreated")
         self.maxDiff = None
         self.assertDictEqual(migration_json, reference_json)
-
-
-if __name__ == "__main__":
-    unittest.main()

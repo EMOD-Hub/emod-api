@@ -1,9 +1,7 @@
-import unittest
-
 from emod_api.demographics.PropertiesAndAttributes import IndividualProperties, IndividualProperty
 
 
-class IndividualPropertiesTest(unittest.TestCase):
+class IndividualPropertiesTest():
 
     def setUp(self):
         self.ip = IndividualProperty(property='in Arizona', values=['Yes', 'No'], initial_distribution=[0.01, 0.99])
