@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from enum import Enum
-from typing import Optional, Union, List, Literal
+from typing import Literal, Union, Optional
 
 import pandas as pd
 
@@ -94,7 +94,7 @@ class DemographicsGenerator:
     # All Hash values must be integers.
     def __init__(self,
                  nodes,
-                 concerns: Union[DemographicsGeneratorConcern, List[DemographicsGeneratorConcern], None] = None,
+                 concerns: Union[DemographicsGeneratorConcern, list[DemographicsGeneratorConcern], None] = None,
                  res_in_arcsec=CUSTOM_RESOLUTION,
                  node_id_from_lat_long: bool = False):
         """
@@ -141,8 +141,7 @@ class DemographicsGenerator:
         self.res_in_degrees = arcsec_to_deg(self.res_in_arcsec)
         if logger:
             logger.debug(
-                "Setting resolution to %s arcseconds (%s deg.) from selection: %s"
-                % (self.res_in_arcsec, self.res_in_degrees, res_in_arcsec)
+                f"Setting resolution to {self.res_in_arcsec} arcseconds ({self.res_in_degrees} deg.) from selection: {res_in_arcsec}"
             )
 
     def generate_nodes(self,
@@ -222,8 +221,8 @@ class DemographicsGenerator:
     @staticmethod
     def __to_grid_file(grid_file_name: str,
                        demographics: Demographics,
-                       include_attributes: Optional[List[str]] = None,
-                       node_attributes: Optional[List[str]] = None):
+                       include_attributes: Optional[list[str]] = None,
+                       node_attributes: Optional[list[str]] = None):
         """
         Convert a demographics object(Full object represented as a nested dictionary) to a grid file
 
@@ -266,7 +265,7 @@ class DemographicsGenerator:
         if self.resolution == CUSTOM_RESOLUTION:
             reference_id = "Custom user"
         else:
-            reference_id = "Gridded world grump%darcsec" % self.res_in_arcsec
+            reference_id = f"Gridded world grump{self.res_in_arcsec}arcsec"
 
         metadata = {
             "Author": "idm",
@@ -299,13 +298,13 @@ class DemographicsGenerator:
 # MOVE TO demographics/DemographicsInputDataParsers.py
 def from_dataframe(df: pd.DataFrame,
                    demographics_filename: Optional[str] = None,
-                   concerns: Union[DemographicsGeneratorConcern, List[DemographicsGeneratorConcern], None] = None,
+                   concerns: Union[DemographicsGeneratorConcern, list[DemographicsGeneratorConcern], None] = None,
                    res_in_arcsec: Literal[30, 250, CUSTOM_RESOLUTION] = CUSTOM_RESOLUTION,
                    node_id_from_lat_long: bool = True,
                    default_population: int = 1000,
                    load_other_columns_as_attributes: bool = False,
-                   include_columns: Optional[List[str]] = None,
-                   exclude_columns: Optional[List[str]] = None,
+                   include_columns: Optional[list[str]] = None,
+                   exclude_columns: Optional[list[str]] = None,
                    nodeid_column_name: Optional[str] = None,
                    latitude_column_name: str = "lat",
                    longitude_column_name: str = "lon",
@@ -439,13 +438,13 @@ def from_dataframe(df: pd.DataFrame,
 # MOVE TO demographics/DemographicsInputDataParsers.py
 def from_file(population_input_file: str,
               demographics_filename: Optional[str] = None,
-              concerns: Union[DemographicsGeneratorConcern, List[DemographicsGeneratorConcern], None] = None,
+              concerns: Union[DemographicsGeneratorConcern, list[DemographicsGeneratorConcern], None] = None,
               res_in_arcsec: Literal[30, 250, CUSTOM_RESOLUTION] = CUSTOM_RESOLUTION,
               node_id_from_lat_long: bool = True,
               default_population: int = 1000,
               load_other_columns_as_attributes: bool = False,
-              include_columns: Optional[List[str]] = None,
-              exclude_columns: Optional[List[str]] = None,
+              include_columns: Optional[list[str]] = None,
+              exclude_columns: Optional[list[str]] = None,
               nodeid_column_name: Optional[str] = None,
               latitude_column_name: str = "lat",
               longitude_column_name: str = "lon",

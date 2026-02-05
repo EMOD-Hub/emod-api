@@ -1,3 +1,5 @@
+from typing import Union, Optional
+
 from emod_api.demographics.age_distribution import AgeDistribution
 from emod_api.demographics.age_distribution_old import AgeDistributionOld
 from emod_api.demographics.fertility_distribution import FertilityDistribution
@@ -8,8 +10,6 @@ from emod_api.demographics.susceptibility_distribution import SusceptibilityDist
 from emod_api.demographics.susceptibility_distribution_old import SusceptibilityDistributionOld
 from emod_api.demographics.Updateable import Updateable
 
-from typing import List, Union
-
 
 # TODO: most of the documentation in this file consists of stand-in stubs. Needs to be filled in.
 #  https://github.com/InstituteforDiseaseModeling/emod-api/issues/695
@@ -18,10 +18,10 @@ from typing import List, Union
 class IndividualProperty(Updateable):
     def __init__(self,
                  property: str,
-                 values: Union[List[float], List[str]],
-                 initial_distribution: List[float] = None,
-                 transitions: List[dict] = None,
-                 transmission_matrix: List[List[float]] = None,
+                 values: Union[list[float], list[str]],
+                 initial_distribution: list[float] = None,
+                 transitions: list[dict] = None,
+                 transmission_matrix: list[list[float]] = None,
                  transmission_route: str = "Contact"):
         """
         Add Individual Properties, including an optional HINT configuration matrix.
@@ -197,7 +197,7 @@ class IndividualProperties(Updateable):
         ips_to_keep = [ip for ip in self.individual_properties if ip.property != property_key]
         self.individual_properties = ips_to_keep
 
-    def to_dict(self) -> List[dict]:
+    def to_dict(self) -> list[dict]:
         individual_properties = []
         for ip in self.individual_properties:
             individual_properties.append(ip.to_dict())
@@ -219,7 +219,7 @@ class IndividualAttributes(Updateable):
                  age_distribution_flag: int = None,
                  age_distribution1: int = None,
                  age_distribution2: int = None,
-                 age_distribution: [AgeDistribution, AgeDistributionOld] = None,
+                 age_distribution: Union[AgeDistribution, AgeDistributionOld] = None,
                  susceptibility_distribution_flag: int = None,
                  susceptibility_distribution1: int = None,
                  susceptibility_distribution2: int = None,
@@ -522,7 +522,7 @@ class NodeAttributes(Updateable):
                  initial_population: int = None,
                  region: int = None,
                  seaport: int = None,
-                 larval_habitat_multiplier: Union[List[float], None] = None,
+                 larval_habitat_multiplier: Optional[list[float]] = None,
                  initial_vectors_per_species: Union[dict, int, None] = None,
                  infectivity_multiplier: float = None,
                  extra_attributes: dict = None):

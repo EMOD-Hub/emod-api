@@ -3,7 +3,6 @@
 """emod-api spatial report module. Exposes SpatialReport and SpatialNode objects."""
 
 from pathlib import Path
-from typing import Dict, List
 import numpy as np
 
 
@@ -51,7 +50,7 @@ class SpatialReport(object):
     "Filtered" reports will have start > 0 and/or reporting interval > 1.
     """
 
-    def __init__(self, filename: str = None, node_ids: List[int] = None, data: np.array = None, start: int = 0, interval: int = 1):
+    def __init__(self, filename: str = None, node_ids: list[int] = None, data: np.array = None, start: int = 0, interval: int = 1):
 
         """
         Args:
@@ -75,12 +74,12 @@ class SpatialReport(object):
         return self._data
 
     @property
-    def node_ids(self) -> List[int]:
+    def node_ids(self) -> list[int]:
         """Returns list of node IDs (integers) for nodes in the report."""
         return self._node_ids
 
     @property
-    def nodes(self) -> Dict[int, SpatialNode]:
+    def nodes(self) -> dict[int, SpatialNode]:
         """Returns dictionary of SpatialNodes keyed on node ID."""
         return self._nodes
 

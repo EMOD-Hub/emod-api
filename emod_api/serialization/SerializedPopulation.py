@@ -1,8 +1,8 @@
 """Class to load and manipulate a saved population."""
-import collections
 import difflib
 import emod_api.serialization.dtkFileTools as dft
 
+from collections.abc import Iterable
 from typing import Union
 
 COUNTER = 0
@@ -121,7 +121,7 @@ class SerializedPopulation:
 
 # Some useful functions
 def find(name: str,
-         handle: Union[str, collections.abc.Iterable],
+         handle: Union[str, Iterable],
          currentlevel: str = "dtk.nodes"):
     """Recursively searches for a paramters that matches or is close to name and prints out where to find it in the file.
 
@@ -149,7 +149,7 @@ def find(name: str,
         COUNTER += 1
         return
 
-    if isinstance(handle, str) or not isinstance(handle, collections.abc.Iterable):
+    if isinstance(handle, str) or not isinstance(handle, Iterable):
         return
 
     # key can be a string or on dict/list/..
@@ -161,7 +161,7 @@ def find(name: str,
         )
         try:
             tmp = handle[key]
-            if isinstance(tmp, collections.abc.Iterable):
+            if isinstance(tmp, Iterable):
                 find(name, key, level + "[]")
             else:
                 find(name, key, level)
@@ -173,7 +173,7 @@ def find(name: str,
             find(name, handle[key], level)  # check if string is key for a dict
 
 
-def get_parameters(handle: Union[str, collections.abc.Iterable],
+def get_parameters(handle: Union[str, Iterable],
                    currentlevel: str = "dtk.nodes"):
     """Return a set of all parameters in the serialized population file. Helpful to get an overview about what is in the serialized population file.
 
@@ -193,7 +193,7 @@ def get_parameters(handle: Union[str, collections.abc.Iterable],
         param.add(currentlevel)
         return param
 
-    if not isinstance(handle, collections.abc.Iterable):
+    if not isinstance(handle, Iterable):
         return param
 
     for _, d in enumerate(handle):

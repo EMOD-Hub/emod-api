@@ -10,6 +10,12 @@ See the [idmtools documentation][idmtools] for a diagram of how each of the rela
 
 ## Installation
 
+### Python Version
+
+Python 3.13 is the recommended and supported version.
+
+### Installing the Package
+
 The emod-api package is currently available on a [Python package index server][idm_pypi] managed by the [Institute for Disease Modeling][idmod].
 
 ```
