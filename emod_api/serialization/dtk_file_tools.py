@@ -17,7 +17,7 @@ from collections.abc import MutableMapping
 import json
 import os
 import time
-import emod_api.serialization.dtkFileSupport as support
+import emod_api.serialization.dtk_file_support as support
 
 
 IDTK = 'IDTK'
