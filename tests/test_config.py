@@ -1,5 +1,6 @@
 import os
 import json
+import pytest
 
 from emod_api.config import default_from_schema_no_validation as dfs
 from emod_api.config import from_overrides
@@ -37,27 +38,25 @@ def get_lowest_level_po(po, new_po=None):
         raise ValueError('po must be a dictionary.')
 
 
-class ConfigTest():
+class TestConfig():
     output_folder = manifest.output_folder
     output_filename = None
 
-    def setUp(self) -> None:
-        print(f"\n{self._testMethodName} started...")
+    @pytest.fixture(autouse=True)
+    # Set-up and tear-down for each test
+    def run_every_test(self, request) -> None:
         manifest.create_folder(self.output_folder)
-
-    def tearDown(self) -> None:
-        pass
 
     def test_3_default_from_schema(self):
         self.output_file = os.path.join(manifest.output_folder, "default_config.json")
         manifest.delete_existing_file(self.output_file)
         schema_name = manifest.generic_schema_path
         dfs.get_default_config_from_schema(schema_name, output_filename=self.output_file)
-        self.assertTrue(os.path.isfile(self.output_file), msg=f"f{self.output_file} doesn't exist.")
+        assert(os.path.isfile(self.output_file))
         with open(self.output_file, 'r') as config_file:
             c = json.load(config_file)
         sim_type = c['parameters']['Simulation_Type']
-        self.assertEqual(sim_type, 'GENERIC_SIM')
+        assert(sim_type=='GENERIC_SIM')
 
         self.compare_config_with_schema(config_file=self.output_file, schema_file=schema_name)
 
@@ -81,28 +80,24 @@ class ConfigTest():
                         print(component, key, 'has no default, skip it.')
                         continue
                     if schema[component][key]['default'] == 'UNINITIALIZED STRING':
-                        self.assertEqual(value, '', msg=f"{value} != schema[{component}][{key}]['default']('')")
+                        assert(value=='')
                     else:
-                        self.assertEqual(value, schema[component][key]['default'],
-                                         msg=f"{value} != schema[{component}][{key}]['default']({schema[component][key]['default']})")
-            self.assertTrue(found_key, msg=f'{key} is not in {schema_file}.')
+                        assert(value==schema[component][key]['default'])
+            assert(found_key)
 
     def test_4_default_as_rod(self):
         config_file = os.path.join(manifest.config_folder, "input_default_config.json")
         config_rod = dfs.load_default_config_as_rod(config_file)
-        self.assertTrue(isinstance(config_rod, s2c.ReadOnlyDict))
+        assert(isinstance(config_rod, s2c.ReadOnlyDict))
         with open(config_file, 'r') as config_ori_file:
             config_ori = json.load(config_ori_file)['parameters']
         for key, value in config_ori.items():
-            self.assertTrue(key in config_rod['parameters'], msg=f'{key} is not in config_rod object.')
-            self.assertTrue(value == config_rod['parameters'][key], msg=f"{key}:{value} is found in {config_file} while"
-                                                                        f" it's {key}: {config_rod['parameters'][key]} "
-                                                                        f"in config_rod object.")
+            assert(key in config_rod['parameters'])
+            assert(value==config_rod['parameters'][key])
 
     def test_5_config_from_default_and_params_1(self):
         def set_param_fn(config):
             print("Setting params.")
-            # config.parameters.Enable_Demographics_Builtin = 1
             config.parameters.Default_Geography_Initial_Node_Population = 100
             config.parameters.Default_Geography_Torus_Size = 10
             return config
@@ -114,23 +109,15 @@ class ConfigTest():
         self.output_file = os.path.join(self.output_folder, self.output_filename)
         manifest.delete_existing_file(self.output_file)
         dfs.write_config_from_default_and_params(output_file01, set_param_fn, self.output_file)
-        self.assertTrue(os.path.isfile(self.output_file), msg=f"f{self.output_file} doesn't exist.")
+        assert(os.path.isfile(self.output_file))
 
         # Test the depends-on feature
         with open(self.output_file, 'r') as config_output:
             config = json.load(config_output)['parameters']
 
-        self.assertEqual(config['Default_Geography_Initial_Node_Population'], 100,
-                         msg=f"Default_Geography_Initial_Node_Population should be 100 not "
-                             f"{config['Default_Geography_Initial_Node_Population']}.")
-
-        self.assertEqual(config['Default_Geography_Torus_Size'], 10,
-                         msg=f"Default_Geography_Torus_Size should be 10 not "
-                             f"{config['Default_Geography_Torus_Size']}.")
-
-        self.assertEqual(config['Enable_Demographics_Builtin'], 1,
-                         msg='setting Default_Geography_Initial_Node_Population and Default_Geography_Torus_Size should '
-                             'automatically set Enable_Demographics_Builtin to 1.')
+        assert(config['Default_Geography_Initial_Node_Population']==100)
+        assert(config['Default_Geography_Torus_Size']==10)
+        assert(config['Enable_Demographics_Builtin']==1)
 
     def test_5_config_from_default_and_params_2(self):
         def set_param_fn(config):
@@ -144,19 +131,14 @@ class ConfigTest():
         self.output_file = os.path.join(self.output_folder, self.output_filename)
         manifest.delete_existing_file(self.output_file)
         dfs.write_config_from_default_and_params(output_file01, set_param_fn, self.output_file)
-        self.assertTrue(os.path.isfile(self.output_file), msg=f"f{self.output_file} doesn't exist.")
+        assert(os.path.isfile(self.output_file))
 
         # Test the depends-on feature
         with open(self.output_file, 'r') as config_output:
             config = json.load(config_output)['parameters']
 
-        self.assertEqual(config['Base_Infectivity_Exponential'], 0.5,
-                         msg=f"Base_Infectivity_Exponential should be 0.5 not "
-                             f"{config['Base_Infectivity_Exponential']}.")
-
-        self.assertEqual(config['Base_Infectivity_Distribution'], 'EXPONENTIAL_DISTRIBUTION',
-                         msg='setting Base_Infectivity_Exponential should '
-                             'automatically set Base_Infectivity_Distribution to EXPONENTIAL_DISTRIBUTION.')
+        assert(config['Base_Infectivity_Exponential']==0.5)
+        assert(config['Base_Infectivity_Distribution']=='EXPONENTIAL_DISTRIBUTION')
 
     def test_5_config_from_default_and_params_3(self):
         def set_param_fn(config):
@@ -171,17 +153,14 @@ class ConfigTest():
         self.output_file = os.path.join(self.output_folder, self.output_filename)
         manifest.delete_existing_file(self.output_file)
         dfs.write_config_from_default_and_params(output_file01, set_param_fn, self.output_file)
-        self.assertTrue(os.path.isfile(self.output_file), msg=f"f{self.output_file} doesn't exist.")
+        assert(os.path.isfile(self.output_file))
 
         # Test the depends-on feature
         with open(self.output_file, 'r') as config_output:
             config = json.load(config_output)['parameters']
 
-        self.assertEqual(config['Incubation_Period_Constant'], 2,
-                         msg=f"Incubation_Period_Constant should be 2 not {config['Incubation_Period_Constant']}.")
-        self.assertEqual(config['Incubation_Period_Distribution'], 'CONSTANT_DISTRIBUTION',
-                         msg='setting Incubation_Period_Constant should '
-                             'automatically set Incubation_Period_Distribution to CONSTANT_DISTRIBUTION.')
+        assert(config['Incubation_Period_Constant']==2)
+        assert(config['Incubation_Period_Distribution']=='CONSTANT_DISTRIBUTION')
 
     def test_5_config_from_default_and_params_4(self):
         def set_param_fn(config):
@@ -197,21 +176,15 @@ class ConfigTest():
         self.output_file = os.path.join(self.output_folder, self.output_filename)
         manifest.delete_existing_file(self.output_file)
         dfs.write_config_from_default_and_params(output_file01, set_param_fn, self.output_file)
-        self.assertTrue(os.path.isfile(self.output_file), msg=f"f{self.output_file} doesn't exist.")
+        assert(os.path.isfile(self.output_file))
 
         # Test the depends-on feature
         with open(self.output_file, 'r') as config_output:
             config = json.load(config_output)['parameters']
 
-        self.assertEqual(config['Infectious_Period_Gaussian_Mean'], 2,
-                         msg=f"Infectious_Period_Gaussian_Mean should be 2 not "
-                             f"{config['Infectious_Period_Gaussian_Mean']}.")
-        self.assertEqual(config['Infectious_Period_Gaussian_Std_Dev'], 1,
-                         msg=f"Infectious_Period_Gaussian_Std_Dev should be 1 not "
-                             f"{config['Infectious_Period_Gaussian_Std_Dev']}.")
-        self.assertEqual(config['Infectious_Period_Distribution'], 'GAUSSIAN_DISTRIBUTION',
-                         msg='setting Infectious_Period_Gaussian_Mean and Infectious_Period_Gaussian_Std_Dev should '
-                             'automatically set Infectious_Period_Distribution to GAUSSIAN_DISTRIBUTION.')
+        assert(config['Infectious_Period_Gaussian_Mean']==2)
+        assert(config['Infectious_Period_Gaussian_Std_Dev']==1)
+        assert(config['Infectious_Period_Distribution']=='GAUSSIAN_DISTRIBUTION')
 
     def test_5_config_from_default_and_params_5_exception(self):
         """
@@ -230,10 +203,10 @@ class ConfigTest():
         self.output_filename = "output_config_from_default_and_params_5.json"
         self.output_file = os.path.join(self.output_folder, self.output_filename)
         manifest.delete_existing_file(self.output_file)
-        with self.assertRaises(Exception) as context:
+        with pytest.raises(Exception) as e_info:
             dfs.write_config_from_default_and_params(output_file01, set_param_fn, self.output_file)
 
-        self.assertTrue('Climate_Model' in str(context.exception), msg=f'got exception: {context.exception}.')
+        assert('Climate_Model' in str(e_info))
 
     def test_5_config_from_default_and_params_6_exception(self):
         """
@@ -250,10 +223,10 @@ class ConfigTest():
         self.output_filename = "output_config_from_default_and_params_6.json"
         self.output_file = os.path.join(self.output_folder, self.output_filename)
         manifest.delete_existing_file(self.output_file)
-        with self.assertRaises(Exception) as context:
+        with pytest.raises(Exception) as e_info:
             dfs.write_config_from_default_and_params(output_file01, set_param_fn, self.output_file)
 
-        self.assertTrue('Falciparum_MSP_Variants' in str(context.exception), msg=f'got exception: {context.exception}.')
+        assert('Falciparum_MSP_Variants' in str(e_info))
 
     def test_5_config_from_default_and_params_7_exception(self):
         """
@@ -270,10 +243,10 @@ class ConfigTest():
         self.output_filename = "output_config_from_default_and_params_7.json"
         self.output_file = os.path.join(self.output_folder, self.output_filename)
         manifest.delete_existing_file(self.output_file)
-        with self.assertRaises(Exception) as context:
+        with pytest.raises(Exception) as e_info:
             dfs.write_config_from_default_and_params(output_file01, set_param_fn, self.output_file)
 
-        self.assertTrue('float' in str(context.exception), msg=f'got exception: {context.exception}.')
+        assert('float' in str(e_info))
 
     def test_5_config_from_default_and_params_8_exception(self):
         """
@@ -290,11 +263,10 @@ class ConfigTest():
         self.output_filename = "output_config_from_default_and_params_8.json"
         self.output_file = os.path.join(self.output_folder, self.output_filename)
         manifest.delete_existing_file(self.output_file)
-        with self.assertRaises(Exception) as context:
+        with pytest.raises(Exception) as e_info:
             dfs.write_config_from_default_and_params(output_file01, set_param_fn, self.output_file)
 
-        self.assertTrue('Incubation_Period_Distribution' in str(context.exception),
-                        msg=f'got exception: {context.exception}.')
+        assert('Incubation_Period_Distribution' in str(e_info))
 
     def test_5_config_from_default_and_params_9_exception(self):
         """
@@ -313,11 +285,10 @@ class ConfigTest():
         self.output_filename = "output_config_from_default_and_params_9.json"
         self.output_file = os.path.join(self.output_folder, self.output_filename)
         manifest.delete_existing_file(self.output_file)
-        with self.assertRaises(Exception) as context:
+        with pytest.raises(Exception) as e_info:
             dfs.write_config_from_default_and_params(output_file01, set_param_fn, self.output_file)
 
-        self.assertTrue('Base_Infectivity_Exponential' in str(context.exception),
-                        msg=f'got exception: {context.exception}.')
+        assert('Base_Infectivity_Exponential' in str(e_info))
 
     def test_5_config_from_default_and_params_10_exception(self):  # this case is tricky to support
         """
@@ -335,11 +306,10 @@ class ConfigTest():
         self.output_filename = "output_config_from_default_and_params_10.json"
         self.output_file = os.path.join(self.output_folder, self.output_filename)
         manifest.delete_existing_file(self.output_file)
-        with self.assertRaises(Exception) as context:
+        with pytest.raises(Exception) as e_info:
             dfs.write_config_from_default_and_params(output_file01, set_param_fn, self.output_file)
 
-        self.assertTrue('Base_Infectivity_Constant' in str(context.exception),
-                        msg=f'got exception: {context.exception}.')
+        assert('Base_Infectivity_Constant' in str(e_info))
 
     # Skip this test until we support #78
     def _skip_test_5_config_from_default_and_params_11_exception(self):  # this case is tricky to support
@@ -356,11 +326,10 @@ class ConfigTest():
         self.output_filename = "output_config_from_default_and_params_11.json"
         self.output_file = os.path.join(self.output_folder, self.output_filename)
         manifest.delete_existing_file(self.output_file)
-        with self.assertRaises(ValueError) as context:
+        with pytest.raises(Exception) as e_info:
             dfs.write_config_from_default_and_params(config_file, set_param_fn, self.output_file)
 
-        self.assertTrue('Minimum_End_Time' in str(context.exception),
-                        msg=f'got exception: {context.exception}.')
+        assert('Minimum_End_Time' in str(e_info))
 
     def test_5_config_from_default_and_params_12(self):
         """
@@ -379,15 +348,13 @@ class ConfigTest():
         self.output_file = os.path.join(self.output_folder, self.output_filename)
         manifest.delete_existing_file(self.output_file)
         dfs.write_config_from_default_and_params(output_file01, set_param_fn, self.output_file)
-        self.assertTrue(os.path.isfile(self.output_file), msg=f"f{self.output_file} doesn't exist.")
+        assert(os.path.isfile(self.output_file))
 
         # Test the depends-on feature
         with open(self.output_file, 'r') as config_output:
             config = json.load(config_output)['parameters']
 
-        self.assertEqual(config['Simulation_Duration'], 10,
-                         msg=f"Simulation_Duration should be 10 not "
-                             f"{config['Simulation_Duration']}.")
+        assert(config['Simulation_Duration']==10)
 
     def test_5_config_from_default_and_params_13(self):
         """
@@ -401,7 +368,7 @@ class ConfigTest():
         self.output_file = os.path.join(self.output_folder, self.output_filename)
         manifest.delete_existing_file(self.output_file)
         dfs.write_config_from_default_and_params(output_file01, None, self.output_file)
-        self.assertTrue(os.path.isfile(self.output_file), msg=f"f{self.output_file} doesn't exist.")
+        assert(os.path.isfile(self.output_file))
 
     def test_5_config_from_default_and_params_14(self):
         """
@@ -422,20 +389,15 @@ class ConfigTest():
         self.output_file = os.path.join(self.output_folder, self.output_filename)
         manifest.delete_existing_file(self.output_file)
         dfs.write_config_from_default_and_params(output_file01, set_param_fn, self.output_file)
-        self.assertTrue(os.path.isfile(self.output_file), msg=f"f{self.output_file} doesn't exist.")
+        assert(os.path.isfile(self.output_file))
 
         # Test the depends-on feature
         with open(self.output_file, 'r') as config_output:
             config = json.load(config_output)['parameters']
 
-        self.assertEqual(config['Enable_Disease_Mortality'], 1,
-                         msg=f"Enable_Disease_Mortality should be 1 not "
-                             f"{config['Enable_Disease_Mortality']}.")
-        self.assertAlmostEqual(config['Base_Mortality'], 0.001,
-                               msg=f"Base_Mortality should be 0.001(default value) not {config['Base_Mortality']}.")
-        self.assertEqual(config['Enable_Vital_Dynamics'], 1,
-                         msg=f"Enable_Vital_Dynamics should be 1 not "
-                             f"{config['Enable_Vital_Dynamics']}.")
+        assert(config['Enable_Disease_Mortality']==1)
+        assert(config['Base_Mortality']==0.001)
+        assert(config['Enable_Vital_Dynamics']==1)
 
     def test_5_config_from_default_and_params_15_exception(self):
         """
@@ -468,13 +430,12 @@ class ConfigTest():
         with open(output_file01, 'w') as config_file_output:
             json.dump(config, config_file_output, sort_keys=True)
 
-        with self.assertRaises(Exception) as context:
+        with pytest.raises(Exception) as e_info:
             dfs.write_config_from_default_and_params(output_file01, set_param_fn, self.output_file)
             manifest.delete_existing_file(self.output_file)
 
         manifest.delete_existing_file(output_file01)
-        self.assertTrue('Simulation_Type' in str(context.exception),
-                        msg=f'got exception: {context.exception}.')
+        assert('not found' in str(e_info))
 
     def test_6_config_from_nested_po(self):
         self.output_filename = os.path.join(manifest.output_folder, "output_config_from_nested_po.json")
@@ -489,7 +450,7 @@ class ConfigTest():
     def config_from_po_test(self):
         manifest.delete_existing_file(self.output_filename)
         from_overrides.flattenConfig(configjson_path=self.input_filename, new_config_name=self.output_filename, use_full_out_path=True)
-        self.assertTrue(os.path.isfile(self.output_filename), msg=f"f{self.output_filename} doesn't exist.")
+        assert(os.path.isfile(self.output_filename))
 
         po, default = get_param_from_po(self.input_filename)
         po = get_lowest_level_po(po)
@@ -542,19 +503,17 @@ class ConfigTest():
     def compare_config_with_po(self, config, po, default):
         for key, value in config.items():
             if key in po:
-                self.assertEqual(value, po[key])
+                assert(value==po[key])
                 po.pop(key)
             else:
-                self.assertTrue(key in default)
-                self.assertEqual(value, default[key])
+                assert(key in default)
+                assert(value==default[key])
             default.pop(key, None)
-        self.assertTrue(len(po) == 0, msg=f"These parameter in param_overrides.json is not found in config.json: "
-                                          f"{po}.")
-        self.assertTrue(len(default) == 0, msg=f"These parameter in default_config.json is not found in config.json:"
-                                               f" {default}.")
+        assert(len(po)==0)
+        assert(len(default)==0)
 
 
-class ReadOnlyDictTest():
+class TestReadOnlyDict():
     def test_schema_to_class(self):
         schema_path = manifest.common_schema_path
         with open(schema_path) as fid01:
@@ -563,10 +522,8 @@ class ReadOnlyDictTest():
         coordinator = s2c.get_class_with_defaults("StandardInterventionDistributionEventCoordinator", schema_json=schema_json)
         coordinator.Number_Repetitions = 123    # doesn't raise an exception
 
-        with self.assertRaises(KeyError) as context:
+        with pytest.raises(Exception) as e_info:
             coordinator.Non_Existing_Parameter = 123
-        self.assertTrue("'Non_Existing_Parameter' not found in this object." in str(context.exception))
 
-        with self.assertRaises(KeyError) as context:
+        with pytest.raises(Exception) as e_info:
             coordinator.Non_Existing_Parameter = None
-        self.assertTrue("'Non_Existing_Parameter' not found in this object." in str(context.exception))

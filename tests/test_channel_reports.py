@@ -26,14 +26,14 @@ class TestHeader():
     def test_empty_ctor(self):
 
         header = Header()
-        self.assertEqual(header.num_channels, 0)
-        self.assertEqual(header.dtk_version, "unknown-branch (unknown)")
-        self.assertEqual(header.time_stamp, f"{datetime.now():%a %B %d %Y %H:%M:%S}")
-        self.assertEqual(header.report_type, "InsetChart")
-        self.assertEqual(header.report_version, "0.0")
-        self.assertEqual(header.step_size, 1)
-        self.assertEqual(header.start_time, 0)
-        self.assertEqual(header.num_time_steps, 0)
+        assert(header.num_channels==0)
+        assert(header.dtk_version=="unknown-branch (unknown)")
+        assert(header.time_stamp==f"{datetime.now():%a %B %d %Y %H:%M:%S}")
+        assert(header.report_type=="InsetChart")
+        assert(header.report_version=="0.0")
+        assert(header.step_size==1)
+        assert(header.start_time==0)
+        assert(header.num_time_steps==0)
 
         return
 
@@ -52,16 +52,14 @@ class TestHeader():
             }
         )
 
-        self.assertEqual(header.num_channels, TestHeader._NUM_CHANNELS)
-        self.assertEqual(header.dtk_version, TestHeader._DTK_VERSION)
-        self.assertEqual(
-            header.time_stamp, f"{TestHeader._TIME_STAMP:%a %B %d %Y %H:%M:%S}"
-        )
-        self.assertEqual(header.report_type, TestHeader._REPORT_TYPE)
-        self.assertEqual(header.report_version, TestHeader._REPORT_VERSION)
-        self.assertEqual(header.step_size, TestHeader._TIME_STEP)
-        self.assertEqual(header.start_time, TestHeader._START_TIME)
-        self.assertEqual(header.num_time_steps, TestHeader._TIME_STEPS)
+        assert(header.num_channels==TestHeader._NUM_CHANNELS)
+        assert(header.dtk_version==TestHeader._DTK_VERSION)
+        assert(header.time_stamp==f"{TestHeader._TIME_STAMP:%a %B %d %Y %H:%M:%S}")
+        assert(header.report_type==TestHeader._REPORT_TYPE)
+        assert(header.report_version==TestHeader._REPORT_VERSION)
+        assert(header.step_size==TestHeader._TIME_STEP)
+        assert(header.start_time==TestHeader._START_TIME)
+        assert(header.num_time_steps==TestHeader._TIME_STEPS)
 
         return
 
@@ -78,16 +76,14 @@ class TestHeader():
         header.start_time = TestHeader._START_TIME
         header.num_time_steps = TestHeader._TIME_STEPS
 
-        self.assertEqual(header.num_channels, TestHeader._NUM_CHANNELS)
-        self.assertEqual(header.dtk_version, TestHeader._DTK_VERSION)
-        self.assertEqual(
-            header.time_stamp, f"{TestHeader._TIME_STAMP:%a %B %d %Y %H:%M:%S}"
-        )
-        self.assertEqual(header.report_type, TestHeader._REPORT_TYPE)
-        self.assertEqual(header.report_version, TestHeader._REPORT_VERSION)
-        self.assertEqual(header.step_size, TestHeader._TIME_STEP)
-        self.assertEqual(header.start_time, TestHeader._START_TIME)
-        self.assertEqual(header.num_time_steps, TestHeader._TIME_STEPS)
+        assert(header.num_channels==TestHeader._NUM_CHANNELS)
+        assert(header.dtk_version==TestHeader._DTK_VERSION)
+        assert(header.time_stamp==f"{TestHeader._TIME_STAMP:%a %B %d %Y %H:%M:%S}")
+        assert(header.report_type==TestHeader._REPORT_TYPE)
+        assert(header.report_version==TestHeader._REPORT_VERSION)
+        assert(header.step_size==TestHeader._TIME_STEP)
+        assert(header.start_time==TestHeader._START_TIME)
+        assert(header.num_time_steps==TestHeader._TIME_STEPS)
 
         return
 
@@ -107,7 +103,7 @@ class TestHeader():
 
         header = Header(**source)
 
-        self.assertDictEqual(header.as_dictionary(), source)
+        assert(header.as_dictionary()==source)
 
         return
 
@@ -122,9 +118,9 @@ class TestChannel():
 
         channel = Channel(TestChannel._TITLE, TestChannel._UNITS, TestChannel._DATA)
 
-        self.assertEqual(channel.title, TestChannel._TITLE)
-        self.assertEqual(channel.units, TestChannel._UNITS)
-        self.assertListEqual(channel.data, TestChannel._DATA)
+        assert(channel.title==TestChannel._TITLE)
+        assert(channel.units==TestChannel._UNITS)
+        assert(channel.data==TestChannel._DATA)
 
         return
 
@@ -138,9 +134,9 @@ class TestChannel():
         for index in range(6):
             channel.data[index] = TestChannel._DATA[index]
 
-        self.assertEqual(channel.title, TestChannel._TITLE)
-        self.assertEqual(channel.units, TestChannel._UNITS)
-        self.assertListEqual(channel.data, TestChannel._DATA)
+        assert(channel.title==TestChannel._TITLE)
+        assert(channel.units==TestChannel._UNITS)
+        assert(channel.data==TestChannel._DATA)
 
         return
 
@@ -148,15 +144,8 @@ class TestChannel():
 
         channel = Channel(TestChannel._TITLE, TestChannel._UNITS, TestChannel._DATA)
 
-        self.assertDictEqual(
-            channel.as_dictionary(),
-            {
-                TestChannel._TITLE: {
-                    "Units": TestChannel._UNITS,
-                    "Data": TestChannel._DATA,
-                }
-            },
-        )
+        test_dict = {TestChannel._TITLE: {"Units": TestChannel._UNITS,"Data": TestChannel._DATA}}
+        assert(channel.as_dictionary()==test_dict)
 
         return
 
@@ -165,26 +154,19 @@ class TestChannels():
     def test_fromFile(self):
 
         chart = ChannelReport(os.path.join(manifest.reports_folder, "InsetChart.json"))
-        self.assertEqual(chart.header.time_stamp, "Wed November 27 2019 14:49:15")
-        self.assertEqual(
-            chart.header.dtk_version, "0 unknown-branch (unknown) May 31 2019 15:04:44"
-        )
-        self.assertEqual(chart.header.report_type, "InsetChart")
-        self.assertEqual(chart.header.report_version, "3.2")
-        self.assertEqual(chart.header.start_time, 0)
-        self.assertEqual(chart.header.step_size, 1)
-        self.assertEqual(chart.header.num_time_steps, 365)
-        self.assertEqual(chart.header.num_channels, 16)
+        assert(chart.header.time_stamp=="Wed November 27 2019 14:49:15")
+        assert(chart.header.dtk_version=="0 unknown-branch (unknown) May 31 2019 15:04:44")
+        assert(chart.header.report_type=="InsetChart")
+        assert(chart.header.report_version=="3.2")
+        assert(chart.header.start_time==0)
+        assert(chart.header.step_size==1)
+        assert(chart.header.num_time_steps==365)
+        assert(chart.header.num_channels==16)
+        assert(len(chart.channels)==16)
+        assert(chart.channels["Births"].units=="Births")
+        assert(round(1e10*chart.channels["Infected"].data[10])==12226)
 
-        self.assertEqual(len(chart.channels), 16)
-        self.assertEqual(chart.channels["Births"].units, "Births")
-        self.assertAlmostEqual(
-            chart.channels["Infected"].data[10], 0.000001222560626957, 16
-        )
-
-        self.assertSetEqual(
-            set(chart.channel_names),
-            {
+        test_set = set({
                 "Births",
                 "Campaign Cost",
                 "Daily (Human) Infection Rate",
@@ -201,8 +183,8 @@ class TestChannels():
                 "Susceptible Population",
                 "Symptomatic Population",
                 "Waning Population",
-            },
-        )
+            })
+        assert(set(chart.channel_names)==test_set)
 
         return
 
@@ -237,26 +219,22 @@ class TestChannels():
         bdata = [random() for _ in range(TIMESTEPS)]
         chart.channels[CHANNELB] = Channel(CHANNELB, UNITSB, bdata)
 
-        self.assertEqual(chart.num_channels, 2)
-        self.assertEqual(chart.dtk_version, VERSION)
-        self.assertEqual(chart.time_stamp, TIMESTAMP)
-        self.assertEqual(chart.report_type, REPORTTYPE)
-        self.assertEqual(chart.report_version, REPORTVERSION)
-        self.assertEqual(chart.step_size, STEPSIZE)
-        self.assertEqual(chart.start_time, STARTTIME)
-        self.assertEqual(chart.num_time_steps, TIMESTEPS)
-
-        self.assertEqual(len(chart.channels), NUMCHANNELS)
-
-        self.assertEqual(chart.channels[CHANNELA].units, UNITSA)
-        self.assertEqual(len(chart.channels[CHANNELA].data), TIMESTEPS)
-        self.assertListEqual(list(chart.channels[CHANNELA].data), adata)
-
-        self.assertEqual(chart.channels[CHANNELB].units, UNITSB)
-        self.assertEqual(len(chart.channels[CHANNELB].data), TIMESTEPS)
-        self.assertListEqual(list(chart.channels[CHANNELB].data), bdata)
-
-        self.assertSetEqual(set(chart.channel_names), {CHANNELA, CHANNELB})
+        assert(chart.num_channels==2)
+        assert(chart.dtk_version==VERSION)
+        assert(chart.time_stamp==TIMESTAMP)
+        assert(chart.report_type==REPORTTYPE)
+        assert(chart.report_version==REPORTVERSION)
+        assert(chart.step_size==STEPSIZE)
+        assert(chart.start_time==STARTTIME)
+        assert(chart.num_time_steps==TIMESTEPS)
+        assert(len(chart.channels)==NUMCHANNELS)
+        assert(chart.channels[CHANNELA].units==UNITSA)
+        assert(len(chart.channels[CHANNELA].data)==TIMESTEPS)
+        assert(list(chart.channels[CHANNELA].data)==adata)
+        assert(chart.channels[CHANNELB].units==UNITSB)
+        assert(len(chart.channels[CHANNELB].data)==TIMESTEPS)
+        assert(list(chart.channels[CHANNELB].data)==bdata)
+        assert(set(chart.channel_names)=={CHANNELA, CHANNELB})
 
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp)
@@ -265,26 +243,22 @@ class TestChannels():
 
             roundtrip = ChannelReport(str(filename))
 
-            self.assertEqual(roundtrip.num_channels, 2)
-            self.assertEqual(roundtrip.dtk_version, VERSION)
-            self.assertEqual(roundtrip.time_stamp, TIMESTAMP)
-            self.assertEqual(roundtrip.report_type, REPORTTYPE)
-            self.assertEqual(roundtrip.report_version, REPORTVERSION)
-            self.assertEqual(roundtrip.step_size, STEPSIZE)
-            self.assertEqual(roundtrip.start_time, STARTTIME)
-            self.assertEqual(roundtrip.num_time_steps, TIMESTEPS)
-
-            self.assertEqual(len(roundtrip.channels), NUMCHANNELS)
-
-            self.assertEqual(roundtrip.channels[CHANNELA].units, UNITSA)
-            self.assertEqual(len(roundtrip.channels[CHANNELA].data), TIMESTEPS)
-            self.assertListEqual(list(roundtrip.channels[CHANNELA].data), adata)
-
-            self.assertEqual(roundtrip.channels[CHANNELB].units, UNITSB)
-            self.assertEqual(len(roundtrip.channels[CHANNELB].data), TIMESTEPS)
-            self.assertListEqual(list(roundtrip.channels[CHANNELB].data), bdata)
-
-            self.assertSetEqual(set(roundtrip.channel_names), {CHANNELA, CHANNELB})
+            assert(roundtrip.num_channels==2)
+            assert(roundtrip.dtk_version==VERSION)
+            assert(roundtrip.time_stamp==TIMESTAMP)
+            assert(roundtrip.report_type==REPORTTYPE)
+            assert(roundtrip.report_version==REPORTVERSION)
+            assert(roundtrip.step_size==STEPSIZE)
+            assert(roundtrip.start_time==STARTTIME)
+            assert(roundtrip.num_time_steps==TIMESTEPS)
+            assert(len(roundtrip.channels)==NUMCHANNELS)
+            assert(roundtrip.channels[CHANNELA].units==UNITSA)
+            assert(len(roundtrip.channels[CHANNELA].data)==TIMESTEPS)
+            assert(list(roundtrip.channels[CHANNELA].data)==adata)
+            assert(roundtrip.channels[CHANNELB].units==UNITSB)
+            assert(len(roundtrip.channels[CHANNELB].data)==TIMESTEPS)
+            assert(list(roundtrip.channels[CHANNELB].data)==bdata)
+            assert(set(roundtrip.channel_names)=={CHANNELA, CHANNELB})
 
         return
 
@@ -294,7 +268,7 @@ class TestChannels():
         time_stamp = f"{now:%a %B %d %Y %H:%M:%S}"
         icj = ChannelReport()
         icj.time_stamp = time_stamp
-        self.assertEqual(icj.time_stamp, time_stamp)
+        assert(icj.time_stamp==time_stamp)
 
         return
 
@@ -304,7 +278,7 @@ class TestChannels():
         icj = ChannelReport()
         icj.time_stamp = now
         time_stamp = f"{now:%a %B %d %Y %H:%M:%S}"
-        self.assertEqual(icj.time_stamp, time_stamp)
+        assert(icj.time_stamp==time_stamp)
 
         return
 
@@ -320,15 +294,13 @@ class TestChannels():
         report.start_time = TestHeader._START_TIME
         report.num_time_steps = TestHeader._TIME_STEPS
 
-        self.assertEqual(report.dtk_version, TestHeader._DTK_VERSION)
-        self.assertEqual(
-            report.time_stamp, f"{TestHeader._TIME_STAMP:%a %B %d %Y %H:%M:%S}"
-        )
-        self.assertEqual(report.report_type, TestHeader._REPORT_TYPE)
-        self.assertEqual(report.report_version, TestHeader._REPORT_VERSION)
-        self.assertEqual(report.step_size, TestHeader._TIME_STEP)
-        self.assertEqual(report.start_time, TestHeader._START_TIME)
-        self.assertEqual(report.num_time_steps, TestHeader._TIME_STEPS)
+        assert(report.dtk_version==TestHeader._DTK_VERSION)
+        assert(report.time_stamp==f"{TestHeader._TIME_STAMP:%a %B %d %Y %H:%M:%S}")
+        assert(report.report_type==TestHeader._REPORT_TYPE)
+        assert(report.report_version==TestHeader._REPORT_VERSION)
+        assert(report.step_size==TestHeader._TIME_STEP)
+        assert(report.start_time==TestHeader._START_TIME)
+        assert(report.num_time_steps==TestHeader._TIME_STEPS)
 
         return
 
@@ -337,13 +309,11 @@ class TestChannels():
         chart = ChannelReport(os.path.join(manifest.reports_folder, "InsetChart.json"))
         df = chart.as_dataframe()
 
-        self.assertEqual(len(df.columns), 16)
-        self.assertAlmostEqual(df.Infected[10], 0.000001222560626957, 16)
-        self.assertEqual(df["Statistical Population"][364], 7544187)
+        assert(len(df.columns)==16)
+        assert(round(1e10*df.Infected[10])==12226)
+        assert(df["Statistical Population"][364]==7544187)
 
-        self.assertSetEqual(
-            set(df.columns),
-            {
+        test_set = set({
                 "Births",
                 "Campaign Cost",
                 "Daily (Human) Infection Rate",
@@ -360,41 +330,46 @@ class TestChannels():
                 "Susceptible Population",
                 "Symptomatic Population",
                 "Waning Population",
-            },
-        )
+            })
+        assert(set(df.columns)==test_set)
 
         return
 
     def test_badNumChannels(self):
 
         header = Header()
-        self.assertRaises(AssertionError, Header.num_channels.__set__, header, 0)
-        self.assertRaises(AssertionError, Header.num_channels.__set__, header, -10)
+        with pytest.raises(Exception) as e_info:
+            Header.num_channels.__set__(header, 0)
+        with pytest.raises(Exception) as e_info:
+            Header.num_channels.__set__(header, -10)
 
         return
 
     def test_badStepSize(self):
 
         icj = ChannelReport()
-        self.assertRaises(AssertionError, ChannelReport.step_size.__set__, icj, 0)
-        self.assertRaises(AssertionError, ChannelReport.step_size.__set__, icj, -10)
+        with pytest.raises(Exception) as e_info:
+            ChannelReport.step_size.__set__(icj, 0)
+        with pytest.raises(Exception) as e_info:
+            ChannelReport.step_size.__set__(icj, -10)
 
         return
 
     def test_badStartTime(self):
 
         icj = ChannelReport()
-        self.assertRaises(AssertionError, ChannelReport.start_time.__set__, icj, -10)
+        with pytest.raises(Exception) as e_info:
+            ChannelReport.start_time.__set__(icj, -10)
 
         return
 
     def test_badNumberOfTimeSteps(self):
 
         icj = ChannelReport()
-        self.assertRaises(AssertionError, ChannelReport.num_time_steps.__set__, icj, 0)
-        self.assertRaises(
-            AssertionError, ChannelReport.num_time_steps.__set__, icj, -10
-        )
+        with pytest.raises(Exception) as e_info:
+            ChannelReport.num_time_steps.__set__(icj, 0)
+        with pytest.raises(Exception) as e_info:
+            ChannelReport.num_time_steps.__set__(icj, -10)
 
         return
 
@@ -407,86 +382,74 @@ class TestChannels():
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp)
             filename = path / "BadChart.json"
-
-            self.assertRaises(
-                AssertionError, ChannelReport.write_file, chart, str(filename)
-            )
+            with pytest.raises(Exception) as e_info:
+                ChannelReport.write_file(chart, str(filename))
 
         return
 
     def test_missingHeaderInFile(self):
 
-        self.assertRaises(
-            AssertionError,
-            ChannelReport,
-            os.path.join(manifest.reports_folder, "missingHeader.json"),
-        )
+        with pytest.raises(Exception) as e_info:
+            ChannelReport(os.path.join(manifest.reports_folder, "missingHeader.json"))
 
         return
 
     def test_missingChannelsInFile(self):
 
-        self.assertRaises(
-            AssertionError,
-            ChannelReport,
-            os.path.join(manifest.reports_folder, "missingChannels.json"),
-        )
+        with pytest.raises(Exception) as e_info:
+            ChannelReport(os.path.join(manifest.reports_folder, "missingChannels.json"))
 
         return
 
     def test_missingUnitsInFileChannel(self):
 
-        self.assertRaises(
-            AssertionError,
-            ChannelReport,
-            os.path.join(manifest.reports_folder, "missingUnits.json"),
-        )
+        with pytest.raises(Exception) as e_info:
+            ChannelReport(os.path.join(manifest.reports_folder, "missingUnits.json"))
 
         return
 
     def test_missingDataInFileChannel(self):
 
-        self.assertRaises(
-            AssertionError,
-            ChannelReport,
-            os.path.join(manifest.reports_folder, "missingData.json"),
-        )
+        with pytest.raises(Exception) as e_info:
+            ChannelReport(os.path.join(manifest.reports_folder, "missingData.json"))
 
         return
 
 
 class TestInsetJson():
-    @classmethod
-    def setUpClass(cls):
-        cls.inset_path = manifest.reports_folder
+    @pytest.fixture(autouse=True)
+    # Set-up and tear-down for each test
+    def run_every_test(self, request) -> None:
+        self.inset_path = manifest.reports_folder
 
     def test_icj_to_csv(self):
         inset_chart_json_to_csv_dataframe_pd(self.inset_path)
         csv_path = os.path.join(self.inset_path, "InsetChart.csv")
-        self.assertTrue(os.path.isfile(csv_path), f"No InsetChart.csv file at {csv_path}")
+        assert(os.path.isfile(csv_path))
 
         csv_df = pd.read_csv(csv_path)
         json_path = os.path.join(self.inset_path, "InsetChart.json")
-        self.assertTrue(os.path.isfile(json_path), f"No InsetChart.json file at {json_path}")
+        assert(os.path.isfile(json_path))
 
         with open(json_path) as jc:
             json_dict = json.load(jc)
 
         for channel in json_dict["Channels"]:
-            self.assertIn(channel, csv_df.columns, f"Column {channel} was not found in the csv at {csv_path}")
+            assert(channel in csv_df.columns)
 
 
 class TestPropReport():
-    @classmethod
-    def setUpClass(self):
+    @pytest.fixture(autouse=True)
+    # Set-up and tear-down for each test
+    def run_every_test(self, request) -> None:
         self.report_path = os.path.join(manifest.reports_folder, 'prop_dir')
 
     @pytest.mark.skip("known issue")
     def test_prop_report_json_to_csv(self):
-        self.assertTrue(self.report_path.exists(), f"{self.report_path} cannot be found")
+        assert(self.report_path.exists())
         prop_report_json_to_csv(self.report_path)
 
         csv_path = self.report_path / "prop_report_infected.csv"
-        self.assertTrue(csv_path.exists(), f"{csv_path} cannot be found, should have been generated by prop_report_json_to_csv()")
+        assert(csv_path.exists())
         df = pd.read_csv(csv_path)
-        self.assertIn("Infected:", df.columns, msg=f"Infected column not in {self.report_path}")
+        assert("Infected:" in df.columns)

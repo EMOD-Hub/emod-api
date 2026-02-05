@@ -51,7 +51,7 @@ class TestReadVersionOne():
         self.assertEqual(0, len(dtk.nodes))
         return
 
-    @pytest.mark.skipif(not support.SNAPPY_SUPPORT, "No Snappy [de]compression support.")
+    @pytest.mark.skipif(not support.SNAPPY_SUPPORT, reason="No Snappy [de]compression support.")
     def test_reading_compressed_file(self):
 
         dtk = dft.read(os.path.join(manifest.serialization_folder, "version1.dtk"))
@@ -80,7 +80,7 @@ class TestReadVersionOne():
         self.assertEqual(False, human.m_is_infected)
         return
 
-    @pytest.mark.skipif(support.SNAPPY_SUPPORT, "If Snappy support, test should not raise a UserWarning")
+    @pytest.mark.skipif(support.SNAPPY_SUPPORT, reason="If Snappy support, test should not raise a UserWarning")
     def test_reading_compressed_file_exception(self):
         with self.assertRaises(UserWarning):
             dft.read(os.path.join(manifest.serialization_folder, "version1.dtk"))

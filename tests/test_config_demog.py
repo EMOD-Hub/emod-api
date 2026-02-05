@@ -1,3 +1,4 @@
+import pytest
 import emod_api.demographics.Demographics as Demographics
 import emod_api.demographics.PreDefinedDistributions as Distributions
 
@@ -5,9 +6,10 @@ from emod_api.config import default_from_schema_no_validation as dfs
 from tests import manifest
 
 
-class DemoConfigTest():
-    def setUp(self) -> None:
-        print(f"\n{self._testMethodName} started...")
+class TestDemoConfig():
+    @pytest.fixture(autouse=True)
+    # Set-up and tear-down for each test
+    def run_every_test(self, request) -> None:
         self.reset_config()
 
     def get_config_as_object(self):
@@ -25,20 +27,20 @@ class DemoConfigTest():
             demog.SetDefaultProperties()
             if index:
                 demog.SetOverdispersion(0.75)
-            self.assertEqual(len(demog.implicits), 5 + index)
+            assert(len(demog.implicits)==(5 + index))
             demog.implicits[-1](self.config)
             if not index:
-                self.assertEqual(self.config.parameters.Enable_Infection_Rate_Overdispersion, 0)
+                assert(self.config.parameters.Enable_Infection_Rate_Overdispersion==0)
             else:
-                self.assertEqual(self.config.parameters.Enable_Infection_Rate_Overdispersion, 1)
+                assert(self.config.parameters.Enable_Infection_Rate_Overdispersion==1)
 
     def test_set_birth_rate_config(self):
         demog = Demographics.from_template_node()
         self.config.parameters.Enable_Birth = 0  # since it is 1 by default
         demog.SetBirthRate(0.7)
-        self.assertEqual(len(demog.implicits), 2)
+        assert(len(demog.implicits)==2)
         demog.implicits[-1](self.config)
-        self.assertEqual(self.config.parameters.Birth_Rate_Dependence, "POPULATION_DEP_RATE")
+        assert(self.config.parameters.Birth_Rate_Dependence=="POPULATION_DEP_RATE")
 
     def test_set_mortality_rate_config(self):
         for index in range(2):
@@ -52,16 +54,16 @@ class DemoConfigTest():
 
         mortality_distribution = Distributions.SEAsia_Diag
         demog.SetMortalityDistribution(mortality_distribution)
-        self.assertEqual(len(demog.implicits), 2)
+        assert(len(demog.implicits)==2)
         demog.implicits[-1](self.config)
         demog.implicits[-2](self.config)
-        self.assertEqual(self.config.parameters.Death_Rate_Dependence, "NONDISEASE_MORTALITY_BY_AGE_AND_GENDER")
+        assert(self.config.parameters.Death_Rate_Dependence=="NONDISEASE_MORTALITY_BY_AGE_AND_GENDER")
 
     def test_set_age_distribution(self):
         demog = Demographics.from_template_node()
-        self.assertEqual(self.config.parameters.Age_Initialization_Distribution_Type, "DISTRIBUTION_OFF")
+        assert(self.config.parameters.Age_Initialization_Distribution_Type=="DISTRIBUTION_OFF")
         age_distribution = Distributions.SEAsia_Diag
         demog.SetAgeDistribution(age_distribution)
-        self.assertEqual(len(demog.implicits), 2)
+        assert(len(demog.implicits)==2)
         demog.implicits[-1](self.config)
-        self.assertEqual(self.config.parameters.Age_Initialization_Distribution_Type, "DISTRIBUTION_COMPLEX")
+        assert(self.config.parameters.Age_Initialization_Distribution_Type=="DISTRIBUTION_COMPLEX")
