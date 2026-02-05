@@ -1,3 +1,5 @@
+from typing import Union
+
 import emod_api.demographics.demographic_exceptions as demog_ex
 from emod_api.demographics.Updateable import Updateable
 from emod_api.utils import check_dimensionality
@@ -6,7 +8,7 @@ from emod_api.utils import check_dimensionality
 class MortalityDistribution(Updateable):
     def __init__(self,
                  ages_years: list[float],
-                 mortality_rate_matrix: list[list[float]] | list[float],
+                 mortality_rate_matrix: Union[list[list[float]], list[float]],
                  calendar_years: list[float] = None):
         """
         A natural mortality distribution for one gender in units of "annual death rate for an individual". If the
