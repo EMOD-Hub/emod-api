@@ -6,9 +6,9 @@ import gc
 import tempfile
 import unittest
 import time
-import emod_api.serialization.dtkFileTools as dft
-import emod_api.serialization.dtkFileSupport as support
-import emod_api.serialization.SerializedPopulation as SerPop
+import emod_api.serialization.dtk_file_tools as dft
+import emod_api.serialization.dtk_file_support as support
+import emod_api.serialization.serialized_population as SerPop
 from tests import manifest
 
 skip_tests = False
