@@ -8,6 +8,7 @@ import warnings
 from collections import Counter
 from functools import partial
 from collections.abc import Iterable
+from typing import Union, Optional
 
 import numpy as np
 import pandas as pd
@@ -105,7 +106,7 @@ class DemographicsBase(BaseInputFile):
                 self.nodes[index].update(map_ids_overlay[node.forced_id])
 
     def send(self,
-             write_to_this: int | str | os.PathLike,
+             write_to_this: Union[int, str, os.PathLike],
              return_from_forked_sender: bool = False):
         """
         Write data to a file descriptor as specified by the caller. It must be a pipe,
@@ -450,7 +451,7 @@ class DemographicsBase(BaseInputFile):
         self.SetMigrationPattern("srt")
 
     def SetOneWayMigration(self,
-                           rates_path: str | os.PathLike,
+                           rates_path: Union[str, os.PathLike],
                            id_ref: str = 'long term migration'):
         """
         Set one way migration. You can use the x_Regional_Migration configuration parameter to tune/calibrate.
@@ -581,7 +582,7 @@ class DemographicsBase(BaseInputFile):
         self.implicits.append(DT._set_population_dependent_birth_rate)
 
     def SetMortalityRate(self,
-                         mortality_rate: CrudeRate, node_ids: list[int] = None):
+                         mortality_rate: CrudeRate, node_ids: Optional[list[int]] = None):
         """
         Set constant mortality rate to mort_rate. Turn on Enable_Natural_Mortality implicitly.
         """
@@ -606,7 +607,7 @@ class DemographicsBase(BaseInputFile):
             self.implicits.append(DT._set_mortality_age_gender)
 
     def SetMortalityDistribution(self, distribution: MortalityDistribution = None,
-                                 node_ids: list[int] = None):
+                                 node_ids: Optional[list[int]] = None):
         """
         Set a default mortality distribution for all nodes or per node. Turn on Enable_Natural_Mortality implicitly.
 
@@ -629,7 +630,7 @@ class DemographicsBase(BaseInputFile):
             self.implicits.append(DT._set_mortality_age_gender)
 
     def SetMortalityDistributionFemale(self, distribution: MortalityDistribution = None,
-                                       node_ids: list[int] = None):
+                                       node_ids: Optional[list[int]] = None):
         """
         Set a default female mortality distribution for all nodes or per node. Turn on Enable_Natural_Mortality
             implicitly.
@@ -654,7 +655,7 @@ class DemographicsBase(BaseInputFile):
             self.implicits.append(DT._set_mortality_age_gender)
 
     def SetMortalityDistributionMale(self, distribution: MortalityDistribution = None,
-                                     node_ids: list[int] = None):
+                                     node_ids: Optional[list[int]] = None):
         """
         Set a default male mortality distribution for all nodes or per node. Turn on Enable_Natural_Mortality
             implicitly.
@@ -679,7 +680,7 @@ class DemographicsBase(BaseInputFile):
             self.implicits.append(DT._set_mortality_age_gender)
 
     def SetMortalityOverTimeFromData(self,
-                                     data_csv: str | os.PathLike,
+                                     data_csv: Union[str, os.PathLike],
                                      base_year: int,
                                      node_ids: list = None):
         """
@@ -768,7 +769,7 @@ class DemographicsBase(BaseInputFile):
         if self.implicits is not None:
             self.implicits.append(DT._set_mortality_age_gender_year)
 
-    def SetAgeDistribution(self, distribution: AgeDistribution, node_ids: list[int] = None):
+    def SetAgeDistribution(self, distribution: AgeDistribution, node_ids: Optional[list[int]] = None):
         """
         Set a default age distribution for all nodes or per node. Sets distribution type to COMPLEX implicitly.
         Args:
@@ -1045,7 +1046,7 @@ class DemographicsBase(BaseInputFile):
     def infer_natural_mortality(self,
                                 file_male,
                                 file_female,
-                                interval_fit: list[int | float] = None,
+                                interval_fit: Optional[list[Union[int, float]]] = None,
                                 which_point='mid',
                                 predict_horizon=2050,
                                 csv_out=False,

@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from enum import Enum
-from typing import Literal
+from typing import Literal, Union, Optional
 
 import pandas as pd
 
@@ -94,7 +94,7 @@ class DemographicsGenerator:
     # All Hash values must be integers.
     def __init__(self,
                  nodes,
-                 concerns: DemographicsGeneratorConcern | list[DemographicsGeneratorConcern] | None = None,
+                 concerns: Union[DemographicsGeneratorConcern, list[DemographicsGeneratorConcern], None] = None,
                  res_in_arcsec=CUSTOM_RESOLUTION,
                  node_id_from_lat_long: bool = False):
         """
@@ -221,8 +221,8 @@ class DemographicsGenerator:
     @staticmethod
     def __to_grid_file(grid_file_name: str,
                        demographics: Demographics,
-                       include_attributes: list[str] | None = None,
-                       node_attributes: list[str] | None = None):
+                       include_attributes: Optional[list[str]] = None,
+                       node_attributes: Optional[list[str]] = None):
         """
         Convert a demographics object(Full object represented as a nested dictionary) to a grid file
 
@@ -297,15 +297,15 @@ class DemographicsGenerator:
 
 # MOVE TO demographics/DemographicsInputDataParsers.py
 def from_dataframe(df: pd.DataFrame,
-                   demographics_filename: str | None = None,
-                   concerns: DemographicsGeneratorConcern | list[DemographicsGeneratorConcern] | None = None,
+                   demographics_filename: Optional[str] = None,
+                   concerns: Union[DemographicsGeneratorConcern, list[DemographicsGeneratorConcern], None] = None,
                    res_in_arcsec: Literal[30, 250, CUSTOM_RESOLUTION] = CUSTOM_RESOLUTION,
                    node_id_from_lat_long: bool = True,
                    default_population: int = 1000,
                    load_other_columns_as_attributes: bool = False,
-                   include_columns: list[str] | None = None,
-                   exclude_columns: list[str] | None = None,
-                   nodeid_column_name: str | None = None,
+                   include_columns: Optional[list[str]] = None,
+                   exclude_columns: Optional[list[str]] = None,
+                   nodeid_column_name: Optional[str] = None,
                    latitude_column_name: str = "lat",
                    longitude_column_name: str = "lon",
                    population_column_name: str = "pop") -> Demographics:
@@ -437,15 +437,15 @@ def from_dataframe(df: pd.DataFrame,
 
 # MOVE TO demographics/DemographicsInputDataParsers.py
 def from_file(population_input_file: str,
-              demographics_filename: str | None = None,
-              concerns: DemographicsGeneratorConcern | list[DemographicsGeneratorConcern] | None = None,
+              demographics_filename: Optional[str] = None,
+              concerns: Union[DemographicsGeneratorConcern, list[DemographicsGeneratorConcern], None] = None,
               res_in_arcsec: Literal[30, 250, CUSTOM_RESOLUTION] = CUSTOM_RESOLUTION,
               node_id_from_lat_long: bool = True,
               default_population: int = 1000,
               load_other_columns_as_attributes: bool = False,
-              include_columns: list[str] | None = None,
-              exclude_columns: list[str] | None = None,
-              nodeid_column_name: str | None = None,
+              include_columns: Optional[list[str]] = None,
+              exclude_columns: Optional[list[str]] = None,
+              nodeid_column_name: Optional[str] = None,
               latitude_column_name: str = "lat",
               longitude_column_name: str = "lon",
               population_column_name: str = "pop") -> Demographics:

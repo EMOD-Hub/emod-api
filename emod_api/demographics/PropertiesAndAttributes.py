@@ -1,3 +1,5 @@
+from typing import Union, Optional
+
 from emod_api.demographics.age_distribution import AgeDistribution
 from emod_api.demographics.age_distribution_old import AgeDistributionOld
 from emod_api.demographics.fertility_distribution import FertilityDistribution
@@ -16,7 +18,7 @@ from emod_api.demographics.Updateable import Updateable
 class IndividualProperty(Updateable):
     def __init__(self,
                  property: str,
-                 values: list[float] | list[str],
+                 values: Union[list[float], list[str]],
                  initial_distribution: list[float] = None,
                  transitions: list[dict] = None,
                  transmission_matrix: list[list[float]] = None,
@@ -217,11 +219,11 @@ class IndividualAttributes(Updateable):
                  age_distribution_flag: int = None,
                  age_distribution1: int = None,
                  age_distribution2: int = None,
-                 age_distribution: [AgeDistribution, AgeDistributionOld] = None,
+                 age_distribution: Union[AgeDistribution, AgeDistributionOld] = None,
                  susceptibility_distribution_flag: int = None,
                  susceptibility_distribution1: int = None,
                  susceptibility_distribution2: int = None,
-                 susceptibility_distribution: SusceptibilityDistribution | SusceptibilityDistributionOld = None,
+                 susceptibility_distribution: Union[SusceptibilityDistribution, SusceptibilityDistributionOld] = None,
                  prevalence_distribution_flag: int = None,
                  prevalence_distribution1: int = None,
                  prevalence_distribution2: int = None,
@@ -231,10 +233,10 @@ class IndividualAttributes(Updateable):
                  migration_heterogeneity_distribution_flag: int = None,
                  migration_heterogeneity_distribution1: int = None,
                  migration_heterogeneity_distribution2: int = None,
-                 fertility_distribution: FertilityDistribution | FertilityDistributionOld = None,
+                 fertility_distribution: Union[FertilityDistribution, FertilityDistributionOld] = None,
                  mortality_distribution: MortalityDistributionOld = None,
-                 mortality_distribution_male: MortalityDistribution | MortalityDistributionOld = None,
-                 mortality_distribution_female: MortalityDistribution | MortalityDistributionOld = None,
+                 mortality_distribution_male: Union[MortalityDistribution, MortalityDistributionOld] = None,
+                 mortality_distribution_female: Union[MortalityDistribution, MortalityDistributionOld] = None,
                  innate_immune_distribution_flag: int = None,
                  innate_immune_distribution1: int = None,
                  innate_immune_distribution2: int = None
@@ -520,8 +522,8 @@ class NodeAttributes(Updateable):
                  initial_population: int = None,
                  region: int = None,
                  seaport: int = None,
-                 larval_habitat_multiplier: list[float] | None = None,
-                 initial_vectors_per_species: dict | int | None = None,
+                 larval_habitat_multiplier: Optional[list[float]] = None,
+                 initial_vectors_per_species: Union[dict, int, None] = None,
                  infectivity_multiplier: float = None,
                  extra_attributes: dict = None):
         """

@@ -5,6 +5,7 @@
 from datetime import datetime
 import json
 from pathlib import Path
+from typing import Union
 import pandas as pd
 
 _CHANNELS = "Channels"
@@ -96,7 +97,7 @@ class Header(object):
         return self._timeStamp
 
     @time_stamp.setter
-    def time_stamp(self, timestamp: datetime | str) -> None:
+    def time_stamp(self, timestamp: Union[datetime, str]) -> None:
         """datetime or string"""
         self._timeStamp = (
             f"{timestamp:%a %B %d %Y %H:%M:%S}"
@@ -252,7 +253,7 @@ class ChannelReport(object):
         return self._header.time_stamp
 
     @time_stamp.setter
-    def time_stamp(self, time_stamp: datetime | str) -> None:
+    def time_stamp(self, time_stamp: Union[datetime, str]) -> None:
         self._header.time_stamp = time_stamp
         return
 
@@ -406,7 +407,7 @@ class ChannelReport(object):
 
         return
 
-    def to_csv(self, filename: str | Path, channel_names: list[str] = None, transpose: bool = False) -> None:
+    def to_csv(self, filename: Union[str, Path], channel_names: list[str] = None, transpose: bool = False) -> None:
 
         """
         Write each channel from the report to a row, CSV style, in the given file.

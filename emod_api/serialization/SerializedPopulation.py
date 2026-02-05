@@ -3,6 +3,7 @@ import difflib
 import emod_api.serialization.dtkFileTools as dft
 
 from collections.abc import Iterable
+from typing import Union
 
 COUNTER = 0
 
@@ -120,7 +121,7 @@ class SerializedPopulation:
 
 # Some useful functions
 def find(name: str,
-         handle: str | Iterable,
+         handle: Union[str, Iterable],
          currentlevel: str = "dtk.nodes"):
     """Recursively searches for a paramters that matches or is close to name and prints out where to find it in the file.
 
@@ -172,7 +173,7 @@ def find(name: str,
             find(name, handle[key], level)  # check if string is key for a dict
 
 
-def get_parameters(handle: str | Iterable,
+def get_parameters(handle: Union[str, Iterable],
                    currentlevel: str = "dtk.nodes"):
     """Return a set of all parameters in the serialized population file. Helpful to get an overview about what is in the serialized population file.
 

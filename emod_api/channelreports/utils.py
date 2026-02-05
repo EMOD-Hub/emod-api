@@ -4,6 +4,7 @@ Helper functions, primarily for property reports, which are channel reports.
 
 import json
 from pathlib import Path
+from typing import Union, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -24,10 +25,10 @@ __all__ = [
     "__title_for"]
 
 
-def property_report_to_csv(source_file: str | Path,
-                           csv_file: str | Path,
-                           channels: list[str] | None = None,
-                           groupby: list[str] | None = None,
+def property_report_to_csv(source_file: Union[str, Path],
+                           csv_file: Union[str, Path],
+                           channels: Optional[list[str]] = None,
+                           groupby: Optional[list[str]] = None,
                            transpose: bool = False) -> None:
 
     """
@@ -65,7 +66,7 @@ def property_report_to_csv(source_file: str | Path,
     return
 
 
-def read_json_file(filename: str | Path) -> dict:
+def read_json_file(filename: Union[str, Path]) -> dict:
 
     with Path(filename).open("r", encoding="utf-8") as file:
         json_data = json.load(file)
@@ -197,7 +198,7 @@ def __get_trace_name(channel_title: str, key_value_pairs: list[str], groupby: li
 
 
 def save_to_csv(trace_values: dict[str, np.ndarray],
-                filename: str | Path,
+                filename: Union[str, Path],
                 transpose: bool = False) -> None:
 
     """
@@ -220,7 +221,7 @@ def save_to_csv(trace_values: dict[str, np.ndarray],
 
 
 def plot_traces(trace_values: dict[str, np.ndarray],
-                norm_values: int | np.ndarray | None,
+                norm_values: Union[int, np.ndarray, None],
                 overlay: bool,
                 channels: list[str],
                 title: str,
