@@ -6,7 +6,6 @@ import argparse
 from functools import reduce
 import json
 from pathlib import Path
-from typing import Dict, List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -49,7 +48,7 @@ def main(args: argparse.Namespace):
     return
 
 
-def list_channels_and_ips(channel_keys: List[str]) -> None:
+def list_channels_and_ips(channel_keys: list[str]) -> None:
 
     """
     List the channels and properties found in a property report from the
@@ -79,7 +78,7 @@ def list_channels_and_ips(channel_keys: List[str]) -> None:
 
 
 def call_plot_traces(args: argparse.Namespace,
-                     trace_values: Dict[str, np.ndarray]) -> None:
+                     trace_values: dict[str, np.ndarray]) -> None:
 
     """
     Call the internal `plot_traces` function and, optionally, save the results to disk.

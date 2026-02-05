@@ -164,7 +164,7 @@ def get_event(event, old=False):
         return_event = event_map[event]
     else:
         # get next entry in GP_EVENT_xxx
-        new_event_name = event if old else 'GP_EVENT_{:03d}'.format(len(event_map))
+        new_event_name = event if old else f'GP_EVENT_{len(event_map):03d}'
         event_map[event] = new_event_name
         return_event = event_map[event]
     return return_event

@@ -1,4 +1,4 @@
-from typing import Any, Dict, Union
+from typing import Union
 
 
 class Updateable:
@@ -12,7 +12,7 @@ class Updateable:
     def to_dict(self) -> dict:
         raise NotImplementedError
 
-    def update(self, overlay_object: Union["Updateable", Dict], allow_nones: bool = False) -> None:
+    def update(self, overlay_object: Union["Updateable", dict], allow_nones: bool = False) -> None:
         """
         Updates an object with the values from overlay_object.
 

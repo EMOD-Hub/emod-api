@@ -26,7 +26,7 @@ def __do_read__(args):
         with open(args.header, 'w') as handle:
             json.dump(dtk_file.header, handle, indent=2, separators=(',', ':'))
 
-    print('File header: {0}'.format(dtk_file.header))
+    print(f'File header: {dtk_file.header}')
 
     for index in range(len(dtk_file.chunks)):
         if args.raw:
@@ -39,15 +39,15 @@ def __do_read__(args):
             else:
                 # Expand compressed contents, serialize, write out formatted
                 obj = dtk_file.objects[index]
-                print('Formatting chunk {0} of {1}... '.format(index + 1, len(dtk_file.chunks)), end='')
+                print(f'Formatting chunk {index + 1} of {len(dtk_file.chunks)}... ', end='')
                 output = json.dumps(obj, indent=2, separators=(',', ':'))
 
         if index == 0:
             output_filename = '.'.join([prefix, 'simulation', extension])
         else:
-            output_filename = '.'.join([prefix, 'node-{:0>5}'.format(index), extension])
+            output_filename = '.'.join([prefix, f'node-{index:0>5}', extension])
 
-        print("Writing file '{0}'".format(output_filename))
+        print(f"Writing file '{output_filename}'")
         if args.raw:
             with open(output_filename, 'wb') as handle:
                 handle.write(output)
@@ -60,14 +60,14 @@ def __do_read__(args):
 
 def __do_write__(args):
 
-    print("Writing file '{0}'".format(args.filename), file=sys.stderr)
-    print("Reading simulation data from '{0}'".format(args.simulation), file=sys.stderr)
-    print("Reading node data from {0}".format(args.nodes), file=sys.stderr)
-    print("Author = {0}".format(args.author), file=sys.stderr)
-    print("Tool = {0}".format(args.tool), file=sys.stderr)
-    print("{0} contents".format("Compressing" if args.compress else "Not compressing"), file=sys.stderr)
-    print("{0} contents".format("Verifying" if args.verify else "Not verifying"), file=sys.stderr)
-    print("Using compression engine '{0}'".format(args.engine), file=sys.stderr)
+    print(f"Writing file '{args.filename}'", file=sys.stderr)
+    print(f"Reading simulation data from '{args.simulation}'", file=sys.stderr)
+    print(f"Reading node data from {args.nodes}", file=sys.stderr)
+    print(f"Author = {args.author}", file=sys.stderr)
+    print(f"Tool = {args.tool}", file=sys.stderr)
+    print(f"{'Compressing' if args.compress else 'Not compressing'} contents", file=sys.stderr)
+    print(f"{'Verifying' if args.verify else 'Not verifying'} contents", file=sys.stderr)
+    print(f"Using compression engine '{args.engine}'", file=sys.stderr)
 
     dtk_file = dft.DtkFileV3()
     dtk_file.author = args.author
@@ -128,8 +128,8 @@ if __name__ == '__main__':
     write_parser.add_argument('filename', help='Output .dtk filename')
     write_parser.add_argument('simulation', help='Filename for simulation JSON')
     write_parser.add_argument('nodes', nargs='+', help='Filename(s) for node JSON')
-    write_parser.add_argument('-a', '--author', default=username, help='Author name for header [{0}]'.format(username))
-    write_parser.add_argument('-t', '--tool', default=tool_name, help='Tool name for header [{0}]'.format(tool_name))
+    write_parser.add_argument('-a', '--author', default=username, help=f'Author name for header [{username}]')
+    write_parser.add_argument('-t', '--tool', default=tool_name, help=f'Tool name for header [{tool_name}]')
     write_parser.add_argument('-u', '--uncompressed', default=True, action='store_false', dest='compress',
                               help='Do not compress contents of new .dtk file')
     write_parser.add_argument('-v', '--verify', default=False, action='store_true',

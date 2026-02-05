@@ -165,7 +165,7 @@ class DtkFile(object):
                 contents = self.__parent__.contents[index]
                 item = json.loads(contents, object_hook=support.SerialObject)
             except Exception:
-                raise UserWarning("Could not parse JSON in chunk {0}".format(index))
+                raise UserWarning(f"Could not parse JSON in chunk {index}")
             return item
 
         def __setitem__(self, index, value):
@@ -352,8 +352,7 @@ class DtkFileV2(DtkFile):
             self.chunks[index] = handle.read(size)
             if len(self.chunks[index]) != size:
                 raise UserWarning(
-                    "Only read {0} bytes of {1} for chunk {2} of file '{3}'".format(len(self.chunks[index]),
-                                                                                    size, index, filename))
+                    f"Only read {len(self.chunks[index])} bytes of {size} for chunk {index} of file '{filename}'")
         # Version 2 looks like this: {'simulation':{...}} so we dereference the simulation here for simplicity.
         self._nodes = self.NodesV2(self)
         return
@@ -412,7 +411,7 @@ class DtkFileV3(DtkFile):
         for index, size in enumerate(header.chunksizes):
             self.chunks[index] = handle.read(size)
             if len(self.chunks[index]) != size:
-                raise UserWarning("Only read {0} bytes of {1} for chunk {2} of file '{3}'".format(len(self.chunks[index]), size, index, filename))
+                raise UserWarning(f"Only read {len(self.chunks[index])} bytes of {size} for chunk {index} of file '{filename}'")
         self._nodes = self.NodesV3(self)
         return
 
@@ -601,7 +600,7 @@ class DtkFileV6(object):
                 try:
                     json_data = json.loads(uncomp_data, object_hook=support.SerialObject)
                 except Exception:
-                    raise UserWarning("Could not parse JSON in chunk with size {0}".format(self._chunk_size))
+                    raise UserWarning(f"Could not parse JSON in chunk with size {self._chunk_size}")
                 self._json = json_data
                 self._chunk = None
                 self._chunk_size = 0
@@ -977,7 +976,7 @@ class DtkFileV6(object):
                     self._human_chunk_list[self._human_chunk_index].store()
                     self._human_chunk_index -= 1
                     if self._human_chunk_index < 0:
-                        raise IndexError("Index {0} is out of range for human collection".format(human_index))
+                        raise IndexError(f"Index {human_index} is out of range for human collection")
                     self._current_collection = self._human_chunk_list[self._human_chunk_index].get_json()
                     self._current_max_index = self._current_min_index - 1
                     self._current_min_index = self._current_max_index - len(self._current_collection) + 1
@@ -988,7 +987,7 @@ class DtkFileV6(object):
                     self._human_chunk_list[self._human_chunk_index].store()
                     self._human_chunk_index += 1
                     if self._human_chunk_index >= len(self._human_chunk_list):
-                        raise IndexError("Index {0} is out of range for human collection".format(human_index))
+                        raise IndexError(f"Index {human_index} is out of range for human collection")
                     self._current_collection = self._human_chunk_list[self._human_chunk_index].get_json()
                     self._current_min_index = self._current_max_index + 1
                     self._current_max_index = self._current_min_index + len(self._current_collection) - 1
@@ -1217,7 +1216,7 @@ def read(filename):
         elif header.version == 6:
             new_file = DtkFileV6(header, filename=filename, handle=handle)
         else:
-            raise UserWarning('Unknown serialized population file version: {0}'.format(header.version))
+            raise UserWarning(f'Unknown serialized population file version: {header.version}')
 
     return new_file
 
@@ -1225,7 +1224,7 @@ def read(filename):
 def __check_magic_number__(handle):
     magic = handle.read(4).decode()
     if magic != IDTK:
-        raise UserWarning("File has incorrect magic 'number': '{0}'".format(magic))
+        raise UserWarning(f"File has incorrect magic 'number': '{magic}'")
     return
 
 
@@ -1269,7 +1268,7 @@ def __read_header__(handle):
 
 def __check_header_size__(header_size):
     if header_size <= 0:
-        raise UserWarning("Invalid header size: {0}".format(header_size))
+        raise UserWarning(f"Invalid header size: {header_size}")
     return
 
 
@@ -1277,20 +1276,20 @@ def __try_parse_header_text__(header_text):
     try:
         header_json = json.loads(header_text)
     except ValueError as err:
-        raise UserWarning("Couldn't decode JSON header '{0}'".format(err))
+        raise UserWarning(f"Couldn't decode JSON header '{err}'")
     return header_json
 
 
 def __check_version__(version):
     if version <= 0 or version > MAX_VERSION:
-        raise UserWarning("Unknown version: {0}".format(version))
+        raise UserWarning(f"Unknown version: {version}")
     return
 
 
 def __check_chunk_sizes__(chunk_sizes):
     for size in chunk_sizes:
         if size <= 0:
-            raise UserWarning("Invalid chunk size: {0}".format(size))
+            raise UserWarning(f"Invalid chunk size: {size}")
     return
 
 
@@ -1312,17 +1311,17 @@ def __check_chunk_sizes_v6__(header):
 
     sim_chunk_size = int(header["sim_chunk_size"], 16)
     if sim_chunk_size <= 0:
-        raise UserWarning("Invalid 'sim_chunk_size': {0}".format(sim_chunk_size))
+        raise UserWarning(f"Invalid 'sim_chunk_size': {sim_chunk_size}")
 
     for size_string in header["node_chunk_sizes"]:
         size = int(size_string, 16)
         if size <= 0:
-            raise UserWarning("Invalid 'node_chunk_size': {0}".format(size))
+            raise UserWarning(f"Invalid 'node_chunk_size': {size}")
 
     for size_string in header["human_chunk_sizes"]:
         size = int(size_string, 16)
         if size <= 0:
-            raise UserWarning("Invalid 'human_chunk_size': {0}".format(size))
+            raise UserWarning(f"Invalid 'human_chunk_size': {size}")
 
     return
 
@@ -1337,7 +1336,7 @@ def write(dtk_file, filename):
 
     with open(filename, 'wb') as handle:
         __write_magic_number__(handle)
-        print("Writing file: {0}".format(filename))
+        print(f"Writing file: {filename}")
         if dtk_file.version <= 3:
             header = json.dumps({'metadata': dtk_file.header}, separators=(',', ':'))
         else:

@@ -1,5 +1,3 @@
-from typing import List, Dict
-
 import emod_api.demographics.demographic_exceptions as demog_ex
 
 from emod_api.demographics.updateable import Updateable
@@ -8,9 +6,9 @@ from emod_api.utils import check_dimensionality
 
 class FertilityDistribution(Updateable):
     def __init__(self,
-                 ages_years: List[float],
-                 calendar_years: List[float],
-                 pregnancy_rate_matrix: List[List[float]]):
+                 ages_years: list[float],
+                 calendar_years: list[float],
+                 pregnancy_rate_matrix: list[list[float]]):
         """
         A pregancies/births distribution in units of "annual birth rate per 1000 women". For alternative representations
         of fertlity/birth in EMOD, see config parameter Birth_Rate_Dependence for more details.
@@ -103,7 +101,7 @@ class FertilityDistribution(Updateable):
     def _axis_scale_factors(cls):
         return [365.0, 1]
 
-    def to_dict(self, validate: bool = True) -> Dict:
+    def to_dict(self, validate: bool = True) -> dict:
         distribution_dict = {
             'AxisNames': self._axis_names(),
             'AxisScaleFactors': self._axis_scale_factors(),
@@ -126,12 +124,12 @@ class FertilityDistribution(Updateable):
     # True means message relevant to verifying a fertility dictionary, False means messages relevant to verifying an obj
     _validation_messages = {
         'fixed_value_check': {
-            True: "key: %s value: %s does not match expected value: %s",
+            True: "key: {0} value: {1} does not match expected value: {2}",
             False: None  # These are all properties of the obj and cannot be made invalid
         },
         'population_group_length_check': {
             True: "PopulationGroups expected to be a 2-d array of floats. The first dimension length must be two, but "
-                  "is length %d",
+                  "is length {0}",
             False: None  # This is a property of the obj and cannot be made invalid
         },
         'data_dimensionality_check': {
@@ -139,33 +137,33 @@ class FertilityDistribution(Updateable):
             False: "pregnancy_rate_matrix has an improper dimensionality. It must be a 2-d matrix."
         },
         'data_dimensionality_check_dim0': {
-            True: "ResultValues first dimension length %d does not match the PopulationGroups[0] age bin count %d",
-            False: "pregnancy_rate_matrix first dimension length: %d does not match the ages_years length: %d"
+            True: "ResultValues first dimension length {0} does not match the PopulationGroups[0] age bin count {1}",
+            False: "pregnancy_rate_matrix first dimension length: {0} does not match the ages_years length: {1}"
         },
         'data_dimensionality_check_dim1': {
-            True: "ResultValues second dimension length %d does not match the PopulationGroups[1] time bin count: %d",
-            False: "pregnancy_rate_matrix second dimension length: %d does not match the calendar_years length: %d"
+            True: "ResultValues second dimension length {0} does not match the PopulationGroups[1] time bin count: {1}",
+            False: "pregnancy_rate_matrix second dimension length: {0} does not match the calendar_years length: {1}"
         },
         'age_range_check': {
-            True: "PopulationGroups[0] age values must be: 0 <= age <= 200 in years. Out-of-range index:values : %s",
-            False: "All ages_years values must be: 0 <= age <= 200 in years. Out-of-range index:values : %s"
+            True: "PopulationGroups[0] age values must be: 0 <= age <= 200 in years. Out-of-range index:values : {0}",
+            False: "All ages_years values must be: 0 <= age <= 200 in years. Out-of-range index:values : {0}"
         },
         'time_range_check': {
             True: "PopulationGroups[1] time values must be: 1900 <= time <= 2200 calendar year",
             False: "All calendar_years values must be: 1900 <= time <= 2200 calendar year"
         },
         'age_monotonicity_check': {
-            True: "PopulationGroups[0] ages in years must monotonically increase but do not, index: %d value: %s",
-            False: "ages_years values must monotonically increase but do not, index: %d value: %s"
+            True: "PopulationGroups[0] ages in years must monotonically increase but do not, index: {0} value: {1}",
+            False: "ages_years values must monotonically increase but do not, index: {0} value: {1}"
         },
         'time_monotonicity_check': {
-            True: "PopulationGroups[1] times in calendar years must monotonically increase but do not, index: %d value: %s",
-            False: "calendar_years values must monotonically increase but do not, index: %d value: %s"
+            True: "PopulationGroups[1] times in calendar years must monotonically increase but do not, index: {0} value: {1}",
+            False: "calendar_years values must monotonically increase but do not, index: {0} value: {1}"
         }
     }
 
     @classmethod
-    def _validate(cls, distribution_dict: Dict, source_is_dict: bool):
+    def _validate(cls, distribution_dict: dict, source_is_dict: bool):
         """
         Validate a FertilityDistribution in dict form
 
@@ -186,7 +184,7 @@ class FertilityDistribution(Updateable):
             for key, expected_value in expected_values.items():
                 value = distribution_dict[key]
                 if value != expected_value:
-                    message = cls._validation_messages['fixed_value_check'][source_is_dict] % (key, value, expected_value)
+                    message = cls._validation_messages['fixed_value_check'][source_is_dict].format(key, value, expected_value)
                     raise demog_ex.InvalidFixedValueException(message)
 
         # ensure the data table is MxN for the population groups == [M, N]
@@ -194,7 +192,7 @@ class FertilityDistribution(Updateable):
         data_table = distribution_dict['ResultValues']
         if source_is_dict is True:
             if len(population_groups) != 2:
-                message = cls._validation_messages['population_group_length_check'][source_is_dict] % (len(population_groups))
+                message = cls._validation_messages['population_group_length_check'][source_is_dict].format(len(population_groups))
                 raise demog_ex.InvalidPopulationGroupLengthException(message)
 
         # ensure the data table has the correct dimensionality. It must be 2-d.
@@ -209,18 +207,18 @@ class FertilityDistribution(Updateable):
         n_ages = len(ages)
         n_times = len(times)
         if len(data_table) != n_ages:
-            message = cls._validation_messages['data_dimensionality_check_dim0'][source_is_dict] % (len(data_table), n_ages)
+            message = cls._validation_messages['data_dimensionality_check_dim0'][source_is_dict].format(len(data_table), n_ages)
             raise demog_ex.InvalidDataDimensionDim0Exception(message)
         for i in range(len(data_table)):
             if len(data_table[i]) != n_times:
-                message = cls._validation_messages['data_dimensionality_check_dim1'][source_is_dict] % (len(data_table[i]), n_times)
+                message = cls._validation_messages['data_dimensionality_check_dim1'][source_is_dict].format(len(data_table[i]), n_times)
                 raise demog_ex.InvalidDataDimensionDim1Exception(message)
 
         # ensure the age and time lists are ascending and in reasonable ranges
         out_of_range = [f"{index}:{age}" for index, age in enumerate(ages) if (age < 0) or (age > 200)]
         if len(out_of_range) > 0:
             oor_str = ', '.join(out_of_range)
-            message = cls._validation_messages['age_range_check'][source_is_dict] % oor_str
+            message = cls._validation_messages['age_range_check'][source_is_dict].format(oor_str)
             raise demog_ex.AgeOutOfRangeException(message)
 
         if any([(time < 1900) or (time > 2200) for time in times]):
@@ -229,9 +227,9 @@ class FertilityDistribution(Updateable):
 
         for i in range(1, len(ages)):
             if ages[i] - ages[i - 1] <= 0:
-                message = cls._validation_messages['age_monotonicity_check'][source_is_dict] % (i, ages[i])
+                message = cls._validation_messages['age_monotonicity_check'][source_is_dict].format(i, ages[i])
                 raise demog_ex.NonMonotonicAgeException(message)
         for i in range(1, len(times)):
             if times[i] - times[i - 1] <= 0:
-                message = cls._validation_messages['time_monotonicity_check'][source_is_dict] % (i, times[i])
+                message = cls._validation_messages['time_monotonicity_check'][source_is_dict].format(i, times[i])
                 raise demog_ex.NonMonotonicTimeException(message)

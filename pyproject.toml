@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "emod-api"
-version = "2.0.42"
+version = "2.0.44"
 description = "Core tools for modeling using EMOD"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -39,6 +39,12 @@ license = "MIT"
 classifiers = [
     "Intended Audience :: Science/Research",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Operating System :: OS Independent",
     "Framework :: IDM-Tools :: models",
 ]
@@ -53,11 +59,6 @@ docs = [
 ]
 lint = [
     "flake8",
-]
-packaging = [
-    "build",
-    "twine",
-    "bump2version",
 ]
 test = [
     "emod-common",
@@ -75,3 +76,13 @@ Issues = "https://github.com/EMOD-Hub/emod-api/issues"
 
 [tool.setuptools.packages]
 find = {include = ["emod_api*"]}
+
+[tool.bumpversion]
+current_version = "2.0.44"
+commit = true
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+
+[[tool.bumpversion.files]]
+filename = "emod_api/__init__.py"

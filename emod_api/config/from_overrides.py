@@ -16,15 +16,15 @@ def _load_json(filepath, post_process=None, ignore_notfound=True):
                 else:
                     return json.loads(json_file.read())
         except ValueError:
-            print("JSON decode error from file {} ".format(filepath))
+            print(f"JSON decode error from file {filepath} ")
             raise
         except IOError:
-            print("Error accessing json file {} ".format(filepath))
+            print(f"Error accessing json file {filepath} ")
             raise
     else:
         if not ignore_notfound:
             # should this raise an error?
-            print("JSON file not found: {}".format(filepath))
+            print(f"JSON file not found: {filepath}")
             raise ValueError
     return None
 
@@ -84,8 +84,8 @@ def flattenConfig(configjson_path, new_config_name="config.json", use_full_out_p
         default_config_path = configjson_flat["Default_Config_Path"]
         stripped_path = default_config_path.strip()
         if stripped_path != default_config_path:
-            print("Warning: config parameter 'Default_Config_Path' has leading or trailing whitespace in value \"{0}\"."
-                  " Trimming whitespace and continuing.".format(default_config_path))
+            print(f"Warning: config parameter 'Default_Config_Path' has leading or trailing whitespace in value \"{default_config_path}\"."
+                  f" Trimming whitespace and continuing.")
             default_config_path = stripped_path
 
         try:
@@ -104,7 +104,7 @@ def flattenConfig(configjson_path, new_config_name="config.json", use_full_out_p
             raise ex
 
     else:
-        print("Didn't find 'Default_Config_Path' in '{0}'".format(configjson_path))
+        print(f"Didn't find 'Default_Config_Path' in '{configjson_path}'")
         raise RuntimeError("Bad Default_Config_Path!!!")
 
     # still need that parameter top level node

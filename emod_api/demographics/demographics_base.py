@@ -1,7 +1,8 @@
 import warnings
 from collections import Counter
 from functools import partial
-from typing import List, Iterable, Any, Dict, Union, Callable
+from collections.abc import Iterable
+from typing import Union, Optional
 
 import numpy as np
 import pandas as pd
@@ -36,7 +37,7 @@ class DemographicsBase(BaseInputFile):
     class DuplicateNodeNameException(Exception):
         pass
 
-    def __init__(self, nodes: List[Node], idref: str = None, default_node: Node = None):
+    def __init__(self, nodes: list[Node], idref: str = None, default_node: Node = None):
         """
         Passed-in default nodes are optional. If one is not passed in, one will be created.
         """
@@ -128,7 +129,7 @@ class DemographicsBase(BaseInputFile):
         self._verify_node_name_uniqueness()
 
     @staticmethod
-    def _duplicates_check(items: Iterable[Any]) -> List[Any]:
+    def _duplicates_check(items: Iterable) -> list:
         """
         Simple function that detects and returns the duplicates in an provide iterable.
         Args:
@@ -158,24 +159,24 @@ class DemographicsBase(BaseInputFile):
             raise self.DuplicateNodeNameException(f"Duplicate node names detected: {duplicates_str}")
 
     @property
-    def _all_nodes(self) -> List[Node]:
+    def _all_nodes(self) -> list[Node]:
         all_nodes = self.nodes + [self.default_node]
         return all_nodes
 
     @property
-    def _all_node_names(self) -> List[int]:
+    def _all_node_names(self) -> list[int]:
         return [node.name for node in self._all_nodes]
 
     @property
-    def _all_nodes_by_name(self) -> Dict[str, Node]:
+    def _all_nodes_by_name(self) -> dict[int, Node]:
         return {node.name: node for node in self._all_nodes}
 
     @property
-    def _all_node_ids(self) -> List[int]:
+    def _all_node_ids(self) -> list[int]:
         return [node.id for node in self._all_nodes]
 
     @property
-    def _all_nodes_by_id(self) -> Dict[int, Node]:
+    def _all_nodes_by_id(self) -> dict[int, Node]:
         return {node.id: node for node in self._all_nodes}
 
     def get_node_by_id(self, node_id: int) -> Node:
@@ -190,7 +191,7 @@ class DemographicsBase(BaseInputFile):
         """
         return list(self.get_nodes_by_id(node_ids=[node_id]).values())[0]
 
-    def get_nodes_by_id(self, node_ids: List[int]) -> Dict[int, Node]:
+    def get_nodes_by_id(self, node_ids: list[int]) -> dict[int, Node]:
         """
         Returns the Node objects requested by their node id.
 
@@ -227,7 +228,7 @@ class DemographicsBase(BaseInputFile):
         """
         return list(self.get_nodes_by_name(node_names=[node_name]).values())[0]
 
-    def get_nodes_by_name(self, node_names: List[str]) -> Dict[str, Node]:
+    def get_nodes_by_name(self, node_names: list[str]) -> dict[str, Node]:
         """
         Returns the Node objects requested by their node name.
 
@@ -267,12 +268,12 @@ class DemographicsBase(BaseInputFile):
     def infer_natural_mortality(self,
                                 file_male,
                                 file_female,
-                                interval_fit: List[Union[int, float]] = None,
+                                interval_fit: Optional[list[Union[int, float]]] = None,
                                 which_point='mid',
                                 predict_horizon=2050,
                                 csv_out=False,
                                 n=0,  # I don't know what this means
-                                results_scale_factor=1.0 / 365.0) -> [Dict, Dict]:
+                                results_scale_factor=1.0 / 365.0) -> [dict, dict]:
         """
         Calculate and set the expected natural mortality by age, sex, and year from data, predicting what it would
         have been without disease (HIV-only).

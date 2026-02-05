@@ -1,8 +1,12 @@
 # emod-api
 
-[![Run tests](https://github.com/EMOD-Hub/emod-api/actions/workflows/run-tests.yml/badge.svg?branch=main)](https://github.com/EMOD-Hub/emod-api/actions/workflows/run-tests.yml)
+[![Build docs and deploy to GH Pages](https://github.com/EMOD-Hub/emod-api/actions/workflows/mkdocs_deploy.yml/badge.svg)](https://github.com/EMOD-Hub/emod-api/actions/workflows/mkdocs_deploy.yml)
 [![Lint](https://github.com/EMOD-Hub/emod-api/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/EMOD-Hub/emod-api/actions/workflows/lint.yml)
-[![Test and deploy to staging](https://github.com/EMOD-Hub/emod-api/actions/workflows/test_and_publish_package_to_staging.yml/badge.svg?branch=main)](https://github.com/EMOD-Hub/emod-api/actions/workflows/test_and_publish_package_to_staging.yml)
+[![Test and update version](https://github.com/EMOD-Hub/emod-api/actions/workflows/test_and_bump_version.yml/badge.svg)](https://github.com/EMOD-Hub/emod-api/actions/workflows/test_and_bump_version.yml)
+
+## Python Version
+
+Python 3.13 is the recommended and supported version.
 
 ## Documentation
 

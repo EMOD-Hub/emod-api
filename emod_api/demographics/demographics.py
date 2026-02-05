@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 
 from pathlib import Path
-from typing import List, Union
+from typing import Union
 
 from emod_api.demographics.demographics_base import DemographicsBase
 from emod_api.demographics.node import Node
@@ -15,7 +15,7 @@ class Demographics(DemographicsBase):
     """
     This class is a container of data necessary to produce a EMOD-valid demographics input file.
     """
-    def __init__(self, nodes: List[Node], idref: str = None, default_node: Node = None, set_defaults: bool = True):
+    def __init__(self, nodes: list[Node], idref: str = None, default_node: Node = None, set_defaults: bool = True):
         """
         Object representation of an EMOD Demographics input (json) file.
 

@@ -1,3 +1,5 @@
+from typing import Union, Optional, Callable, Tuple
+
 from emod_api.demographics.age_distribution import AgeDistribution
 from emod_api.demographics.demographic_exceptions import ConflictingDistributionsException
 from emod_api.demographics.fertility_distribution import FertilityDistribution
@@ -9,8 +11,6 @@ from emod_api.demographics.mortality_distribution import MortalityDistribution
 from emod_api.demographics.susceptibility_distribution import SusceptibilityDistribution
 from emod_api.demographics.updateable import Updateable
 
-from typing import List, Union, Callable, Tuple
-
 
 # TODO: most of the documentation in this file consists of stand-in stubs. Needs to be filled in.
 #  https://github.com/InstituteforDiseaseModeling/emod-api/issues/695
@@ -19,10 +19,10 @@ from typing import List, Union, Callable, Tuple
 class IndividualProperty(Updateable):
     def __init__(self,
                  property: str,
-                 values: Union[List[float], List[str]],
-                 initial_distribution: List[float] = None,
-                 transitions: List[dict] = None,
-                 transmission_matrix: List[List[float]] = None,
+                 values: Union[list[float], list[str]],
+                 initial_distribution: list[float] = None,
+                 transitions: list[dict] = None,
+                 transmission_matrix: list[list[float]] = None,
                  transmission_route: str = "Contact"):
         """
         Add Individual Properties, including an optional HINT configuration matrix.
@@ -154,12 +154,12 @@ class IndividualProperties(Updateable):
     class NoSuchIndividualPropertyException(Exception):
         pass
 
-    def __init__(self, individual_properties: List[IndividualProperty] = None):
+    def __init__(self, individual_properties: list[IndividualProperty] = None):
         """
         https://docs.idmod.org/projects/emod-generic/en/latest/model-properties.html
 
         Args:
-            individual_properties (List[IndividualProperty]): list of individual properties to include. Default is
+            individual_properties (list[IndividualProperty]): list of individual properties to include. Default is
                 no individual_properties.
         """
         super().__init__()
@@ -197,7 +197,7 @@ class IndividualProperties(Updateable):
         ips_to_keep = [ip for ip in self.individual_properties if ip.property != property_key]
         self.individual_properties = ips_to_keep
 
-    def to_dict(self) -> List[dict]:
+    def to_dict(self) -> list[dict]:
         data = [ip.to_dict() for ip in self.individual_properties]
         return data
 
@@ -493,7 +493,7 @@ class IndividualAttributes(Updateable):
 
         return individual_attributes
 
-    def from_dict(self, individual_attributes: dict) -> Tuple["IndividualAttributes", List[Callable]]:
+    def from_dict(self, individual_attributes: dict) -> Tuple["IndividualAttributes", list[Callable]]:
         implicit_functions = []
 
         age_distribution_dict = individual_attributes.get("AgeDistribution", None)
@@ -611,7 +611,7 @@ class NodeAttributes(Updateable):
                  initial_population: int = None,
                  region: int = None,
                  seaport: int = None,
-                 larval_habitat_multiplier: Union[List[float], None] = None,
+                 larval_habitat_multiplier: Optional[list[float]] = None,
                  initial_vectors_per_species: Union[dict, int, None] = None,
                  infectivity_multiplier: float = None,
                  extra_attributes: dict = None):
