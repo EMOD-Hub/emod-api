@@ -2,7 +2,7 @@ import warnings
 from collections import Counter
 from functools import partial
 from collections.abc import Iterable
-from typing import Union, Optional
+from typing import Union, Optional, Callable
 
 import numpy as np
 import pandas as pd
@@ -73,13 +73,13 @@ class DemographicsBase(BaseInputFile):
         default_node.birth_rate = 0
         return default_node
 
-    def apply_overlay(self, overlay_nodes: List[Node]) -> None:
+    def apply_overlay(self, overlay_nodes: list[Node]) -> None:
         """
         Overlays a set of nodes onto the demographics object. Only overlay nodes with ids matching current demographic
         node_ids will be overlayed (extending/overriding exisiting node data).
 
         Args:
-            overlay_nodes (List[Node]): a list of Node objects that will overlay/override data in the demographics
+            overlay_nodes (list[Node]): a list of Node objects that will overlay/override data in the demographics
                 object.
 
         Returns:
@@ -254,7 +254,7 @@ class DemographicsBase(BaseInputFile):
                            if node_name in node_names}
         return requested_nodes
 
-    def set_demographics_filenames(self, filenames: List[str]):
+    def set_demographics_filenames(self, filenames: list[str]):
         """
         Set paths to demographic file.
 
@@ -448,7 +448,7 @@ class DemographicsBase(BaseInputFile):
         self.implicits.append(_set_mortality_age_gender_year)
         return dict_female, dict_male
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         self.verify_demographics_integrity()
         demographics_dict = {
             'Defaults': self.default_node.to_dict(),
@@ -458,14 +458,14 @@ class DemographicsBase(BaseInputFile):
         demographics_dict["Metadata"]["NodeCount"] = len(self.nodes)
         return demographics_dict
 
-    def set_birth_rate(self, rate: float, node_ids: List[int] = None):
+    def set_birth_rate(self, rate: float, node_ids: list[int] = None):
         """
         Sets a specified population-dependent birth rate value on the target node(s). Automatically handles any
         necessary config updates.
 
         Args:
             rate: (float) The birth rate to set in units of births/year/1000-women
-            node_ids: (List[int]) The node id(s) to apply changes to. None or 0 means the default node.
+            node_ids: (list[int]) The node id(s) to apply changes to. None or 0 means the default node.
 
         Returns:
 
@@ -484,7 +484,7 @@ class DemographicsBase(BaseInputFile):
 
     def set_age_distribution(self,
                              distribution: Union[BaseDistribution, AgeDistribution],
-                             node_ids: List[int] = None) -> None:
+                             node_ids: list[int] = None) -> None:
         """
         Set the distribution from which the initial ages of the population will be drawn. At initialization, each person
         will be randomly assigned an age from the given distribution. Automatically handles any necessary config
@@ -508,7 +508,7 @@ class DemographicsBase(BaseInputFile):
 
     def set_susceptibility_distribution(self,
                                         distribution: Union[BaseDistribution, SusceptibilityDistribution],
-                                        node_ids: List[int] = None) -> None:
+                                        node_ids: list[int] = None) -> None:
         """
         Set a distribution that will impact the probability that a person will acquire an infection based on immunity.
         The SusceptibilityDistribution is used to define an age-based distribution from which a probability is selected
@@ -539,7 +539,7 @@ class DemographicsBase(BaseInputFile):
 
     def set_prevalence_distribution(self,
                                     distribution: BaseDistribution,
-                                    node_ids: List[int] = None) -> None:
+                                    node_ids: list[int] = None) -> None:
         """
         Sets a prevalence distribution on the demographics object. Automatically handles any necessary config updates.
         Initial prevalence distributions are not compatible with HIV EMOD simulations.
@@ -560,7 +560,7 @@ class DemographicsBase(BaseInputFile):
 
     def set_migration_heterogeneity_distribution(self,
                                                  distribution: BaseDistribution,
-                                                 node_ids: List[int] = None) -> None:
+                                                 node_ids: list[int] = None) -> None:
         """
         Sets a migration heterogeneity distribution on the demographics object. Automatically handles any necessary
         config updates.
@@ -588,7 +588,7 @@ class DemographicsBase(BaseInputFile):
     # def set_innate_immune_distribution(self,
     #                                    distribution: BaseDistribution,
     #                                    innate_immune_variation_type: str,
-    #                                    node_ids: List[int] = None) -> None:
+    #                                    node_ids: list[int] = None) -> None:
     #     """
     #     Sets a innate immune distribution on the demographics object. Automatically handles any necessary config
     #     updates.
@@ -627,7 +627,7 @@ class DemographicsBase(BaseInputFile):
     def set_mortality_distribution(self,
                                    distribution_male: MortalityDistribution,
                                    distribution_female: MortalityDistribution,
-                                   node_ids: List[int] = None) -> None:
+                                   node_ids: list[int] = None) -> None:
         """
         Sets the gendered mortality distributions on the demographics object. Automatically handles any necessary
         config updates.
@@ -664,9 +664,9 @@ class DemographicsBase(BaseInputFile):
                               FertilityDistribution,
                               MortalityDistribution],
                           use_case: str,
-                          simple_distribution_implicits: List[Callable] = None,
-                          complex_distribution_implicits: List[Callable] = None,
-                          node_ids: List[int] = None) -> None:
+                          simple_distribution_implicits: list[Callable] = None,
+                          complex_distribution_implicits: list[Callable] = None,
+                          node_ids: list[int] = None) -> None:
         """
         A common core function for setting simple and complex distributions for all uses in EMOD demographics. This
         should not be called directly by users.
@@ -705,9 +705,9 @@ class DemographicsBase(BaseInputFile):
 
     def add_individual_property(self,
                                 property: str,
-                                values: Union[List[str], List[float]] = None,
-                                initial_distribution: List[float] = None,
-                                node_ids: List[int] = None,
+                                values: Union[list[str], list[float]] = None,
+                                initial_distribution: list[float] = None,
+                                node_ids: list[int] = None,
                                 overwrite_existing: bool = False) -> None:
         """
         Adds a new individual property or replace values on an already-existing property in a demographics object.
