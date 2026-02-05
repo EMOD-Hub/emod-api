@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 from __future__ import print_function
 import os
 import gc
@@ -10,10 +8,9 @@ import emod_api.serialization.dtkFileTools as dft
 import emod_api.serialization.dtkFileSupport as support
 import emod_api.serialization.SerializedPopulation as SerPop
 from tests import manifest
+import pytest
 
-skip_tests = False
 
-@pytest.mark.skipif(skip_tests, "Skipping old tests to focus on V6")
 class TestReadVersionOne():
 
     def check_keys_dtkeader(self, header, reference_header_keys):
@@ -252,7 +249,6 @@ class TestReadVersionOne():
         return
 
 
-@pytest.mark.skipif(skip_tests, "Skipping old tests to focus on V6")
 class TestReadVersionTwo(TestReadVersionOne):
 
     def test_dtkheader_2(self):
@@ -461,7 +457,6 @@ class TestReadVersionTwo(TestReadVersionOne):
         return
 
 
-@pytest.mark.skipif(skip_tests, "Skipping old tests to focus on V6")
 class TestReadVersionThree(TestReadVersionTwo):
 
     def test_dtkheader_3(self):
@@ -665,7 +660,6 @@ class TestReadVersionThree(TestReadVersionTwo):
         return
 
 
-@pytest.mark.skipif(skip_tests, "Skipping old tests to focus on V6")
 class TestReadVersionFour(TestReadVersionThree):
 
     def test_dtkheader_4(self):
@@ -877,7 +871,6 @@ class TestReadVersionFour(TestReadVersionThree):
         return
 
 
-@pytest.mark.skipif(skip_tests, "Skipping old tests to focus on V6")
 class TestReadWrite():
     def NullPtr(self, source):
         source.compression = dft.SNAPPY if support.SNAPPY_SUPPORT else dft.LZ4
@@ -925,7 +918,6 @@ class TestReadWrite():
         return
 
 
-@pytest.mark.skipif(skip_tests, "Skipping old tests to focus on V6")
 class TestReadingSadPath():
     def test_reading_wrong_magic_number(self):
         with self.assertRaises(UserWarning):
@@ -1080,7 +1072,6 @@ class TestReadingSadPath():
         return
 
 
-@pytest.mark.skipif(skip_tests, "Skipping old tests to focus on V6")
 class TestRegressions():
 
     # https://github.com/InstituteforDiseaseModeling/DtkTrunk/issues/1268
@@ -1098,7 +1089,6 @@ class TestRegressions():
         return
 
 
-@pytest.mark.skipif(skip_tests, "Skipping old tests to focus on V6")
 class TestReadVersion5(TestReadVersionFour, TestReadWrite):
 
     def test_dtkheader_5(self):

@@ -9,6 +9,7 @@ from random import random, randint
 import pandas as pd
 import json
 from tests import manifest
+import pytest
 
 
 class TestHeader():

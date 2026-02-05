@@ -5,6 +5,7 @@ import emod_api.demographics.Demographics as Demog
 import emod_api.demographics.PreDefinedDistributions as Distributions
 import tempfile
 import copy
+import pytest
 
 thisplatform = sys.platform
 
