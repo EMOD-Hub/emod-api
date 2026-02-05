@@ -2,7 +2,7 @@
 
 import json
 import os
-from typing import Union, Optional
+from typing import Union
 import warnings
 import emod_api.schema_to_class as s2c
 
