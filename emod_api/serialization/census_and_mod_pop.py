@@ -1,4 +1,4 @@
-import emod_api.serialization.SerializedPopulation as sp
+import emod_api.serialization.serialized_population as sp
 
 
 def change_ser_pop(input_serpop_path, mod_fn=None, save_file_path=None):

@@ -1,14 +1,15 @@
-from typing import Union, Optional
+from typing import Union, Optional, Callable, Tuple
 
 from emod_api.demographics.age_distribution import AgeDistribution
-from emod_api.demographics.age_distribution_old import AgeDistributionOld
+from emod_api.demographics.demographic_exceptions import ConflictingDistributionsException
 from emod_api.demographics.fertility_distribution import FertilityDistribution
-from emod_api.demographics.fertility_distribution_old import FertilityDistributionOld
+from emod_api.demographics.implicit_functions import _set_age_simple, _set_age_complex, _set_suscept_simple, \
+    _set_suscept_complex, _set_init_prev, _set_migration_model_fixed_rate, _set_enable_migration_model_heterogeneity, \
+    _set_enable_natural_mortality, _set_mortality_age_gender_year, _set_mortality_age_gender, _set_enable_demog_risk, \
+    _set_fertility_age_year
 from emod_api.demographics.mortality_distribution import MortalityDistribution
-from emod_api.demographics.mortality_distribution_old import MortalityDistributionOld
 from emod_api.demographics.susceptibility_distribution import SusceptibilityDistribution
-from emod_api.demographics.susceptibility_distribution_old import SusceptibilityDistributionOld
-from emod_api.demographics.Updateable import Updateable
+from emod_api.demographics.updateable import Updateable
 
 
 # TODO: most of the documentation in this file consists of stand-in stubs. Needs to be filled in.
@@ -141,6 +142,11 @@ class IndividualProperty(Updateable):
 
 
 class IndividualProperties(Updateable):
+    """
+    A container class for holding IndividualProperty objects used by Node objects. It simply contains functionality for
+    adding, removing, and retrieving contained IndividualProperty objects with some light consistency checking
+    (preventing duplicate-named IndividualProperties).
+    """
 
     class DuplicateIndividualPropertyException(Exception):
         pass
@@ -148,23 +154,18 @@ class IndividualProperties(Updateable):
     class NoSuchIndividualPropertyException(Exception):
         pass
 
-    # TODO: this constructor call is WEIRD. it should take a list of IndividualProperties instead and remove
-    #  "if is None" checks on self.individual_properties (None should auto goes to [] in constructor)
-    #  https://github.com/InstituteforDiseaseModeling/emod-api/issues/685
-    def __init__(self, individual_property: IndividualProperty = None):
+    def __init__(self, individual_properties: list[IndividualProperty] = None):
         """
         https://docs.idmod.org/projects/emod-generic/en/latest/model-properties.html
 
         Args:
-            individual_property:
+            individual_properties (list[IndividualProperty]): list of individual properties to include. Default is
+                no individual_properties.
         """
         super().__init__()
-        self.individual_properties = [individual_property] if individual_property else None
+        self.individual_properties = [] if individual_properties is None else individual_properties
 
     def add(self, individual_property: IndividualProperty, overwrite=False) -> None:
-        if self.individual_properties is None:
-            self.individual_properties = []
-
         has_ip = self.has_individual_property(property_key=individual_property.property)
         if has_ip:
             if overwrite:
@@ -180,8 +181,7 @@ class IndividualProperties(Updateable):
 
     @property
     def ip_by_name(self):
-        individual_properties = [] if self.individual_properties is None else self.individual_properties
-        return {ip.property: ip for ip in individual_properties}
+        return {ip.property: ip for ip in self.individual_properties}
 
     def has_individual_property(self, property_key: str) -> bool:
         return property_key in self.ip_by_name.keys()
@@ -198,17 +198,13 @@ class IndividualProperties(Updateable):
         self.individual_properties = ips_to_keep
 
     def to_dict(self) -> list[dict]:
-        individual_properties = []
-        for ip in self.individual_properties:
-            individual_properties.append(ip.to_dict())
-        return individual_properties
+        data = [ip.to_dict() for ip in self.individual_properties]
+        return data
 
     def __getitem__(self, index: int):
         return self.individual_properties[index]
 
     def __len__(self):
-        if not self.individual_properties:
-            return 0
         return len(self.individual_properties)
 
 
@@ -219,11 +215,11 @@ class IndividualAttributes(Updateable):
                  age_distribution_flag: int = None,
                  age_distribution1: int = None,
                  age_distribution2: int = None,
-                 age_distribution: Union[AgeDistribution, AgeDistributionOld] = None,
+                 age_distribution: AgeDistribution = None,
                  susceptibility_distribution_flag: int = None,
                  susceptibility_distribution1: int = None,
                  susceptibility_distribution2: int = None,
-                 susceptibility_distribution: Union[SusceptibilityDistribution, SusceptibilityDistributionOld] = None,
+                 susceptibility_distribution: SusceptibilityDistribution = None,
                  prevalence_distribution_flag: int = None,
                  prevalence_distribution1: int = None,
                  prevalence_distribution2: int = None,
@@ -233,41 +229,89 @@ class IndividualAttributes(Updateable):
                  migration_heterogeneity_distribution_flag: int = None,
                  migration_heterogeneity_distribution1: int = None,
                  migration_heterogeneity_distribution2: int = None,
-                 fertility_distribution: Union[FertilityDistribution, FertilityDistributionOld] = None,
-                 mortality_distribution: MortalityDistributionOld = None,
-                 mortality_distribution_male: Union[MortalityDistribution, MortalityDistributionOld] = None,
-                 mortality_distribution_female: Union[MortalityDistribution, MortalityDistributionOld] = None,
+                 fertility_distribution: FertilityDistribution = None,
+                 mortality_distribution_male: MortalityDistribution = None,
+                 mortality_distribution_female: MortalityDistribution = None,
                  innate_immune_distribution_flag: int = None,
                  innate_immune_distribution1: int = None,
                  innate_immune_distribution2: int = None
                  ):
         """
+        Defines the initial distribution of attributes for model agents for all disease setups. These are used by Node
+        objects and can be defined separately per-node. Some attributes utilize simple distributions, some utilize
+        complex distributions, some can utilize either simple or complex. For those that can utilize simple or complex
+        distributions, only one may be specified (it is a user choice). It is highly unlikely a user will utilize this
+        class directly, as it exists primarily for ensuring proper serialization to JSON for EMOD input file
+        representation. The standard, user-facing interface for updating the distributions used is in the Demographics
+        class in emodpy.demographics .
+
+        Supported simple distributions and the meaning of their parameters are defined in the
+        emod_api.utils.distributions submodule.
+
+        Further information can be found at:
         https://docs.idmod.org/projects/emod-generic/en/latest/parameter-demographics.html#individual-attributes
 
         Args:
-            age_distribution_flag:
-            age_distribution1:
-            age_distribution2:
-            age_distribution:
-            susceptibility_distribution_flag:
-            susceptibility_distribution1:
-            susceptibility_distribution2:
-            susceptibility_distribution:
-            prevalence_distribution_flag:
-            prevalence_distribution1:
-            prevalence_distribution2:
-            risk_distribution_flag:
-            risk_distribution1:
-            risk_distribution2:
-            migration_heterogeneity_distribution_flag:
-            migration_heterogeneity_distribution1:
-            migration_heterogeneity_distribution2:
-            fertility_distribution:
-            mortality_distribution_male:
-            mortality_distribution_female:
-            innate_immune_distribution_flag:
-            innate_immune_distribution1:
-            innate_immune_distribution2:
+            age_distribution_flag (int, optional): Toggles the type of simple distribution for representing age,
+                determining the distribution-specific interpretation of age_distribution1 and age_distribution2.
+                Mutually exclusive with a complex age distribution (age_distribution).
+            age_distribution1 (int, optional): If age_distribution_flag is not None, the specified simple
+                distribution-dependent first argument.
+            age_distribution2 (int, optional): If age_distribution_flag is not None, the specified simple
+                distribution-dependent second argument (if any).
+            age_distribution (AgeDistribution, optional): If provided, defines a complex age distribution. Mutually
+                exclusive with a simple age distribution (age_distribution_flag).
+
+            susceptibility_distribution_flag (int, optional): Toggles the type of simple distribution for representing
+                susceptibility, determining the distribution-specific interpretation of susceptibility_distribution1
+                and susceptibility_distribution2. Mutually exclusive with a complex susceptibility distribution
+                (susceptibility_distribution).
+            susceptibility_distribution1 (int, optional): If susceptibility_distribution_flag is not None, the
+                specified simple distribution-dependent first argument.
+            susceptibility_distribution2 (int, optional): If susceptibility_distribution_flag is not None, the
+                specified simple distribution-dependent second argument (if any).
+            susceptibility_distribution (SusceptibilityDistribution, optional): If provided, defines a complex
+                susceptibility distribution. Mutually exclusive with a simple susceptibility distribution
+                (susceptibility_distribution_flag).
+
+            prevalence_distribution_flag (int, optional): Toggles the type of simple distribution for representing
+                prevalence, determining the distribution-specific interpretation of prevalence_distribution1 and
+                prevalence_distribution2.
+            prevalence_distribution1 (int, optional): If prevalence_distribution_flag is not None, the specified simple
+                distribution-dependent first argument.
+            prevalence_distribution2 (int, optional): If prevalence_distribution_flag is not None, the specified simple
+                distribution-dependent second argument (if any).
+
+            risk_distribution_flag (int, optional): Toggles the type of simple distribution for representing risk,
+                determining the distribution-specific interpretation of risk_distribution1 and risk_distribution2.
+            risk_distribution1 (int, optional): If risk_distribution_flag is not None, the specified simple
+                distribution-dependent first argument.
+            risk_distribution2 (int, optional): If risk_distribution_flag is not None, the specified simple
+                distribution-dependent second argument (if any).
+
+            migration_heterogeneity_distribution_flag (int, optional): Toggles the type of simple distribution for
+                representing migration heterogeneity, determining the distribution-specific interpretation of
+                migration_heterogeneity_distribution1 and migration_heterogeneity_distribution2.
+            migration_heterogeneity_distribution1 (int, optional): If migration_heterogeneity_distribution_flag is not
+                None, the specified simple distribution-dependent first argument.
+            migration_heterogeneity_distribution2 (int, optional): If migration_heterogeneity_distribution_flag is not
+                None, the specified simple distribution-dependent second argument (if any).
+
+            fertility_distribution (FertilityDistribution, optional): If provided, defines a complex fertility
+                distribution for females.
+
+            mortality_distribution_male (MortalityDistribution, optional): If provided, defines a complex mortality
+                distribution for males.
+            mortality_distribution_female (MortalityDistribution, optional): If provided, defines a complex mortality
+                distribution for females.
+
+            innate_immune_distribution_flag (int, optional): Toggles the type of simple distribution for representing
+                innate immunity, determining the distribution-specific interpretation of innate_immune_distribution1
+                and innate_immune_distribution2.
+            innate_immune_distribution1 (int, optional): If innate immune_distribution_flag is not None, the specified
+                simple distribution-dependent first argument.
+            innate_immune_distribution2 (int, optional): If innate immune_distribution_flag is not None, the specified
+                simple distribution-dependent second argument (if any).
         """
         super().__init__()
 
@@ -303,10 +347,9 @@ class IndividualAttributes(Updateable):
         self.migration_heterogeneity_distribution1 = migration_heterogeneity_distribution1
         self.migration_heterogeneity_distribution2 = migration_heterogeneity_distribution2
 
-        self.mortality_distribution = mortality_distribution
         self.mortality_distribution_male = mortality_distribution_male
         self.mortality_distribution_female = mortality_distribution_female
-
+        self.mortality_distribution = None # This should ONLY be set via from_dict() loading (deprecated).
         # fertility is only used by HIV
 
         self.fertility_distribution = fertility_distribution
@@ -351,7 +394,11 @@ class IndividualAttributes(Updateable):
         #  https://github.com/InstituteforDiseaseModeling/emod-api-old/issues/751
         individual_attributes = self.parameter_dict
 
-        # Set age distribution as complex or simple
+        # Set age distribution as complex or simple if specified, but not both.
+        both_types_selected = ((self.age_distribution is not None) and (self.age_distribution_flag is not None))
+        if both_types_selected:
+            raise ConflictingDistributionsException('Both a simple and complex distribution for age has been set. '
+                                                    'Only type is allowed.')
         if self.age_distribution is not None:
             # complex distribution
             age_distribution_dict = {"AgeDistribution": self.age_distribution.to_dict()}
@@ -366,7 +413,11 @@ class IndividualAttributes(Updateable):
             self._ensure_valid_value2_value(distribution_dict=age_distribution_dict, value2_key="AgeDistribution2")
             individual_attributes.update(age_distribution_dict)
 
-        # Set susceptibility distribution as complex or simple
+        # Set susceptibility distribution as complex or simple if specified, but not both.
+        both_types_selected = ((self.susceptibility_distribution is not None) and (self.susceptibility_distribution_flag is not None))
+        if both_types_selected:
+            raise ConflictingDistributionsException('Both a simple and complex distribution for susceptibility has '
+                                                    'been set. Only type is allowed.')
         if self.susceptibility_distribution is not None:
             # complex distribution
             susceptibility_distribution_dict = {"SusceptibilityDistribution": self.susceptibility_distribution.to_dict()}
@@ -404,7 +455,7 @@ class IndividualAttributes(Updateable):
                                             value2_key="MigrationHeterogeneityDistribution2")
             individual_attributes.update(migration_heterogeneity_distribution_dict)
 
-        # malaria only
+        # malaria only - possible to move this to emodpy-malaria in the future if desired.
         if self.risk_distribution_flag is not None:
             risk_distribution_dict = {
                 "RiskDistributionFlag": self.risk_distribution_flag,
@@ -414,7 +465,7 @@ class IndividualAttributes(Updateable):
             self._ensure_valid_value2_value(distribution_dict=risk_distribution_dict, value2_key="RiskDistribution2")
             individual_attributes.update(risk_distribution_dict)
 
-        # malaria only
+        # malaria only - possible to move this to emodpy-malaria in the future if desired.
         if self.innate_immune_distribution_flag is not None:
             innate_immune_distribution_dict = {
                 "InnateImmuneDistributionFlag": self.innate_immune_distribution_flag,
@@ -427,12 +478,8 @@ class IndividualAttributes(Updateable):
 
         # The following distributions can only be complex, not simple
 
-        # HIV only
         if self.fertility_distribution is not None:
             individual_attributes.update({"FertilityDistribution": self.fertility_distribution.to_dict()})
-
-        if self.mortality_distribution is not None:
-            individual_attributes.update({"MortalityDistribution": self.mortality_distribution.to_dict()})
 
         if self.mortality_distribution_male is not None:
             individual_attributes.update({"MortalityDistributionMale": self.mortality_distribution_male.to_dict()})
@@ -440,20 +487,28 @@ class IndividualAttributes(Updateable):
         if self.mortality_distribution_female is not None:
             individual_attributes.update({"MortalityDistributionFemale": self.mortality_distribution_female.to_dict()})
 
+        # # This should ONLY be set via from_dict() loading (deprecated).
+        if self.mortality_distribution is not None:
+            individual_attributes.update({"MortalityDistribution": self.mortality_distribution.to_dict()})
+
         return individual_attributes
 
-    def from_dict(self, individual_attributes: dict):
+    def from_dict(self, individual_attributes: dict) -> Tuple["IndividualAttributes", list[Callable]]:
+        implicit_functions = []
+
         age_distribution_dict = individual_attributes.get("AgeDistribution", None)
         if age_distribution_dict is None:
             self.age_distribution = None
             self.age_distribution_flag = individual_attributes.get("AgeDistributionFlag", None)
             self.age_distribution1 = individual_attributes.get("AgeDistribution1", None)
             self.age_distribution2 = individual_attributes.get("AgeDistribution2", None)
+            implicit_functions.append(_set_age_simple)
         else:
             self.age_distribution = AgeDistribution.from_dict(distribution_dict=age_distribution_dict)
             self.age_distribution_flag = None
             self.age_distribution1 = None
             self.age_distribution2 = None
+            implicit_functions.append(_set_age_complex)
 
         susceptibility_distribution_dict = individual_attributes.get("SusceptibilityDistribution", None)
         if susceptibility_distribution_dict is None:
@@ -461,50 +516,84 @@ class IndividualAttributes(Updateable):
             self.susceptibility_distribution_flag = individual_attributes.get("SusceptibilityDistributionFlag", None)
             self.susceptibility_distribution1 = individual_attributes.get("SusceptibilityDistribution1", None)
             self.susceptibility_distribution2 = individual_attributes.get("SusceptibilityDistribution2", None)
+            implicit_functions.append(_set_suscept_simple)
         else:
             self.susceptibility_distribution = SusceptibilityDistribution.from_dict(
                 distribution_dict=susceptibility_distribution_dict)
             self.susceptibility_distribution_flag = None
             self.susceptibility_distribution1 = None
             self.susceptibility_distribution2 = None
+            implicit_functions.append(_set_suscept_complex)
+
         self.prevalence_distribution_flag = individual_attributes.get("PrevalenceDistributionFlag", None)
         self.prevalence_distribution1 = individual_attributes.get("PrevalenceDistribution1", None)
         self.prevalence_distribution2 = individual_attributes.get("PrevalenceDistribution2", None)
-        self.risk_distribution_flag = individual_attributes.get("RiskDistributionFlag", None)
-        self.risk_distribution1 = individual_attributes.get("RiskDistribution1", None)
-        self.risk_distribution2 = individual_attributes.get("RiskDistribution2", None)
+        if self.prevalence_distribution_flag is not None:
+            implicit_functions.append(_set_init_prev)
+
         self.migration_heterogeneity_distribution_flag = individual_attributes.get(
             "MigrationHeterogeneityDistributionFlag", None)
         self.migration_heterogeneity_distribution1 = individual_attributes.get("MigrationHeterogeneityDistribution1",
                                                                                None)
         self.migration_heterogeneity_distribution2 = individual_attributes.get("MigrationHeterogeneityDistribution2",
                                                                                None)
+        if self.migration_heterogeneity_distribution_flag is not None:
+            implicit_functions.extend([_set_migration_model_fixed_rate, _set_enable_migration_model_heterogeneity])
 
-        distribution_dict = individual_attributes.get("FertilityDistribution", None)
-        if distribution_dict is None:
-            self.fertility_distribution = None
-        else:
-            self.fertility_distribution = FertilityDistribution.from_dict(distribution_dict)
-
+        loaded_mortality = False
         distribution_dict = individual_attributes.get("MortalityDistributionMale", None)
         if distribution_dict is None:
             self.mortality_distribution_male = None
         else:
             self.mortality_distribution_male = MortalityDistribution.from_dict(distribution_dict=distribution_dict)
+            loaded_mortality = True
 
         distribution_dict = individual_attributes.get("MortalityDistributionFemale", None)
         if distribution_dict is None:
             self.mortality_distribution_female = None
         else:
             self.mortality_distribution_female = MortalityDistribution.from_dict(distribution_dict=distribution_dict)
+            loaded_mortality = True
 
+        if loaded_mortality:
+            implicit_functions.extend([_set_enable_natural_mortality, _set_mortality_age_gender_year])
+
+        # Even though we do NOT support NEW CREATION of all-gender mortality distributions, they are still valid in
+        # deprecated "from_dict()"(files)-type demographics loading. This is the only way self.mortality_distribution
+        # can/should be set in this class.
         distribution_dict = individual_attributes.get("MortalityDistribution", None)
         if distribution_dict is None:
             self.mortality_distribution = None
         else:
-            self.mortality_distribution = MortalityDistributionOld().from_dict(mortality_distribution=distribution_dict)
+            self.mortality_distribution = MortalityDistribution.from_dict(distribution_dict=distribution_dict)
+            implicit_functions.extend([_set_enable_natural_mortality, _set_mortality_age_gender])
 
-        return self
+        # malaria only - possible to move this to emodpy-malaria in the future if desired.
+        self.innate_immune_distribution_flag = individual_attributes.get("InnateImmuneDistributionFlag", None)
+        self.innate_immune_distribution1 = individual_attributes.get("InnateImmuneDistribution1", None)
+        self.innate_immune_distribution2 = individual_attributes.get("InnateImmuneDistribution2", None)
+        if self.innate_immune_distribution_flag is not None:
+            import warnings
+            warnings.warn("InnateImmuneDistribution loaded by file. Pyrogenic vs. cytokine-killing vs NONE (ignore) is "
+                          "unknown. Config may need updating to ensure parameter Innate_Immune_Variation_Type is set "
+                          "properly.",
+                          Warning, stacklevel=2)
+
+        # malaria only - possible to move this to emodpy-malaria in the future if desired.
+        self.risk_distribution_flag = individual_attributes.get("RiskDistributionFlag", None)
+        self.risk_distribution1 = individual_attributes.get("RiskDistribution1", None)
+        self.risk_distribution2 = individual_attributes.get("RiskDistribution2", None)
+        if self.risk_distribution_flag is not None:
+            implicit_functions.append(_set_enable_demog_risk)
+
+        distribution_dict = individual_attributes.get("FertilityDistribution", None)
+        if distribution_dict is None:
+            self.fertility_distribution = None
+        else:
+            self.fertility_distribution = FertilityDistribution.from_dict(distribution_dict)
+            implicit_functions.append(_set_fertility_age_year)
+
+        return self, implicit_functions
 
 
 class NodeAttributes(Updateable):
@@ -527,26 +616,32 @@ class NodeAttributes(Updateable):
                  infectivity_multiplier: float = None,
                  extra_attributes: dict = None):
         """
+        Defines node-specific attributes for all disease setups, utilized by Node objects.
+
+        Further information can be found at:
         https://docs.idmod.org/projects/emod-generic/en/latest/parameter-demographics.html#nodeattributes
+        https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-demographics.html#nodeattributes
 
         Args:
-            airport:
-            altitude:
-            area:
-            birth_rate:
-            country:
-            growth_rate:
-            name:
-            latitude:
-            longitude:
-            metadata:
-            initial_population:
-            region:
-            seaport:
-            larval_habitat_multiplier:
-            initial_vectors_per_species:
-            infectivity_multiplier:
-            extra_attributes:
+            airport (int, optional): Whether the node has an airport (1 for true, 0 for false).
+            altitude (float, optional): Altitude of the node (in meters).
+            area (float, optional): Spatial size of the node (TODO: unknown units)
+            birth_rate (float, optional): The birth rate in births/day/woman .
+            country (str, optional): Name of the country the node is in.
+            growth_rate (float, optional): TODO: unknown
+            name (str, optional): Name of the node
+            latitude (float, optional): Latitude of the node in degrees.
+            longitude (float, optional): Longitude of the node in degrees.
+            metadata (dict, optional): An arbitrary dict of metaaata key/values to add to the node for notation.
+            initial_population (int, optional): The initial number of people/agents in the node.
+            region (int, optional): Whether the node has a road network (1 for true, 0 for false).
+            seaport (int, optional):  Whether the node has a seaport (1 for true, 0 for false).
+            larval_habitat_multiplier (list(float), optional): The value(s) by which to scale the larval habitat
+                availability specified in the configuration file with Larval_Habitat_Types.
+            initial_vectors_per_species ((dict or int), optional): The initial number of vectors per species in the
+                node.
+            infectivity_multiplier (float, optional): TODO: unknown
+            extra_attributes (dict, optional): An arbitrary dict of attribute key/values to add to the node.
         """
         super().__init__()
         self.airport = airport

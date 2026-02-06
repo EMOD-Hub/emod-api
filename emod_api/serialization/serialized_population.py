@@ -1,6 +1,6 @@
 """Class to load and manipulate a saved population."""
 import difflib
-import emod_api.serialization.dtkFileTools as dft
+import emod_api.serialization.dtk_file_tools as dft
 
 from collections.abc import Iterable
 from typing import Union

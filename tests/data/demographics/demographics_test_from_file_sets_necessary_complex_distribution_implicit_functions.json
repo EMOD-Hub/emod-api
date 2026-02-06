@@ -1,0 +1,143 @@
+{
+   "Defaults": {
+      "IndividualAttributes": {
+         "AgeDistribution": {
+            "DistributionValues": [
+               0.0,
+               1.0
+            ],
+            "ResultScaleFactor": 365.0,
+            "ResultValues": [
+               0,
+               20
+            ]
+         },
+         "FertilityDistribution": {
+            "AxisNames": [
+               "age",
+               "year"
+            ],
+            "AxisScaleFactors": [
+               365.0,
+               1
+            ],
+            "PopulationGroups": [
+               [
+                  15,
+                  25
+               ],
+               [
+                  2005,
+                  2015
+               ]
+            ],
+            "ResultScaleFactor": 2.7397260273972604e-06,
+            "ResultUnits": "annual birth rate per 1000 women",
+            "ResultValues": [
+               [
+                  0.01,
+                  0.02
+               ],
+               [
+                  0.03,
+                  0.04
+               ]
+            ]
+         },
+         "MortalityDistributionFemale": {
+            "AxisNames": [
+               "age",
+               "year"
+            ],
+            "AxisScaleFactors": [
+               365.0,
+               1
+            ],
+            "PopulationGroups": [
+               [
+                  0,
+                  20
+               ],
+               [
+                  2000,
+                  2010
+               ]
+            ],
+            "ResultScaleFactor": 0.0027397260273972603,
+            "ResultUnits": "annual death rate for an individual",
+            "ResultValues": [
+               [
+                  0.1,
+                  0.2
+               ],
+               [
+                  0.3,
+                  0.4
+               ]
+            ]
+         },
+         "MortalityDistributionMale": {
+            "AxisNames": [
+               "age",
+               "year"
+            ],
+            "AxisScaleFactors": [
+               365.0,
+               1
+            ],
+            "PopulationGroups": [
+               [
+                  0,
+                  20
+               ],
+               [
+                  2000,
+                  2010
+               ]
+            ],
+            "ResultScaleFactor": 0.0027397260273972603,
+            "ResultUnits": "annual death rate for an individual",
+            "ResultValues": [
+               [
+                  0.1,
+                  0.2
+               ],
+               [
+                  0.3,
+                  0.4
+               ]
+            ]
+         },
+         "SusceptibilityDistribution": {
+            "DistributionValues": [
+               0,
+               7300
+            ],
+            "ResultScaleFactor": 1,
+            "ResultValues": [
+               0.1,
+               0.2
+            ]
+         }
+      },
+      "NodeAttributes": {
+         "Airport": 1,
+         "BirthRate": 0,
+         "FacilityName": "default_node",
+         "InitialPopulation": 1000,
+         "Latitude": 0,
+         "Longitude": 0,
+         "Region": 1,
+         "Seaport": 1
+      },
+      "NodeID": 0
+   },
+   "Metadata": {
+      "Author": "clarkki",
+      "DateCreated": "11/20/2025",
+      "IdReference": "Gridded world grump2.5arcmin",
+      "NodeCount": 0,
+      "Tool": "emod-api"
+   },
+   "Nodes": []
+}

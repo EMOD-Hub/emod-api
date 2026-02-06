@@ -9,21 +9,12 @@
          "MigrationHeterogeneityDistributionFlag": 0,
          "MortalityDistribution": {
             "AxisNames": [
-               "gender",
-               "age"
+               "age",
+               "year"
             ],
             "AxisScaleFactors": [
-               1,
-               365
-            ],
-            "AxisUnits": [
-               "male=0,female=1",
-               "years"
-            ],
-            "NumDistributionAxes": 2,
-            "NumPopulationGroups": [
-               2,
-               3
+               365.0,
+               1
             ],
             "PopulationGroups": [
                [
@@ -31,13 +22,13 @@
                   1
                ],
                [
-                  0,
-                  100,
-                  2000
+                  2000,
+                  2100,
+                  2200
                ]
             ],
-            "ResultScaleFactor": 2.7397260273972604e-06,
-            "ResultUnits": "annual deaths per 1000 individuals",
+            "ResultScaleFactor": 0.0027397260273972603,
+            "ResultUnits": "annual death rate for an individual",
             "ResultValues": [
                [
                   0,
@@ -88,6 +79,7 @@
          "Altitude": 0,
          "BirthRate": 0.0002,
          "InitialPopulation": 1000,
+         "FacilityName": "default_node",
          "InitialVectorsPerSpecies": {
             "arabiensis": 500,
             "funestus": 500,
@@ -104,7 +96,8 @@
          "Longitude": 36.5,
          "Region": 1,
          "Seaport": 0
-      }
+      },
+     "NodeID": 0
    },
    "Metadata": {
       "Author": "jsteinkraus",
@@ -114,47 +107,6 @@
       "Resolution": 150,
       "Tool": "convertdemog.py"
    },
-   "NodeProperties": [
-      {
-         "Initial_Distribution": [
-            0.6,
-            0.4
-         ],
-         "Property": "Place",
-         "Values": [
-            "RURAL",
-            "URBAN"
-         ]
-      },
-      {
-         "Initial_Distribution": [
-            0.1,
-            0.2,
-            0.7
-         ],
-         "Property": "Risk",
-         "Values": [
-            "HIGH",
-            "MED",
-            "LOW"
-         ]
-      },
-      {
-         "Initial_Distribution": [
-            0.4,
-            0.2,
-            0.3,
-            0.1
-         ],
-         "Property": "InterventionStatus",
-         "Values": [
-            "NONE",
-            "SPRAYED_A",
-            "SPRAYED_B",
-            "FENCE_AND_TRAP"
-         ]
-      }
-   ],
    "Nodes": [
       {
          "IndividualAttributes": {
@@ -169,21 +121,12 @@
             "MigrationHeterogeneityDistributionFlag": 0,
             "MortalityDistribution": {
                "AxisNames": [
-                  "gender",
-                  "age"
+                  "age",
+                  "year"
                ],
                "AxisScaleFactors": [
-                  1,
-                  365
-               ],
-               "AxisUnits": [
-                  "male=0,female=1",
-                  "years"
-               ],
-               "NumDistributionAxes": 2,
-               "NumPopulationGroups": [
-                  2,
-                  3
+                  365.0,
+                  1
                ],
                "PopulationGroups": [
                   [
@@ -191,13 +134,13 @@
                      1
                   ],
                   [
-                     0,
-                     100,
-                     2000
+                     2000,
+                     2100,
+                     2200
                   ]
                ],
-               "ResultScaleFactor": 2.7397260273972604e-06,
-               "ResultUnits": "annual deaths per 1000 individuals",
+               "ResultScaleFactor": 0.0027397260273972603,
+               "ResultUnits": "annual death rate for an individual",
                "ResultValues": [
                   [
                      0,
@@ -273,21 +216,12 @@
             "MigrationHeterogeneityDistributionFlag": 0,
             "MortalityDistribution": {
                "AxisNames": [
-                  "gender",
-                  "age"
+                  "age",
+                  "year"
                ],
                "AxisScaleFactors": [
-                  1,
-                  365
-               ],
-               "AxisUnits": [
-                  "male=0,female=1",
-                  "years"
-               ],
-               "NumDistributionAxes": 2,
-               "NumPopulationGroups": [
-                  2,
-                  3
+                  365.0,
+                  1
                ],
                "PopulationGroups": [
                   [
@@ -295,13 +229,13 @@
                      1
                   ],
                   [
-                     0,
-                     100,
-                     2000
+                     2000,
+                     2100,
+                     2200
                   ]
                ],
-               "ResultScaleFactor": 2.7397260273972604e-06,
-               "ResultUnits": "annual deaths per 1000 individuals",
+               "ResultScaleFactor": 0.0027397260273972603,
+               "ResultUnits": "annual death rate for an individual",
                "ResultValues": [
                   [
                      0,
@@ -375,21 +309,12 @@
             "MigrationHeterogeneityDistributionFlag": 0,
             "MortalityDistribution": {
                "AxisNames": [
-                  "gender",
-                  "age"
+                  "age",
+                  "year"
                ],
                "AxisScaleFactors": [
-                  1,
-                  365
-               ],
-               "AxisUnits": [
-                  "male=0,female=1",
-                  "years"
-               ],
-               "NumDistributionAxes": 2,
-               "NumPopulationGroups": [
-                  2,
-                  3
+                  365.0,
+                  1
                ],
                "PopulationGroups": [
                   [
@@ -397,13 +322,13 @@
                      1
                   ],
                   [
-                     0,
-                     100,
-                     2000
+                     2000,
+                     2100,
+                     2200
                   ]
                ],
-               "ResultScaleFactor": 2.7397260273972604e-06,
-               "ResultUnits": "annual deaths per 1000 individuals",
+               "ResultScaleFactor": 0.0027397260273972603,
+               "ResultUnits": "annual death rate for an individual",
                "ResultValues": [
                   [
                      0,
@@ -455,21 +380,12 @@
             "MigrationHeterogeneityDistributionFlag": 0,
             "MortalityDistribution": {
                "AxisNames": [
-                  "gender",
-                  "age"
+                  "age",
+                  "year"
                ],
                "AxisScaleFactors": [
-                  1,
-                  365
-               ],
-               "AxisUnits": [
-                  "male=0,female=1",
-                  "years"
-               ],
-               "NumDistributionAxes": 2,
-               "NumPopulationGroups": [
-                  2,
-                  3
+                  365.0,
+                  1
                ],
                "PopulationGroups": [
                   [
@@ -477,13 +393,13 @@
                      1
                   ],
                   [
-                     0,
-                     100,
-                     2000
+                     2000,
+                     2100,
+                     2200
                   ]
                ],
-               "ResultScaleFactor": 2.7397260273972604e-06,
-               "ResultUnits": "annual deaths per 1000 individuals",
+               "ResultScaleFactor": 0.0027397260273972603,
+               "ResultUnits": "annual death rate for an individual",
                "ResultValues": [
                   [
                      0,

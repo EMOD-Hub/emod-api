@@ -1,17 +1,15 @@
-import json
 import math
-from emod_api.demographics.Updateable import Updateable
-from emod_api.demographics.PropertiesAndAttributes import IndividualAttributes, IndividualProperty, IndividualProperties, NodeAttributes
-from emod_api.demographics.age_distribution_old import AgeDistributionOld as AgeDistribution
-from emod_api.demographics.fertility_distribution_old import FertilityDistributionOld as FertilityDistribution
-from emod_api.demographics.mortality_distribution_old import MortalityDistributionOld as MortalityDistribution
-from emod_api.demographics.susceptibility_distribution_old import SusceptibilityDistributionOld as SusceptibilityDistribution
+from typing import Callable, List, Tuple
+
+from emod_api.demographics.age_distribution import AgeDistribution
+from emod_api.demographics.fertility_distribution import FertilityDistribution
+from emod_api.demographics.mortality_distribution import MortalityDistribution
+from emod_api.demographics.susceptibility_distribution import SusceptibilityDistribution
+from emod_api.demographics.updateable import Updateable
+from emod_api.demographics.properties_and_attributes import IndividualAttributes, IndividualProperty, IndividualProperties, NodeAttributes
 
 
 class Node(Updateable):
-    # TODO: clean this up, without being all caps it looks like a modifiable attribute of a Node, not a class const
-    default_population = 1000
-
     # ability to resolve between Nodes
     res_in_degrees = 2.5 / 60
 
@@ -21,25 +19,32 @@ class Node(Updateable):
                  pop: float,
                  name: str = None,
                  area: float = None,
+                 # TODO: consider deprecating 'forced_id' as an argument and renaming it to simply 'id' for clarity and
+                 #  brevity.
                  forced_id: int = None,
                  individual_attributes: IndividualAttributes = None,
                  individual_properties: IndividualProperties = None,
                  node_attributes: NodeAttributes = None,
                  meta: dict = None):
         """
-        Represent a Node (the metapopulation unit)
+        A Node in EMOD is synonymous with a group of people (model agents). A node typically represents a spatial
+        geography (for example, a city, province, or country), but does not have to. Arguments to Node construction
+        define states of the agents (individual_properties), their initial attributes and distributions
+        (initial_attributes), and attributes of the node (group) as a whole (node_attributes).
 
         Args:
-            lat: Latitude in degrees
-            lon: Longitude in degrees
-            pop: Population
-            name: name of the node
-            area: Area
-            forced_id: A custom id instead of the default ID based on lat/lon
-            individual_attributes: `emod_api.demographics.PropertiesAndAttributes.IndividualAttributes`
-            individual_properties: `emod_api.demographics.PropertiesAndAttributes.IndividualProperty`
-            node_attributes: `emod_api.demographics.PropertiesAndAttributes.NodeAttributes`
-            meta: A metadata dictionary for a Node. Entries in here are effectively comments as EMOD
+            lat (float): Latitude of the node in degrees.
+            lon (float): Longitude of the node in degrees.
+            pop (int): Initial population of the node.
+            name (str): Name of the node.
+            area (float): Area of the node. # TODO: units unknown
+            forced_id (int): ID of the node
+            individual_attributes (IndividualAttributes): Specifies initial distributions of various agent attributes,
+                such as age, fertility, and mortality.
+            individual_properties (IndividualProperties): Specifies the utilized IndividualProperty objects for the
+                node, which define properties of individual model agents.
+            node_attributes (NodeAttributes): Specifies node-specific attributes.
+            meta (dict): A metadata dictionary for a Node. Entries in here are effectively comments as EMOD
                   binaries do not recognize node-level metadata.
         """
         super().__init__()
@@ -127,7 +132,7 @@ class Node(Updateable):
 
     @classmethod
     def from_data(cls,
-                  data: dict):
+                  data: dict) -> Tuple["Node", List[Callable]]:
         """
         Function used to create the node object from data (most likely coming from a demographics file)
 
@@ -135,8 +140,10 @@ class Node(Updateable):
             data (dict): Contains the node definitions
 
         Returns:
-            (Node): New Node object
+            A New Node object and a list of known implicit functions needed for config compatibility.
         """
+        implicit_functions = []
+
         nodeid = data["NodeID"]
         node_attributes_dict = dict(data.get("NodeAttributes"))
         attributes = data["NodeAttributes"]
@@ -146,26 +153,24 @@ class Node(Updateable):
 
         individual_properties = IndividualProperties()
         if individual_properties_dict:
-            if type(individual_properties_dict) is dict:
-                individual_properties.append(individual_properties_dict)
-            if type(individual_properties_dict) is list:
-                for ip in individual_properties_dict:
-                    individual_properties.add(IndividualProperty(property=ip["Property"],
-                                                                 values=ip["Values"],
-                                                                 transitions=ip["Transitions"],
-                                                                 initial_distribution=ip["Initial_Distribution"]))
+            for ip in individual_properties_dict:
+                individual_properties.add(IndividualProperty(property=ip["Property"],
+                                                             values=ip["Values"],
+                                                             transitions=ip["Transitions"],
+                                                             initial_distribution=ip["Initial_Distribution"]))
         individual_attributes = None
         if individual_attributes_dict:
-            individual_attributes = IndividualAttributes().from_dict(individual_attributes_dict)
+            individual_attributes, implicit_functions = IndividualAttributes().from_dict(individual_attributes_dict)
 
         node_attributes = None
         if node_attributes_dict:
             node_attributes = NodeAttributes().from_dict(node_attributes_dict)
 
-        # Create the node and return
-        return cls(node_attributes.latitude, node_attributes.longitude, node_attributes.initial_population,
+        # Create the node and return plus any known necessary implicit functions
+        node = cls(node_attributes.latitude, node_attributes.longitude, node_attributes.initial_population,
                    name=name, forced_id=nodeid, individual_attributes=individual_attributes,
                    individual_properties=individual_properties, node_attributes=node_attributes)
+        return node, implicit_functions
 
     @property
     def pop(self):
@@ -422,24 +427,6 @@ class Node(Updateable):
         self.individual_attributes.fertility_distribution = distribution
 
 
-class OverlayNode(Node):
-    """
-    Node that only requires an ID. Use to overlay a Node.
-    """
-
-    def __init__(self,
-                 node_id,
-                 latitude=None,
-                 longitude=None,
-                 initial_population=None,
-                 **kwargs
-                 ):
-        super(OverlayNode, self).__init__(latitude, longitude, initial_population,
-                                          forced_id=node_id,
-                                          **kwargs
-                                          )
-
-
 def get_xpix_ypix(nodeid):
     """ Get pixel position from nodid. Inverse of :py:func:`nodeid_from_lat_lon` """
     ypix = (nodeid - 1) & 2 ** 16 - 1
@@ -467,26 +454,3 @@ def nodeid_from_lat_lon(lat, lon, res_in_deg=Node.res_in_degrees):
     xpix, ypix = xpix_ypix_from_lat_lon(lat, lon, res_in_deg)
     nodeid = (xpix << 16) + ypix + 1
     return nodeid
-
-
-def nodes_for_DTK(filename, nodes):
-    """
-    Write nodes to a file in JSON format for EMOD
-
-    Args:
-        filename (str): Name of output file
-        nodes (list[Node]): List of Node objects
-    """
-    with open(filename, "w") as f:
-        json.dump(
-            {"Nodes": [{"NodeID": n.id, "NodeAttributes": n.to_dict()} for n in nodes]},
-            f,
-            indent=4,
-        )
-
-
-def basicNode(lat: float = 0, lon: float = 0, pop: int = int(1e6), name: str = "node_name", forced_id: int = 1):
-    """
-    A single node with population 1 million
-    """
-    return Node(lat, lon, pop, name=name, forced_id=forced_id)

@@ -1,28 +1,19 @@
 {
    "Defaults": {
       "IndividualAttributes": {
-         "ImmunityDistribution1": 1,
-         "ImmunityDistribution2": 0,
-         "ImmunityDistributionFlag": 0,
+         "InnateImmuneDistribution1": 1,
+         "InnateImmuneDistribution2": 0,
+         "InnateImmuneDistributionFlag": 0,
          "MigrationHeterogeneityDistribution1": 1,
          "MigrationHeterogeneityDistribution2": 0,
          "MigrationHeterogeneityDistributionFlag": 0,
-         "MortalityDistribution": {
+         "MortalityDistributionMale": {
             "AxisNames": [
-               "gender",
-               "age"
+               "age",
+               "year"
             ],
             "AxisScaleFactors": [
-               1,
-               365
-            ],
-            "AxisUnits": [
-               "male=0,female=1",
-               "years"
-            ],
-            "NumDistributionAxes": 2,
-            "NumPopulationGroups": [
-               2,
+               365.0,
                1
             ],
             "PopulationGroups": [
@@ -31,17 +22,46 @@
                   1
                ],
                [
-                  0
+                  2020
                ]
             ],
-            "ResultScaleFactor": 2.74e-06,
-            "ResultUnits": "annual deaths per 1000 individuals",
+            "ResultScaleFactor": 0.0027397260273972603,
+            "ResultUnits": "annual death rate for an individual",
             "ResultValues": [
                [
                   23.0
                ],
                [
                   23.0
+               ]
+            ]
+         },
+         "MortalityDistributionFemale": {
+            "AxisNames": [
+               "age",
+               "year"
+            ],
+            "AxisScaleFactors": [
+               365.0,
+               1
+            ],
+            "PopulationGroups": [
+               [
+                  0,
+                  1
+               ],
+               [
+                  2020
+               ]
+            ],
+            "ResultScaleFactor": 0.0027397260273972603,
+            "ResultUnits": "annual death rate for an individual",
+            "ResultValues": [
+               [
+                  24.0
+               ],
+               [
+                  24.0
                ]
             ]
          },
@@ -53,16 +73,20 @@
          "RiskDistributionFlag": 0
       },
       "NodeAttributes": {
-         "AbovePoverty": 0.5,
          "Airport": 0,
          "Altitude": 0,
-         "BirthRateSource": "World Bank",
-         "CountryBirthRate": 36.30287175670945,
          "Region": 1,
          "Seaport": 0,
-         "Urban": 0,
-         "World Bank Year": "2016"
-      }
+         "FacilityName": "default_node",
+         "BirthRate": 36.30287175670945,
+         "Metadata": {
+           "AbovePoverty": 0.5,
+           "BirthRateSource": "World Bank",
+           "World Bank Year": "2016",
+           "Urban": 0
+         }
+      },
+      "NodeID": 0
    },
    "Metadata": {
       "Author": "idm",
@@ -120,7 +144,7 @@
                      0.9982896317086243,
                      1.00000000000000
                ],
-               "ResultScaleFactor": 365,
+               "ResultScaleFactor": 365.0,
                "ResultValues": [
                  0.0,
                  2.4493150684931506,
@@ -166,36 +190,27 @@
                  100.40821917808219
                ]
             },
-            "MortalityDistribution": {
-               "AxisNames": [
-                  "gender",
-                  "age"
-               ],
-               "AxisScaleFactors": [
-                  1,
-                  365
-               ],
-               "AxisUnits": [
-                  "male=0,female=1",
-                  "years"
-               ],
-               "NumDistributionAxes": 2,
-               "NumPopulationGroups": [
-                  2,
-                  1
-               ],
-               "PopulationGroups": [
-                  [
-                     0,
-                     1
-                  ],
-                  [
-                     0
-                  ]
-               ],
-               "ResultScaleFactor": 2.74e-06,
-               "ResultUnits": "annual deaths per 1000 individuals",
-               "ResultValues": [
+            "MortalityDistributionMale": {
+              "AxisNames": [
+                 "age",
+                 "year"
+              ],
+              "AxisScaleFactors": [
+                 365.0,
+                 1
+              ],
+              "PopulationGroups": [
+                 [
+                    0,
+                    1
+                 ],
+                 [
+                    2020
+                 ]
+              ],
+              "ResultScaleFactor": 0.0027397260273972603,
+              "ResultUnits": "annual death rate for an individual",
+              "ResultValues": [
                   [
                      38.92
                   ],
@@ -203,7 +218,37 @@
                      38.92
                   ]
                ]
+            },
+            "MortalityDistributionFemale": {
+              "AxisNames": [
+                 "age",
+                 "year"
+              ],
+              "AxisScaleFactors": [
+                 365.0,
+                 1
+              ],
+              "PopulationGroups": [
+                 [
+                    0,
+                    1
+                 ],
+                 [
+                    2020
+                 ]
+              ],
+              "ResultScaleFactor": 0.0027397260273972603,
+              "ResultUnits": "annual death rate for an individual",
+              "ResultValues": [
+                  [
+                     39.92
+                  ],
+                  [
+                     39.92
+                  ]
+               ]
             }
+
          },
          "NodeAttributes": {
             "BirthRate": 0.10663013698630137,

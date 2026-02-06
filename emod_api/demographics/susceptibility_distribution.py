@@ -1,6 +1,6 @@
 import emod_api.demographics.demographic_exceptions as demog_ex
 
-from emod_api.demographics.Updateable import Updateable
+from emod_api.demographics.updateable import Updateable
 from emod_api.utils import check_dimensionality
 
 

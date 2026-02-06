@@ -1,4 +1,4 @@
-import emod_api.demographics.Demographics as Dem
+import emod_api.demographics.demographics as Dem
 import os
 import pandas as pd
 import json
@@ -50,7 +50,7 @@ class DemogFromPop():
 
         demog.SetDefaultProperties()
 
-        demog.generate_file(self.burkina_demographic_filename)
+        demog.to_file(self.burkina_demographic_filename)
         self.assertTrue(os.path.isfile(self.burkina_demographic_filename), msg="burkina_demog.json is not generated.")
 
         # Checking consistency between burkina and grid files
