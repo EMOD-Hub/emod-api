@@ -7,7 +7,7 @@ name = "emod-api"
 version = "2.2.0"
 description = "Core tools for modeling using EMOD"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
     {name = "Sharon Chen", email = "sharon.chen@gatesfoundation.org"},
     {name = "Zhaowei Du", email = "zhaowei.du@gatesfoundation.org"},
@@ -16,7 +16,7 @@ authors = [
     {name = "Svetlana Titova", email = "svetlana.titova@gatesfoundation.org"},
     {name = "Ye Chen", email = "ye.chen@gatesfoundation.org"},
 ]
-keywords = ['modeling', 'IDM']
+keywords = ["modeling", "IDM"]
 
 # ---------------------------------------------------------------
 # I want to add "python-snappy==0.6.1", but it requires SnappyC
