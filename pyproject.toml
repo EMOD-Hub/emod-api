@@ -1,13 +1,13 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "emod-api"
-version = "1.34.0"
+version = "1.35.0"
 description = "Core tools for modeling using EMOD"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
     {name = "Sharon Chen", email = "sharon.chen@gatesfoundation.org"},
     {name = "Zhaowei Du", email = "zhaowei.du@gatesfoundation.org"},
@@ -16,7 +16,7 @@ authors = [
     {name = "Svetlana Titova", email = "svetlana.titova@gatesfoundation.org"},
     {name = "Ye Chen", email = "ye.chen@gatesfoundation.org"},
 ]
-keywords = ['modeling', 'IDM']
+keywords = ["modeling", "IDM"]
 
 # ---------------------------------------------------------------
 # I want to add "python-snappy==0.6.1", but it requires SnappyC
@@ -39,14 +39,12 @@ license = "MIT"
 classifiers = [
     "Intended Audience :: Science/Research",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
     "Operating System :: OS Independent",
-    "Framework :: IDM-Tools :: models",
 ]
 
 [project.optional-dependencies]
@@ -59,11 +57,6 @@ docs = [
 ]
 lint = [
     "flake8",
-]
-packaging = [
-    "build",
-    "twine",
-    "bump2version",
 ]
 test = [
     "emod-common",
@@ -81,3 +74,13 @@ Issues = "https://github.com/EMOD-Hub/emod-api/issues"
 
 [tool.setuptools.packages]
 find = {include = ["emod_api*"]}
+
+[tool.bumpversion]
+current_version = "1.35.0"
+commit = true
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+
+[[tool.bumpversion.files]]
+filename = "emod_api/__init__.py"
