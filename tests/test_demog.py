@@ -90,9 +90,8 @@ class DemogTest(unittest.TestCase):
         self.assertIn('BirthRate', demog.raw['Defaults']['NodeAttributes'])
         self.assertIn('AgeDistribution', demog.raw['Defaults']['IndividualAttributes'])
         self.assertIn('MortalityDistribution', demog.raw['Defaults']['IndividualAttributes'])
-        self.assertIn('SusceptibilityDistribution', demog.raw['Defaults']['IndividualAttributes'])
         self.assertIn('IndividualProperties', demog.raw['Defaults'])
-        self.assertEqual(len(demog.implicits), 5)
+        self.assertEqual(len(demog.implicits), 4)
 
     def test_add_age_dependent_transmission(self):
         demog = Demographics.from_template_node()
@@ -107,7 +106,7 @@ class DemogTest(unittest.TestCase):
             'Age_Bin_Edges_In_Years'])
         self.assertEqual(transmission_matrix, demog.raw['Defaults']['IndividualProperties'][0]['TransmissionMatrix'][
             'Matrix'])
-        self.assertEqual(len(demog.implicits), 7)
+        self.assertEqual(len(demog.implicits), 6)
 
     def test_add_ip_and_hint(self):
         implicit_config_fns = []
@@ -123,7 +122,7 @@ class DemogTest(unittest.TestCase):
             'Values'])
         self.assertEqual(initial_distribution,
                          demog.raw['Defaults']['IndividualProperties'][0]['Initial_Distribution'])
-        self.assertEqual(len(demog.implicits), 5)
+        self.assertEqual(len(demog.implicits), 4)
 
         # Error handling
 
@@ -151,7 +150,7 @@ class DemogTest(unittest.TestCase):
             'Values'])
         self.assertEqual(initial_distribution,
                          demog.raw['Defaults']['IndividualProperties'][0]['Initial_Distribution'])
-        self.assertEqual(len(demog.implicits), 6)
+        self.assertEqual(len(demog.implicits), 5)
 
     def test_add_ip_and_hint_agebin(self):
         demog = Demographics.from_template_node()
@@ -168,7 +167,7 @@ class DemogTest(unittest.TestCase):
             'Age_Bin_Edges_In_Years'])
         self.assertEqual(transmission_matrix,
                          demog.raw['Defaults']['IndividualProperties'][0]['TransmissionMatrix']['Matrix'])
-        self.assertEqual(len(demog.implicits), 6)
+        self.assertEqual(len(demog.implicits), 5)
 
     def test_add_ip_and_hint_transmission_matrix(self):
         demog = Demographics.from_template_node()
@@ -187,7 +186,7 @@ class DemogTest(unittest.TestCase):
                          demog.raw['Defaults']['IndividualProperties'][0]['Initial_Distribution'])
         self.assertEqual(transmission_matrix,
                          demog.raw['Defaults']['IndividualProperties'][0]['TransmissionMatrix']['Matrix'])
-        self.assertEqual(len(demog.implicits), 6)
+        self.assertEqual(len(demog.implicits), 5)
 
     def test_add_ip_and_hint_defaults(self):
         demog = Demographics.from_template_node()
@@ -223,7 +222,6 @@ class DemogTest(unittest.TestCase):
         demog.SetDefaultPropertiesFertMort(crude_birth_rate=c_birth_rate, crude_mort_rate=c_mort_rate)
         from emod_api.demographics.DemographicsTemplates import CrudeRate
         self.assertEqual(demog.raw['Defaults']['NodeAttributes']['BirthRate'], CrudeRate(c_birth_rate).get_dtk_rate() ) # Currently this is some default in the code
-        self.assertEqual(demog.raw['Defaults']['IndividualAttributes']['SusceptibilityDistribution'], default_susc) 
 
     def test_set_overdispersion(self):
         demog = Demographics.from_template_node()

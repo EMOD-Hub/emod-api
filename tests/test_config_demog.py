@@ -29,7 +29,7 @@ class DemoConfigTest(unittest.TestCase):
                 values = ["high", "low"]
             demog.AddIndividualPropertyAndHINT(property, values)
         
-            self.assertEqual(len(demog.implicits), 5+index)
+            self.assertEqual(len(demog.implicits), 4+index)
             demog.implicits[-1](self.config)
             if index == 0:
                 self.assertTrue("Disable_IP_Whitelist" not in self.config.parameters)
@@ -45,7 +45,7 @@ class DemoConfigTest(unittest.TestCase):
             demog = Demographics.from_template_node()
             demog.SetDefaultProperties()
             demog.AddIndividualPropertyAndHINT("Risk", ["High", "Low"], TransmissionMatrix = tranmission_matrix)
-            self.assertEqual(len(demog.implicits), 5+i)
+            self.assertEqual(len(demog.implicits), 4+i)
             demog.implicits[-1](self.config)
             if i == 0:
                 self.assertEqual(self.config.parameters.Enable_Heterogeneous_Intranode_Transmission, 0)
