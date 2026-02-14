@@ -789,7 +789,6 @@ class DemographicsBase(BaseInputFile):
         DT.AgeStructureUNWPP(self)
         # Mortality rates carried over from Nigeria DHS
         DT.MortalityStructureNigeriaDHS(self)
-        DT.DefaultSusceptibilityDistribution(self)
 
     def SetMinimalNodeAttributes(self): 
         self.SetDefaultNodeAttributes(birth=False)
