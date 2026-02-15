@@ -55,7 +55,7 @@ def _create_grid_files(point_records_file_in, final_grid_files_dir, site):
         grid_dict, grid_id_2_cell_id, origin, final = grid.construct(x_min, y_min, x_max, y_max)
 
         # Write csv data
-        with open(os.path.join(final_grid_files_dir, f"{site}_grid.csv"), "w") as g_f:
+        with open(os.path.join(final_grid_files_dir, f"{site}_grid_int.csv"), "w") as g_f:
             csv_obj = csv.writer(g_f, dialect='unix')
             header_vals = list(grid_dict.keys())
             csv_obj.writerow(header_vals)
@@ -69,12 +69,15 @@ def _create_grid_files(point_records_file_in, final_grid_files_dir, site):
         grid_id_c = list()
         grid_id_x = list()
         grid_id_y = list()
-        for idx in range(pop_vec.shape[0]):
+        for idx in range(len(pop)):
             point = (lon[idx], lat[idx])
             idx_tup = grid.point_2_grid_cell_id_lookup(point, grid_id_2_cell_id, origin)
             grid_id_c.append(idx_tup[0])
             grid_id_x.append(idx_tup[1])
             grid_id_y.append(idx_tup[2])
+
+
+        print(grid_id_c[:10], lon[:10], lat[:10])
 
 
         grid_pop = point_records.groupby(['gcid', 'gidx', 'gidy'])['pop'].apply(np.sum).reset_index()

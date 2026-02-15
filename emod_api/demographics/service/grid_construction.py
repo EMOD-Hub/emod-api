@@ -18,7 +18,7 @@ from shapely.geometry import Point
 import pyproj
 
 # square grid cell/pixel side (in m)
-cell_size = 1000
+cell_size = 1000.0
 
 # projection param
 geod = pyproj.Geod(ellps='WGS84')
@@ -42,8 +42,8 @@ def construct(x_min, y_min, x_max, y_max):
     # get the centroid of the cell right-up from the grid max corner; that is the final point of the grid
     final = geod.fwd(x_max, y_max, 45, cell_size / math.sqrt(2))
 
-    fwdax, backax, dx = geod.inv(origin[0], origin[1], final[0], origin[1])
-    fwday, backay, dy = geod.inv(origin[0], origin[1], origin[0], final[1])
+    (fwdax, _, dx) = geod.inv(origin[0], origin[1], final[0], origin[1])
+    (fwday, _, dy) = geod.inv(origin[0], origin[1], origin[0], final[1])
 
     # construct grid
     x = origin[0]
@@ -106,13 +106,11 @@ def get_bbox(data):
 
 def point_2_grid_cell_id_lookup(point, grid_id_2_cell_id, origin):
 
-    p = (point["lon"], point["lat"])
+    (_, _, dx) = geod.inv(origin[0], origin[1], point[0], origin[1])
+    (_, _, dy) = geod.inv(origin[0], origin[1], origin[0], point[1])
 
-    fwdax, backax, dx = geod.inv(origin[0], origin[1], p[0], origin[1])
-    fwday, backay, dy = geod.inv(origin[0], origin[1], origin[0], p[1])
-
-    idx = int(dx / (cell_size + 0.0)) + 1
-    idy = int(dy / (cell_size + 0.0)) + 1
+    idx = int(dx / cell_size) + 1
+    idy = int(dy / cell_size) + 1
 
     grid_id = get_grid_cell_id(idx, idy)
 
