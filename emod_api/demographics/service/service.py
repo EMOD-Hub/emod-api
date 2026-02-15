@@ -1,5 +1,6 @@
 import os
 import json
+import csv
 import pandas as pd
 import numpy as np # just for a sum function right now
 import emod_api.demographics.service.grid_construction as grid
@@ -20,29 +21,61 @@ def _create_grid_files(point_records_file_in, final_grid_files_dir, site):
         # Then manip data...
         print(f"{out_path} not found so we are going to create it.")
         print(f"Reading {point_records_file_in}.")
-        point_records = pd.read_csv(point_records_file_in, encoding="iso-8859-1")
-        point_records.rename(columns={'longitude': 'lon', 'latitude': 'lat'}, inplace=True)
+        with open(point_records_file_in) as csv_file:
+            csv_obj = csv.reader(csv_file, dialect='unix')
 
-        if 'pop' not in point_records.columns:
-            point_records['pop'] = [5.5] * len(point_records)
+            headers = next(csv_obj, None)
+            lat_idx = headers.index('latitude')
+            lon_idx = headers.index('longitude')
+            pop_idx = None
+            if ('hh_size' in headers):
+                pop_idx = headers.index('hh_size')
+            elif ('pop' in headers):
+                pop_idx = headers.index('pop')
+            else:
+                pop_idx = None
 
-        if 'hh_size' in point_records.columns:
-            point_records['pop'] = point_records['hh_size']
+            lat = list()
+            lon = list()
+            pop = list()
+            for row_val in csv_obj:
+                lat.append(float(row_val[lat_idx]))
+                lon.append(float(row_val[lon_idx]))
+                if (pop_idx):
+                    pop.append(float(row_val[pop_idx]))
+                else:
+                    pop.append(5.5)
 
-        # point_records = point_records[point_records['pop']>0]
-        x_min, y_min, x_max, y_max = grid.get_bbox(point_records)
-        point_records = point_records[(point_records.lon >= x_min)
-                                      & (point_records.lon <= x_max)
-                                      & (point_records.lat >= y_min)
-                                      & (point_records.lat <= y_max)]
-        gridd, grid_id_2_cell_id, origin, final = grid.construct(x_min, y_min, x_max, y_max)
-        gridd.to_csv(os.path.join(final_grid_files_dir, f"{site}_grid.csv"))
+        x_min = np.min(lon)
+        x_max = np.max(lon)
+        y_min = np.min(lat)
+        y_max = np.max(lat)
 
+        #gridd, grid_id_2_cell_id, origin, final = grid.construct(x_min, y_min, x_max, y_max)
+        grid_dict, grid_id_2_cell_id, origin, final = grid.construct(x_min, y_min, x_max, y_max)
+
+        # Write csv data
+        with open(os.path.join(final_grid_files_dir, f"{site}_grid.csv"), "w") as g_f:
+            csv_obj = csv.writer(g_f, dialect='unix')
+            header_vals = list(grid_dict.keys())
+            csv_obj.writerow(header_vals)
+            for row_idx in range(len(grid_dict[header_vals[0]])):
+                csv_obj.writerow([grid_dict[h_val][row_idx] for h_val in header_vals])
+
+        # Write cell_id dictionary
         with open(os.path.join(final_grid_files_dir, f"{site}_grid_id_2_cell_id.json"), "w") as g_f:
             json.dump(grid_id_2_cell_id, g_f, indent=3)
 
-        rec_val = point_records.apply(grid.point_2_grid_cell_id_lookup, args=(grid_id_2_cell_id, origin,), axis=1).apply(pd.Series)
-        point_records[['gcid', 'gidx', 'gidy']] = rec_val
+        grid_id_c = list()
+        grid_id_x = list()
+        grid_id_y = list()
+        for idx in range(pop_vec.shape[0]):
+            point = (lon[idx], lat[idx])
+            idx_tup = grid.point_2_grid_cell_id_lookup(point, grid_id_2_cell_id, origin)
+            grid_id_c.append(idx_tup[0])
+            grid_id_x.append(idx_tup[1])
+            grid_id_y.append(idx_tup[2])
+
 
         grid_pop = point_records.groupby(['gcid', 'gidx', 'gidy'])['pop'].apply(np.sum).reset_index()
         grid_pop['pop'] = grid_pop['pop'].apply(lambda x: round(x / 5))

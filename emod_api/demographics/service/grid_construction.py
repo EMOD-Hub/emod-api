@@ -12,8 +12,6 @@
 import math
 import logging
 
-from copy import deepcopy
-
 import numpy as np
 import pandas as pd
 from shapely.geometry import Point
@@ -38,45 +36,38 @@ def construct(x_min, y_min, x_max, y_max):
 
     logging.info("Creating grid...")
 
-    # create corners of rectangle to be transformed to a grid
-    min_corner = Point((x_min, y_min))
-    max_corner = Point((x_max, y_max))
-
     # get the centroid of the cell left-down from the grid min corner; that is the origin of the grid
-    origin = geod.fwd(min_corner.x, min_corner.y, -135, cell_size / math.sqrt(2))
-    origin = Point(origin[0], origin[1])
+    origin = geod.fwd(x_min, y_min, -135, cell_size / math.sqrt(2))
 
     # get the centroid of the cell right-up from the grid max corner; that is the final point of the grid
-    final = geod.fwd(max_corner.x, max_corner.y, 45, cell_size / math.sqrt(2))
-    final = Point(final[0], final[1])
+    final = geod.fwd(x_max, y_max, 45, cell_size / math.sqrt(2))
 
-    fwdax, backax, dx = geod.inv(origin.x, origin.y, final.x, origin.y)
-    fwday, backay, dy = geod.inv(origin.x, origin.y, origin.x, final.y)
+    fwdax, backax, dx = geod.inv(origin[0], origin[1], final[0], origin[1])
+    fwday, backay, dy = geod.inv(origin[0], origin[1], origin[0], final[1])
 
     # construct grid
-    x = origin.x
-    y = origin.y
+    x = origin[0]
+    y = origin[1]
 
-    current_point = deepcopy(origin)
-    grid_id_2_cell_id = {}
+    current_point = (x, y)
+    grid_id_2_cell_id = dict()
 
     idx = 0
-
     cell_id = 0
-    grid_lons = []
-    grid_lats = []
+    grid_lons = list()
+    grid_lats = list()
+    gcids = list()
 
-    gcids = []
-    while x < final.x:
-        y = origin.y
+    while x < final[0]:
+        y = origin[1]
         idy = 0
 
-        while y < final.y:
-            y = geod.fwd(current_point.x, y, fwday, cell_size)[1]
-            current_point = Point(x, y)
+        while y < final[1]:
+            y = geod.fwd(current_point[0], y, fwday, cell_size)[1]
+            current_point = (x, y)
 
-            grid_lats.append(current_point.y)
-            grid_lons.append(current_point.x)
+            grid_lats.append(current_point[1])
+            grid_lons.append(current_point[0])
 
             grid_id = get_grid_cell_id(idx, idy)
             grid_id_2_cell_id[grid_id] = cell_id
@@ -85,22 +76,17 @@ def construct(x_min, y_min, x_max, y_max):
             gcids.append(cell_id)
             idy += 1
 
-        x = geod.fwd(current_point.x, current_point.y, fwdax, cell_size)[0]
-        current_point = Point(x, current_point.y)
+        x = geod.fwd(current_point[0], current_point[1], fwdax, cell_size)[0]
+        current_point = (x, current_point[1])
         idx += 1
 
-    grid = pd.DataFrame(data=grid_lats, index=np.arange(len(grid_lats)), columns=["lat"])
-    grid["lon"] = grid_lons
-    grid["gcid"] = gcids
-
-    num_cells_x = len(set(grid_lons))
-    num_cells_y = len(set(grid_lats))
+    grid_dict = {"lat": grid_lats, "lon": grid_lons, "gcid": gcids}
 
     logging.info("Created grid of size")
-    logging.info(str(num_cells_x) + "x" + str(num_cells_y))
+    logging.info(str(len(set(grid_lons))) + "x" + str(len(set(grid_lats))))
     logging.info("Done.")
 
-    return grid, grid_id_2_cell_id, origin, final
+    return grid_dict, grid_id_2_cell_id, origin, final
 
 
 def get_bbox(data):
@@ -118,17 +104,12 @@ def get_bbox(data):
     return x_min, y_min, x_max, y_max
 
 
-def lon_lat_2_point(lon, lat):
-
-    return Point(lon, lat)
-
-
 def point_2_grid_cell_id_lookup(point, grid_id_2_cell_id, origin):
 
-    p = lon_lat_2_point(point["lon"], point["lat"])
+    p = (point["lon"], point["lat"])
 
-    fwdax, backax, dx = geod.inv(origin.x, origin.y, p.x, origin.y)
-    fwday, backay, dy = geod.inv(origin.x, origin.y, origin.x, p.y)
+    fwdax, backax, dx = geod.inv(origin[0], origin[1], p[0], origin[1])
+    fwday, backay, dy = geod.inv(origin[0], origin[1], origin[0], p[1])
 
     idx = int(dx / (cell_size + 0.0)) + 1
     idy = int(dy / (cell_size + 0.0)) + 1
