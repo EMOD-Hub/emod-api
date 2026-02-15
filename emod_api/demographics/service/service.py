@@ -22,11 +22,18 @@ def _create_grid_files(point_records_file_in, final_grid_files_dir, site):
         # Get input data
         with open(point_records_file_in) as csv_file:
             csv_obj = csv.reader(csv_file, dialect='unix')
-
             headers = next(csv_obj, None)
-            lat_idx = headers.index('latitude')
-            lon_idx = headers.index('longitude')
-            pop_idx = None
+
+            if ('latitude' in headers):
+                lat_idx = headers.index('latitude')
+            else:
+                lat_idx = headers.index('lat')
+
+            if ('longitude' in headers):
+                lon_idx = headers.index('longitude')
+            else:
+                lon_idx = headers.index('lon')
+
             if ('hh_size' in headers):
                 pop_idx = headers.index('hh_size')
             elif ('pop' in headers):
