@@ -1,8 +1,8 @@
 import getpass
 import json
 import os
+import csv
 import numpy as np
-import pandas as pd
 import shutil
 import tempfile
 import unittest
@@ -418,18 +418,22 @@ class DemographicsTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             demog.get_node_by_id(node_id=161839)
 
-        csv_df = pd.read_csv(input_file, encoding='iso-8859-1')
-
+        # Extract u5_pop, lat, lon
+        csv_dat = np.loadtxt(input_file, delimiter=',', skiprows=1, usecols=(7, 11, 12))
         pop_threshold = 25000  # hardcoded value
-        csv_df = csv_df[(6 * csv_df['under5_pop']) >= pop_threshold]
-        self.assertEqual(len(csv_df), len(demog.nodes))
+        csv_dat = csv_dat[(6.0 * csv_dat[:, 0]) >= pop_threshold, :]
+        self.assertEqual(csv_dat.shape[0], len(demog.nodes))
 
         # Ensuring file-specified node names are honored
-        # location = pd.Series(["Seattle"]*4357)
-        locations = [f"Seattle{index}" for index in range(len(csv_df))]
-        csv_df['loc'] = locations
+        locations = [f"Seattle{index}" for index in range(csv_dat.shape[0])]
+
         outfile_path = os.path.join(manifest.output_folder, "demographics_places_from_csv.csv")
-        csv_df.to_csv(outfile_path)
+        with open(outfile_path, "w") as g_f:
+            csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_NONE)
+            csv_obj.writerow(['under5_pop', 'lat', 'lon', 'loc'])
+            for k1 in range(csv_dat.shape[0]):
+                csv_obj.writerow([csv_dat[k1, 0], csv_dat[k1, 1], csv_dat[k1, 2], locations[k1]])
+
         demog = Demographics.from_csv(outfile_path, res=2 / 3600)
         nodes = demog.nodes
         for index, node in enumerate(nodes):
@@ -458,23 +462,33 @@ class DemographicsTest(unittest.TestCase):
         self.assertEqual(inspect_node.id, demog.nodes[0].id, msg=f"This node should have an id of {demog.nodes[0].id} "
                                                                  f"but instead it is {inspect_node.id}")
 
-        csv_df = pd.read_csv(input_file, encoding='iso-8859-1')
+        # Get data from csv
+        lat_dict = dict()
+        lon_dict = dict()
+        pop_dict = dict()
+        with open(input_file) as csv_file:
+            csv_obj = csv.reader(csv_file, dialect='unix')
+            headers = next(csv_obj, None)
+            ni_idx = headers.index('node_id')
+            lat_idx = headers.index('lat')
+            lon_idx = headers.index('lon')
+            pop_idx = headers.index('pop')
+            for csv_row in csv_obj:
+                lat_dict[float(csv_row[ni_idx])] = float(csv_row[lat_idx])
+                lon_dict[float(csv_row[ni_idx])] = float(csv_row[lon_idx])
+                pop_dict[float(csv_row[ni_idx])] = float(csv_row[pop_idx])
 
         # checking if we have the same number of nodes and the number of rows in csv file
-        self.assertEqual(len(csv_df), len(demog.nodes))
+        self.assertEqual(len(pop_dict), len(demog.nodes))
 
-        for index, row in csv_df.iterrows():
-            pop = int(row['pop'])
-            lat = float(row['lat'])
-            lon = float(row['lon'])
-            node_id = int(row['node_id'])
-            self.assertEqual(pop, demog.nodes[index].node_attributes.initial_population)
-            self.assertEqual(lat, demog.nodes[index].node_attributes.latitude)
-            self.assertEqual(lon, demog.nodes[index].node_attributes.longitude)
-            self.assertEqual(node_id, demog.nodes[index].forced_id)
+        for node_id in pop_dict:
+            self.assertEqual(pop_dict[node_id], demog.get_node_by_id(node_id).node_attributes.initial_population)
+            self.assertEqual(lat_dict[node_id], demog.get_node_by_id(node_id).node_attributes.latitude)
+            self.assertEqual(lon_dict[node_id], demog.get_node_by_id(node_id).node_attributes.longitude)
+            self.assertEqual(node_id, demog.get_node_by_id(node_id).forced_id)
 
         self.assertEqual(3, len(demog.nodes))
-        csv_node_ids = sorted(list(csv_df['node_id']))
+        csv_node_ids = sorted(list(pop_dict.keys()))
         demog_ids = sorted([node.id for node in demog.nodes])
         self.assertEqual(csv_node_ids, demog_ids)
 
@@ -506,10 +520,20 @@ class DemographicsTest(unittest.TestCase):
     def test_from_csv_birthrate(self):
         input_file = os.path.join(manifest.demo_folder, 'nodes_with_birthrate.csv')
         demog = Demographics.from_csv(input_file)
-        data = pd.read_csv(input_file)
-        node_ids = list(data["node_id"])
-        for node_id in node_ids:
-            birth_rate = data[data["node_id"] == node_id]["birth_rate"].iloc[0]
+
+        # Get birthrate data from csv
+        br_dict = dict()
+        with open(input_file) as csv_file:
+            csv_obj = csv.reader(csv_file, dialect='unix')
+            headers = next(csv_obj, None)
+            ni_idx = headers.index('node_id')
+            br_idx = headers.index('birth_rate')
+            for csv_row in csv_obj:
+                br_dict[float(csv_row[ni_idx])] = float(csv_row[br_idx])
+
+        # Compare csv birth rates with demographics file
+        for node_id in br_dict:
+            birth_rate = br_dict[node_id]
             self.assertAlmostEqual(demog.get_node_by_id(node_id=node_id).birth_rate, birth_rate)
 
         bad_input = os.path.join(manifest.demo_folder, 'bad_nodes_with_birthrate.csv')
@@ -534,7 +558,16 @@ class DemographicsTest(unittest.TestCase):
                 'lon': [10, 11, 12, 13],
                 'lat': [21, 22, 23, 24]}
         csv_file = Path("test_overlay_population.csv")
-        pd.DataFrame.from_dict(temp).to_csv(csv_file)
+
+        # Write csv data
+        with open(csv_file, "w") as g_f:
+            csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_NONE)
+            header_vals = list(temp.keys())
+            csv_obj.writerow(header_vals)
+            for row_idx in range(len(temp[header_vals[0]])):
+                csv_obj.writerow([temp[h_val][row_idx] for h_val in header_vals])
+
+        # Read from CSV
         demo = Demographics.from_csv(csv_file)
 
         airport_dont_override = 123
@@ -600,7 +633,16 @@ class DemographicsTest(unittest.TestCase):
                 'lon': [10, 11, 12, 13],
                 'lat': [21, 22, 23, 24]}
         csv_file = Path("test_overlay_population.csv")
-        pd.DataFrame.from_dict(temp).to_csv(csv_file)
+
+        # Write csv data
+        with open(csv_file, "w") as g_f:
+            csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_NONE)
+            header_vals = list(temp.keys())
+            csv_obj.writerow(header_vals)
+            for row_idx in range(len(temp[header_vals[0]])):
+                csv_obj.writerow([temp[h_val][row_idx] for h_val in header_vals])
+
+        # Read from CSV
         demo = Demographics.from_csv(input_file=csv_file)
         csv_file.unlink()
 
@@ -643,7 +685,16 @@ class DemographicsTest(unittest.TestCase):
                 'lon': [10, 11, 12],
                 'lat': [21, 22, 23]}
         csv_file = Path("test_overlay_population.csv")
-        pd.DataFrame.from_dict(temp).to_csv(csv_file)
+
+        # Write csv data
+        with open(csv_file, "w") as g_f:
+            csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_NONE)
+            header_vals = list(temp.keys())
+            csv_obj.writerow(header_vals)
+            for row_idx in range(len(temp[header_vals[0]])):
+                csv_obj.writerow([temp[h_val][row_idx] for h_val in header_vals])
+
+        # Read from CSV
         demo = Demographics.from_csv(csv_file)
         csv_file.unlink()
 
@@ -690,7 +741,16 @@ class DemographicsTest(unittest.TestCase):
                 'lon': [10, 11, 12],
                 'lat': [21, 22, 23]}
         csv_file = Path("test_overlay_population.csv")
-        pd.DataFrame.from_dict(temp).to_csv(csv_file)
+
+        # Write csv data
+        with open(csv_file, "w") as g_f:
+            csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_NONE)
+            header_vals = list(temp.keys())
+            csv_obj.writerow(header_vals)
+            for row_idx in range(len(temp[header_vals[0]])):
+                csv_obj.writerow([temp[h_val][row_idx] for h_val in header_vals])
+
+        # Read from CSV
         demo = Demographics.from_csv(csv_file)
         csv_file.unlink()
 
@@ -729,7 +789,16 @@ class DemographicsTest(unittest.TestCase):
                 'lon': [10, 11, 12],
                 'lat': [21, 22, 23]}
         csv_file = Path("test_overlay_population.csv")
-        pd.DataFrame.from_dict(temp).to_csv(csv_file)
+
+        # Write csv data
+        with open(csv_file, "w") as g_f:
+            csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_NONE)
+            header_vals = list(temp.keys())
+            csv_obj.writerow(header_vals)
+            for row_idx in range(len(temp[header_vals[0]])):
+                csv_obj.writerow([temp[h_val][row_idx] for h_val in header_vals])
+
+        # Read from CSV
         demo = Demographics.from_csv(csv_file)
         csv_file.unlink()
 
@@ -886,24 +955,41 @@ class DemographicsTest(unittest.TestCase):
                                                                                predict_horizon=predict_horizon,
                                                                                results_scale_factor=results_scale_factor,
                                                                                csv_out=False)
-        male_input = pd.read_csv(male_input_file)
-        female_input = pd.read_csv(female_input_file)
+
+        val_m = list()
+        val_y = list()
+        with open(male_input_file) as csv_file:
+            csv_obj = csv.reader(csv_file, dialect='unix')
+            headers = next(csv_obj, None)
+            age_idx = headers.index('Age (x)')
+            yrs_idx = headers.index('Ave_Year')
+            for csv_row in csv_obj:
+                val_m.append(float(csv_row[age_idx]))
+                val_y.append(float(csv_row[yrs_idx]))
+
+        val_f = list()
+        with open(female_input_file) as csv_file:
+            csv_obj = csv.reader(csv_file, dialect='unix')
+            headers = next(csv_obj, None)
+            age_idx = headers.index('Age (x)')
+            for csv_row in csv_obj:
+                val_f.append(float(csv_row[age_idx]))
 
         # Check age group
         n_male_age_groups = len(male_distribution['PopulationGroups'][0])
         # Get age groups information male from csv file
-        expected_male_age_group = np.append(male_input['Age (x)'].unique(), 100).tolist()
+        expected_male_age_group = np.append(np.unique(val_m), 100).tolist()
         self.assertListEqual(expected_male_age_group[1:], male_distribution['PopulationGroups'][0])
 
         n_female_age_groups = len(female_distribution['PopulationGroups'][0])
         # Get age groups information from female csv file
-        expected_female_age_group = np.append(female_input['Age (x)'].unique(), 100).tolist()
+        expected_female_age_group = np.append(np.unique(val_f), 100).tolist()
         self.assertListEqual(expected_female_age_group[1:], female_distribution['PopulationGroups'][0])
 
         # Check Year
         n_male_year_groups = len(male_distribution['PopulationGroups'][1])
         # Get year groups information male from csv file
-        expected_male_year_group = male_input['Ave_Year'].unique().tolist()
+        expected_male_year_group = np.unique(val_y).tolist()
         # Up to year = predict_horizon
         expected_male_year_group = [x for x in expected_male_year_group if x < predict_horizon]
         self.assertListEqual(expected_male_year_group, male_distribution['PopulationGroups'][1])
@@ -929,13 +1015,13 @@ class DemographicsTest(unittest.TestCase):
             self.assertEqual(len(f_y), n_female_year_groups)
 
         # Check result values consistency with reference files
-        male_reference = pd.read_csv(os.path.join(manifest.demo_folder, "MaleTrue"))
-        female_reference = pd.read_csv(os.path.join(manifest.demo_folder, "FemaleTrue"))
+        male_dat = np.loadtxt(os.path.join(manifest.demo_folder, "MaleTrue"), delimiter=',', skiprows=1, usecols=tuple(range(2,24)))
+        female_dat = np.loadtxt(os.path.join(manifest.demo_folder, "FemaleTrue"), delimiter=',', skiprows=1, usecols=tuple(range(2,24)))
+
         for i in range(n_male_age_groups):
             for j in range(n_male_year_groups):
                 male_mortality_rate = male_distribution['ResultValues'][i][j]
-                expected_male_mortality_rate = male_reference[male_reference['Age'] == expected_male_age_group[i + 1]][
-                    str(expected_male_year_group[j])].iloc[0]
+                expected_male_mortality_rate = male_dat[i, j]
                 self.assertAlmostEqual(expected_male_mortality_rate, male_mortality_rate, delta=1e-5,
                                        msg=f"at year {expected_male_year_group[j]} age {expected_male_age_group[i + 1]}"
                                            f", male mortality rate is set to {male_mortality_rate} (please see "
@@ -943,7 +1029,7 @@ class DemographicsTest(unittest.TestCase):
                                            f"{expected_male_mortality_rate} in male csv file.\n")
 
                 female_mortality_rate = female_distribution['ResultValues'][i][j]
-                expected_female_mortality_rate = female_reference[female_reference['Age'] == expected_female_age_group[i + 1]][str(expected_female_year_group[j])].iloc[0]
+                expected_female_mortality_rate = female_dat[i, j]
                 self.assertAlmostEqual(expected_female_mortality_rate, female_mortality_rate, delta=1e-5,
                                        msg=f"at year {expected_female_year_group[j]} age "
                                            f"{expected_female_age_group[i + 1]},"

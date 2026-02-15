@@ -11,7 +11,7 @@ from platform import system
 from tempfile import mkstemp
 import unittest
 from emod_api.migration.migration import Migration, from_file, from_demog_and_param_gravity, to_csv, examine_file, from_csv
-import pandas as pd
+import csv
 import io
 from contextlib import redirect_stdout
 from tests import manifest
@@ -519,11 +519,15 @@ class MigrationTests(unittest.TestCase):
         out = f.getvalue()
 
         data = io.StringIO(out)
-        data_frame = pd.read_csv(data, sep=",")
-        self.assertEqual(len(data_frame), 515)
-        self.assertEqual(len(data_frame.columns), 3)
-
-        self.assertFalse(data_frame.isnull().values.any())
+        csv_obj = csv.reader(data, dialect='unix')
+        headers = next(csv_obj, None)
+        self.assertEqual(len(headers), 3)
+        num_row = 0
+        for csv_row in csv_obj:
+            for row_val in csv_row:
+                assert(len(row_val) > 0)
+            num_row += 1
+        self.assertEqual(num_row, 515)
 
     def test_examine_file(self):
         filename = os.path.join(manifest.migration_folder, "Seattle_30arcsec_local_migration.bin")
@@ -801,7 +805,13 @@ class MigrationTests(unittest.TestCase):
                 'rate': [0.1, 0.2, 0.3]}
 
         csv_file = Path(os.path.join(manifest.output_folder, "test_migration.csv"))
-        pd.DataFrame.from_dict(temp).to_csv(csv_file, index=False)
+        with open(csv_file, "w") as fid01:
+            csv_obj = csv.writer(fid01, dialect='unix', quoting=csv.QUOTE_NONE)
+            header_vals = list(temp.keys())
+            csv_obj.writerow(header_vals)
+            for row_idx in range(len(temp[header_vals[0]])):
+                csv_obj.writerow([temp[h_val][row_idx] for h_val in header_vals])
+
         migration = from_csv(csv_file, id_ref="testing")
 
         migration_file = os.path.join(manifest.output_folder, "test_migration.bin")

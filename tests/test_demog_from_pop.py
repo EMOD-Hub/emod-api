@@ -40,9 +40,6 @@ class TestDemogFromPop():
         input_path = os.path.join(manifest.demo_folder, "tiny_facebook_pop_clipped.csv")
         ref_data_path = os.path.join(manifest.demo_folder, "No_Site_grid.csv")
 
-        # Leaving a berth of 10 for rounding, may need to check later
-        #assert(abs(grid_pop['pop'].sum() - inputdata['pop'].sum()) < 10)
-
         demog = Demographics.from_pop_raster_csv(pop_filename_in=input_path, pop_dirname_out=self.fdir_out)
         fname_out = os.path.join(self.fdir_out, 'No_Site_grid.csv')
         assert(os.path.isfile(fname_out))
