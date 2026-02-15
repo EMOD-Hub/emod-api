@@ -7,14 +7,7 @@
 - output:    - csv file of grid locations
              - csv with grid cell id added for each point record
 """
-
-
-import math
-import logging
-
 import numpy as np
-import pandas as pd
-from shapely.geometry import Point
 import pyproj
 
 # square grid cell/pixel side (in m)
@@ -29,18 +22,36 @@ def get_grid_cell_id(idx, idy):
     return str(idx) + "_" + str(idy)
 
 
+def point_2_grid_cell_id_lookup(point, grid_id_2_cell_id, origin):
+
+    (_, _, dx) = geod.inv(origin[0], origin[1], point[0], origin[1])
+    (_, _, dy) = geod.inv(origin[0], origin[1], origin[0], point[1])
+
+    idx = int(dx / cell_size) + 1
+    idy = int(dy / cell_size) + 1
+
+    grid_id = get_grid_cell_id(idx, idy)
+
+    if grid_id in grid_id_2_cell_id:
+        cid = int(grid_id_2_cell_id[grid_id])
+    else:
+        cid = None
+
+    return (cid, idx, idy)
+
+
 def construct(x_min, y_min, x_max, y_max):
     '''
     Creating grid
     '''
 
-    logging.info("Creating grid...")
+    print("Creating grid...")
 
     # get the centroid of the cell left-down from the grid min corner; that is the origin of the grid
-    origin = geod.fwd(x_min, y_min, -135, cell_size / math.sqrt(2))
+    origin = geod.fwd(x_min, y_min, -135, cell_size / np.sqrt(2))
 
     # get the centroid of the cell right-up from the grid max corner; that is the final point of the grid
-    final = geod.fwd(x_max, y_max, 45, cell_size / math.sqrt(2))
+    final = geod.fwd(x_max, y_max, 45, cell_size / np.sqrt(2))
 
     (fwdax, _, dx) = geod.inv(origin[0], origin[1], final[0], origin[1])
     (fwday, _, dy) = geod.inv(origin[0], origin[1], origin[0], final[1])
@@ -82,41 +93,7 @@ def construct(x_min, y_min, x_max, y_max):
 
     grid_dict = {"lat": grid_lats, "lon": grid_lons, "gcid": gcids}
 
-    logging.info("Created grid of size")
-    logging.info(str(len(set(grid_lons))) + "x" + str(len(set(grid_lats))))
-    logging.info("Done.")
+    print("Created grid of size")
+    print(str(len(set(grid_lons))) + "x" + str(len(set(grid_lats))))
 
     return grid_dict, grid_id_2_cell_id, origin, final
-
-
-def get_bbox(data):
-
-    logging.info("Getting bounding box...")
-
-    x_min = min(data['lon'].to_numpy())
-    x_max = max(data['lon'].to_numpy())
-
-    y_min = min(data['lat'].to_numpy())
-    y_max = max(data['lat'].to_numpy())
-
-    logging.info("Done.")
-
-    return x_min, y_min, x_max, y_max
-
-
-def point_2_grid_cell_id_lookup(point, grid_id_2_cell_id, origin):
-
-    (_, _, dx) = geod.inv(origin[0], origin[1], point[0], origin[1])
-    (_, _, dy) = geod.inv(origin[0], origin[1], origin[0], point[1])
-
-    idx = int(dx / cell_size) + 1
-    idy = int(dy / cell_size) + 1
-
-    grid_id = get_grid_cell_id(idx, idy)
-
-    if grid_id in grid_id_2_cell_id:
-        cid = int(grid_id_2_cell_id[grid_id])
-    else:
-        cid = None
-
-    return (cid, idx, idy)
