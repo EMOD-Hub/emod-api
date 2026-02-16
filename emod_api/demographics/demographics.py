@@ -145,12 +145,6 @@ class Demographics(DemographicsBase):
         Returns:
             A Demographics object
         """
-        def get_value(row, headers):
-            for h in headers:
-                if row.get(h) is not None:
-                    return float(row.get(h))
-            return None
-
         print(f"{input_file} found and being read for demographics.json file creation.")
 
         out_nodes = list()

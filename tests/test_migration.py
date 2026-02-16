@@ -525,7 +525,7 @@ class MigrationTests(unittest.TestCase):
         num_row = 0
         for csv_row in csv_obj:
             for row_val in csv_row:
-                assert(len(row_val) > 0)
+                self.assertGreater(len(row_val), 0)
             num_row += 1
         self.assertEqual(num_row, 515)
 

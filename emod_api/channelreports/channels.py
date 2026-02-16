@@ -426,7 +426,7 @@ class ChannelReport(object):
             with open(filename, "w") as g_f:
                 csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_MINIMAL)
                 csv_obj.writerow(channel_names)
-                for row_idx in range(self._numTimeSteps):
+                for row_idx in range(self.num_time_steps):
                     csv_obj.writerow([self[cname][row_idx] for cname in channel_names])
 
         return

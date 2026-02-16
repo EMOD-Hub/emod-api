@@ -493,9 +493,10 @@ class DemographicsTest(unittest.TestCase):
             lon_idx = headers.index('lon')
             pop_idx = headers.index('pop')
             for csv_row in csv_obj:
-                lat_dict[float(csv_row[ni_idx])] = float(csv_row[lat_idx])
-                lon_dict[float(csv_row[ni_idx])] = float(csv_row[lon_idx])
-                pop_dict[float(csv_row[ni_idx])] = float(csv_row[pop_idx])
+                nid = int(csv_row[ni_idx])
+                lat_dict[nid] = float(csv_row[lat_idx])
+                lon_dict[nid] = float(csv_row[lon_idx])
+                pop_dict[nid] = float(csv_row[pop_idx])
 
         # checking if we have the same number of nodes and the number of rows in csv file
         self.assertEqual(len(pop_dict), len(demog.nodes))
