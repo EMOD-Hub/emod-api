@@ -154,7 +154,7 @@ class Demographics(DemographicsBase):
         print(f"{input_file} found and being read for demographics.json file creation.")
 
         out_nodes = list()
-        with open(input_file) as csv_file:
+        with open(input_file, errors='ignore') as csv_file:
             csv_obj = csv.reader(csv_file, dialect='unix')
             headers = next(csv_obj, None)
 

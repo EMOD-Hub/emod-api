@@ -20,7 +20,7 @@ def _create_grid_files(point_records_file_in, final_grid_files_dir, site):
         print(f"{out_path} not found so we are going to create it.")
         print(f"Reading {point_records_file_in}.")
         # Get input data
-        with open(point_records_file_in) as csv_file:
+        with open(point_records_file_in, errors='ignore') as csv_file:
             csv_obj = csv.reader(csv_file, dialect='unix')
             headers = next(csv_obj, None)
 
