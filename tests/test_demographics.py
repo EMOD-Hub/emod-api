@@ -429,7 +429,7 @@ class DemographicsTest(unittest.TestCase):
 
         outfile_path = os.path.join(manifest.output_folder, "demographics_places_from_csv.csv")
         with open(outfile_path, "w") as g_f:
-            csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_NONE)
+            csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_MINIMAL)
             csv_obj.writerow(['under5_pop', 'lat', 'lon', 'loc'])
             for k1 in range(csv_dat.shape[0]):
                 csv_obj.writerow([csv_dat[k1, 0], csv_dat[k1, 1], csv_dat[k1, 2], locations[k1]])
@@ -561,7 +561,7 @@ class DemographicsTest(unittest.TestCase):
 
         # Write csv data
         with open(csv_file, "w") as g_f:
-            csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_NONE)
+            csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_MINIMAL)
             header_vals = list(temp.keys())
             csv_obj.writerow(header_vals)
             for row_idx in range(len(temp[header_vals[0]])):
@@ -636,7 +636,7 @@ class DemographicsTest(unittest.TestCase):
 
         # Write csv data
         with open(csv_file, "w") as g_f:
-            csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_NONE)
+            csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_MINIMAL)
             header_vals = list(temp.keys())
             csv_obj.writerow(header_vals)
             for row_idx in range(len(temp[header_vals[0]])):
@@ -688,7 +688,7 @@ class DemographicsTest(unittest.TestCase):
 
         # Write csv data
         with open(csv_file, "w") as g_f:
-            csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_NONE)
+            csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_MINIMAL)
             header_vals = list(temp.keys())
             csv_obj.writerow(header_vals)
             for row_idx in range(len(temp[header_vals[0]])):
@@ -744,7 +744,7 @@ class DemographicsTest(unittest.TestCase):
 
         # Write csv data
         with open(csv_file, "w") as g_f:
-            csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_NONE)
+            csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_MINIMAL)
             header_vals = list(temp.keys())
             csv_obj.writerow(header_vals)
             for row_idx in range(len(temp[header_vals[0]])):
@@ -792,7 +792,7 @@ class DemographicsTest(unittest.TestCase):
 
         # Write csv data
         with open(csv_file, "w") as g_f:
-            csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_NONE)
+            csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_MINIMAL)
             header_vals = list(temp.keys())
             csv_obj.writerow(header_vals)
             for row_idx in range(len(temp[header_vals[0]])):
@@ -943,99 +943,6 @@ class DemographicsTest(unittest.TestCase):
         self.assertEqual(node_0_md_m['ResultValues'], matrix_new_m)
         self.assertEqual(node_1_md_f['ResultValues'], matrix_new_f)
         self.assertEqual(node_1_md_m['ResultValues'], matrix_new_m)
-
-    def test_infer_natural_mortality(self):
-        demog = Demographics.from_template_node(lat=0, lon=0, pop=100000, name="1", forced_id=1)
-        male_input_file = os.path.join(manifest.demo_folder, "Malawi_male_mortality.csv")
-        female_input_file = os.path.join(manifest.demo_folder, "Malawi_female_mortality.csv")
-        predict_horizon = 2060
-        results_scale_factor = 1.0 / 340.0
-        female_distribution, male_distribution = demog.infer_natural_mortality(file_male=male_input_file,
-                                                                               file_female=female_input_file,
-                                                                               predict_horizon=predict_horizon,
-                                                                               results_scale_factor=results_scale_factor,
-                                                                               csv_out=False)
-
-        val_m = list()
-        val_y = list()
-        with open(male_input_file) as csv_file:
-            csv_obj = csv.reader(csv_file, dialect='unix')
-            headers = next(csv_obj, None)
-            age_idx = headers.index('Age (x)')
-            yrs_idx = headers.index('Ave_Year')
-            for csv_row in csv_obj:
-                val_m.append(float(csv_row[age_idx]))
-                val_y.append(float(csv_row[yrs_idx]))
-
-        val_f = list()
-        with open(female_input_file) as csv_file:
-            csv_obj = csv.reader(csv_file, dialect='unix')
-            headers = next(csv_obj, None)
-            age_idx = headers.index('Age (x)')
-            for csv_row in csv_obj:
-                val_f.append(float(csv_row[age_idx]))
-
-        # Check age group
-        n_male_age_groups = len(male_distribution['PopulationGroups'][0])
-        # Get age groups information male from csv file
-        expected_male_age_group = np.append(np.unique(val_m), 100).tolist()
-        self.assertListEqual(expected_male_age_group[1:], male_distribution['PopulationGroups'][0])
-
-        n_female_age_groups = len(female_distribution['PopulationGroups'][0])
-        # Get age groups information from female csv file
-        expected_female_age_group = np.append(np.unique(val_f), 100).tolist()
-        self.assertListEqual(expected_female_age_group[1:], female_distribution['PopulationGroups'][0])
-
-        # Check Year
-        n_male_year_groups = len(male_distribution['PopulationGroups'][1])
-        # Get year groups information male from csv file
-        expected_male_year_group = np.unique(val_y).tolist()
-        # Up to year = predict_horizon
-        expected_male_year_group = [x for x in expected_male_year_group if x < predict_horizon]
-        self.assertListEqual(expected_male_year_group, male_distribution['PopulationGroups'][1])
-
-        n_female_year_groups = len(female_distribution['PopulationGroups'][1])
-        expected_female_year_group = expected_male_year_group
-        self.assertListEqual(expected_female_year_group, female_distribution['PopulationGroups'][1])
-
-        # Check prediction horizon is honored
-        self.assertLessEqual(max(male_distribution['PopulationGroups'][1]), 2060)
-        self.assertLessEqual(max(female_distribution['PopulationGroups'][1]), 2060)
-
-        # Check results scale factor is consistent with parameters
-        self.assertEqual(male_distribution['ResultScaleFactor'], results_scale_factor)
-        self.assertEqual(female_distribution['ResultScaleFactor'], results_scale_factor)
-
-        # Check result values array length
-        self.assertEqual(len(male_distribution['ResultValues']), n_male_age_groups)
-        for m_y in male_distribution['ResultValues']:
-            self.assertEqual(len(m_y), n_male_year_groups)
-        self.assertEqual(len(female_distribution['ResultValues']), n_female_age_groups)
-        for f_y in female_distribution['ResultValues']:
-            self.assertEqual(len(f_y), n_female_year_groups)
-
-        # Check result values consistency with reference files
-        male_dat = np.loadtxt(os.path.join(manifest.demo_folder, "MaleTrue"), delimiter=',', skiprows=1, usecols=tuple(range(2,24)))
-        female_dat = np.loadtxt(os.path.join(manifest.demo_folder, "FemaleTrue"), delimiter=',', skiprows=1, usecols=tuple(range(2,24)))
-
-        for i in range(n_male_age_groups):
-            for j in range(n_male_year_groups):
-                male_mortality_rate = male_distribution['ResultValues'][i][j]
-                expected_male_mortality_rate = male_dat[i, j]
-                self.assertAlmostEqual(expected_male_mortality_rate, male_mortality_rate, delta=1e-5,
-                                       msg=f"at year {expected_male_year_group[j]} age {expected_male_age_group[i + 1]}"
-                                           f", male mortality rate is set to {male_mortality_rate} (please see "
-                                           f"male_distribution['ResultValues'][{i}][{j}]), while it's "
-                                           f"{expected_male_mortality_rate} in male csv file.\n")
-
-                female_mortality_rate = female_distribution['ResultValues'][i][j]
-                expected_female_mortality_rate = female_dat[i, j]
-                self.assertAlmostEqual(expected_female_mortality_rate, female_mortality_rate, delta=1e-5,
-                                       msg=f"at year {expected_female_year_group[j]} age "
-                                           f"{expected_female_age_group[i + 1]},"
-                                           f" female mortality rate is set to {female_mortality_rate} (please see "
-                                           f"female_distribution['ResultValues'][{i}][{j}]), while it's "
-                                           f"{expected_female_mortality_rate} in female csv file.\n")
 
     def assertDictAlmostEqual(self, d1, d2, msg=None, places=7):
         # check if both inputs are dicts

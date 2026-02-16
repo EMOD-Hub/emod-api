@@ -4,7 +4,6 @@ import csv
 from pathlib import Path
 import tempfile
 from emod_api.channelreports.channels import ChannelReport, Header, Channel
-from emod_api.channelreports.icj_to_csv import inset_chart_json_to_csv_dataframe_pd
 from emod_api.channelreports.plot_prop_report import prop_report_json_to_csv
 from datetime import datetime
 from random import random, randint
@@ -332,39 +331,6 @@ class TestChannels(unittest.TestCase):
 
         return
 
-    def test_asDataframe(self):
-
-        chart = ChannelReport(os.path.join(manifest.reports_folder, "InsetChart.json"))
-        df = chart.as_dataframe()
-
-        self.assertEqual(len(df.columns), 16)
-        self.assertAlmostEqual(df.Infected[10], 0.000001222560626957, 16)
-        self.assertEqual(df["Statistical Population"][364], 7544187)
-
-        self.assertSetEqual(
-            set(df.columns),
-            {
-                "Births",
-                "Campaign Cost",
-                "Daily (Human) Infection Rate",
-                "Disease Deaths",
-                "Exposed Population",
-                "Human Infectious Reservoir",
-                "Infected",
-                "Infectious Population",
-                "Log Prevalence",
-                "New Infections",
-                "Newly Symptomatic",
-                "Recovered Population",
-                "Statistical Population",
-                "Susceptible Population",
-                "Symptomatic Population",
-                "Waning Population",
-            },
-        )
-
-        return
-
     def test_badNumChannels(self):
 
         header = Header()
@@ -453,30 +419,6 @@ class TestChannels(unittest.TestCase):
         )
 
         return
-
-
-class TestInsetJson(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.inset_path = manifest.reports_folder
-
-    def test_icj_to_csv(self):
-        inset_chart_json_to_csv_dataframe_pd(self.inset_path)
-        csv_path = os.path.join(self.inset_path, "InsetChart.csv")
-        self.assertTrue(os.path.isfile(csv_path), f"No InsetChart.csv file at {csv_path}")
-
-        with open(csv_path) as csv_file:
-            csv_obj = csv.reader(csv_file, dialect='unix')
-            csv_headers = next(csv_obj, None)
-
-        json_path = os.path.join(self.inset_path, "InsetChart.json")
-        self.assertTrue(os.path.isfile(json_path), f"No InsetChart.json file at {json_path}")
-
-        with open(json_path) as jc:
-            json_dict = json.load(jc)
-
-        for channel in json_dict["Channels"]:
-            self.assertIn(channel, csv_headers, f"Column {channel} was not found in the csv at {csv_path}")
 
 
 class TestPropReport(unittest.TestCase):

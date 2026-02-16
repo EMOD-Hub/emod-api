@@ -4,9 +4,9 @@
 
 from datetime import datetime
 import json
+import csv
 from pathlib import Path
 from typing import Union
-import pandas as pd
 
 _CHANNELS = "Channels"
 _DTK_VERSION = "DTK_Version"
@@ -328,13 +328,6 @@ class ChannelReport(object):
         """Return Channel object by channel name/title"""
         return self._channels[item]
 
-    def as_dataframe(self) -> pd.DataFrame:
-        """Return underlying data as a Pandas DataFrame"""
-        dataframe = pd.DataFrame(
-            {key: self.channels[key].data for key in self.channel_names}
-        )
-        return dataframe
-
     def write_file(self, filename: str, indent: int = 0, separators=(",", ":")) -> None:
         """Write inset chart to specified text file."""
 
@@ -423,11 +416,17 @@ class ChannelReport(object):
         if channel_names is None:
             channel_names = self.channel_names
 
-        if not transpose:   # default
-            data_frame = pd.DataFrame([[channel_name] + list(self[channel_name]) for channel_name in channel_names])
-            # data_frame = pd.DataFrame(([channel_name] + list(self[channel_name]) for channel_name in channel_names))
-            data_frame.to_csv(filename, header=False, index=False)
-        else:               # transposed
-            self.as_dataframe().to_csv(filename, header=True, index=True, index_label="timestep")
+        if not transpose:  # default
+            with open(filename, "w") as g_f:
+                csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_MINIMAL)
+                for cname in channel_names:
+                    csv_obj.writerow([cname] + list(self[cname]))
+
+        else:  # transposed
+            with open(filename, "w") as g_f:
+                csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_MINIMAL)
+                csv_obj.writerow(channel_names)
+                for row_idx in range(self._numTimeSteps):
+                    csv_obj.writerow([self[cname][row_idx] for cname in channel_names])
 
         return

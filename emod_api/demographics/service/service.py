@@ -62,7 +62,7 @@ def _create_grid_files(point_records_file_in, final_grid_files_dir, site):
 
         # Write intermediate csv data (grid structure)
         with open(os.path.join(final_grid_files_dir, f"{site}_grid_int.csv"), "w") as g_f:
-            csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_NONE)
+            csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_MINIMAL)
             header_vals = list(grid_dict.keys())
             csv_obj.writerow(header_vals)
             for row_idx in range(len(grid_dict[header_vals[0]])):
@@ -104,7 +104,7 @@ def _create_grid_files(point_records_file_in, final_grid_files_dir, site):
 
         # Write final csv data (grid structure with population and ids)
         with open(os.path.join(final_grid_files_dir, output_filename), "w") as g_f:
-            csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_NONE)
+            csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_MINIMAL)
             header_vals = list(grid_dict.keys())
             csv_obj.writerow(header_vals)
             for row_idx in range(len(grid_dict[header_vals[0]])):

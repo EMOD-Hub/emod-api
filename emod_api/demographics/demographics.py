@@ -1,6 +1,6 @@
 import json
+import csv
 import numpy as np
-import pandas as pd
 
 from pathlib import Path
 from typing import Union
@@ -152,50 +152,92 @@ class Demographics(DemographicsBase):
             return None
 
         print(f"{input_file} found and being read for demographics.json file creation.")
-        node_info = pd.read_csv(input_file, encoding='iso-8859-1')
-        out_nodes = []
-        for index, row in node_info.iterrows():
-            if 'under5_pop' in row:
-                pop = int(6 * row['under5_pop'])
-                if pop < 25000:
+
+        out_nodes = list()
+        with open(input_file) as csv_file:
+            csv_obj = csv.reader(csv_file, dialect='unix')
+            headers = next(csv_obj, None)
+
+            # Find header column indicies
+            loc_idx = None
+            for hval in ['loc']:
+                if hval in headers:
+                    loc_idx = headers.index(hval)
+
+            nid_idx = None
+            for hval in ['node_id']:
+                if hval in headers:
+                    nid_idx = headers.index(hval)
+
+            lat_idx = None
+            for hval in ["lat", "latitude", "LAT", "LATITUDE", "Latitude", "Lat"]:
+                if hval in headers:
+                    lat_idx = headers.index(hval)
+
+            lon_idx = None
+            for hval in ["lon", "longitude", "LON", "LONGITUDE", "Longitude", "Lon"]:
+                if hval in headers:
+                    lon_idx = headers.index(hval)
+
+            cbr_idx = None
+            for hval in ["birth", "Birth", "birth_rate", "birthrate", "BirthRate",
+                         "Birth_Rate", "BIRTH", "birth rate", "Birth Rate"]:
+                if hval in headers:
+                    cbr_idx = headers.index(hval)
+
+            # Assume either under5 pop or total pop
+            if ('under5_pop' in headers):
+                pop_mult = 6.0
+                pop_idx = headers.index('under5_pop')
+            else:
+                pop_mult = 1.0
+                pop_idx = headers.index('pop')
+ 
+            # Iterate over rows
+            for csv_row in csv_obj:
+                pop_val = int(float(csv_row[pop_idx])*pop_mult)
+                if (pop_val < 25000 and pop_mult == 6.0):
                     continue
-            else:
-                pop = int(row['pop'])
 
-            latitude_headers = ["lat", "latitude", "LAT", "LATITUDE", "Latitude", "Lat"]
-            lat = get_value(row, latitude_headers)
+                if (loc_idx is not None):
+                    loc_val = csv_row[loc_idx]
+                else:
+                    loc_val = None
 
-            longitude_headers = ["lon", "longitude", "LON", "LONGITUDE", "Longitude", "Lon"]
-            lon = get_value(row, longitude_headers)
+                if (lat_idx is not None):
+                    lat_val = float(csv_row[lat_idx])
+                else:
+                    lat_val = None
 
-            birth_rate_headers = ["birth", "Birth", "birth_rate", "birthrate", "BirthRate", "Birth_Rate", "BIRTH",
-                                  "birth rate", "Birth Rate"]
-            birth_rate = get_value(row, birth_rate_headers)
-            if birth_rate is not None and birth_rate < 0.0:
-                raise ValueError("Birth rate defined in " + input_file + " must be greater 0.")
+                if (lon_idx is not None):
+                    lon_val = float(csv_row[lon_idx])
+                else:
+                    lon_val = None
 
-            node_id = row.get('node_id')
-            if node_id is not None and int(node_id) == 0:
-                raise ValueError("Node ids can not be '0'.")
+                if (cbr_idx is not None):
+                    cbr_val = float(csv_row[cbr_idx])
+                else:
+                    cbr_val = None
 
-            forced_id = int(cls._node_id_from_lat_lon_res(lat=lat, lon=lon, res=res)) if node_id is None else int(node_id)
+                if cbr_val is not None and cbr_val < 0.0:
+                    raise ValueError("Birth rate defined in " + input_file + " must be greater 0.")
 
-            if 'loc' in row:
-                place_name = str(row['loc'])
-            else:
-                place_name = None
-            meta = {}
-            """
-            meta = {'dot_name': (row['ADM0_NAME']+':'+row['ADM1_NAME']+':'+row['ADM2_NAME']),
-                    'GUID': row['GUID'],
-                    'density': row['under5_pop_weighted_density']}
-            """
-            node_attributes = NodeAttributes(name=place_name, birth_rate=birth_rate)
-            node = Node(lat, lon, pop,
-                        node_attributes=node_attributes,
-                        forced_id=forced_id, meta=meta)
+                if (nid_idx is not None):
+                    nid_val = int(csv_row[nid_idx])
+                else:
+                    nid_val = None
 
-            out_nodes.append(node)
+                if nid_val is not None and nid_val == 0:
+                    raise ValueError("Node ids can not be '0'.")
+
+                forced_id = int(cls._node_id_from_lat_lon_res(lat=lat_val, lon=lon_val, res=res)) if nid_val is None else nid_val
+
+                node_attributes = NodeAttributes(name=loc_val, birth_rate=cbr_val)
+                node = Node(lat_val, lon_val, pop_val, node_attributes=node_attributes, forced_id=forced_id, meta=dict())
+                out_nodes.append(node)
+
+        print(out_nodes)
+
         return cls(nodes=out_nodes, idref=id_ref)
 
     # This will be the long-term API for this function.

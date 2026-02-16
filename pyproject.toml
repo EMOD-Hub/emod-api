@@ -27,12 +27,9 @@ keywords = ["modeling", "IDM"]
 dependencies = [
     "matplotlib",
     "scipy",
-    "pandas",
     "numpy",
-    "shapely",
     "pyproj",
     "geographiclib",
-    "scikit-learn",
     "lz4"
 ]
 license = "MIT"

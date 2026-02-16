@@ -806,7 +806,7 @@ class MigrationTests(unittest.TestCase):
 
         csv_file = Path(os.path.join(manifest.output_folder, "test_migration.csv"))
         with open(csv_file, "w") as fid01:
-            csv_obj = csv.writer(fid01, dialect='unix', quoting=csv.QUOTE_NONE)
+            csv_obj = csv.writer(fid01, dialect='unix', quoting=csv.QUOTE_MINIMAL)
             header_vals = list(temp.keys())
             csv_obj.writerow(header_vals)
             for row_idx in range(len(temp[header_vals[0]])):

@@ -1,6 +1,5 @@
 import math
 import numpy as np
-import pandas as pd
 import os
 
 from scipy import sparse as sp
@@ -99,61 +98,3 @@ def _computeAgeDist(bval, mvecX, mvecY, fVec, max_yr=90):
     avecX = np.insert(avecX, 0, np.zeros(1))
 
     return gR.tolist()[0], avecX[:-1].tolist(), avecY.tolist()
-
-
-def generate_mortality_over_time_from_data(data_csv: Union[str, os.PathLike],
-                                           base_year: int) -> MortalityDistribution:
-    """
-    Generate a MortalityDistribution object from a data csv file.
-
-    Args:
-        data_csv: Path to csv file with the mortality rates by calendar year and age bucket.
-        base_year: The calendar year the sim is treating as the base.
-
-    Returns:
-        a MortalityDistribution object.
-    """
-    if base_year < 0:
-        raise ValueError(f"User passed negative value of base_year: {base_year}.")
-    if base_year > 2050:
-        raise ValueError(f"User passed too large value of base_year: {base_year}.")
-
-    # Load csv. Convert rate arrays into DTK-compatiable JSON structures.
-    rates = []  # array of arrays, but leave that for a minute
-    df = pd.read_csv(data_csv)
-    header = df.columns
-    year_start = int(header[1]) # someone's going to come along with 1990.5, etc. Sigh.
-    year_end = int(header[-1])
-    if year_end <= year_start:
-        raise ValueError(f"Failed check that {year_end} is greater than {year_start} in csv dataset.")
-    num_years = year_end - year_start + 1
-    rel_years = list()
-    for year in range(year_start, year_start + num_years):
-        mort_data = list(df[str(year)])
-        rel_years.append(year - base_year)
-
-    age_key = None
-    for trykey in df.keys():
-        if trykey.lower().startswith("age"):
-            age_key = trykey
-            raw_age_bins = list(df[age_key])
-
-    if age_key is None:
-        raise ValueError("Failed to find 'Age_Bin' (or similar) column in the csv dataset. Cannot process.")
-
-    age_bins = list()
-    try:
-        for age_bin in raw_age_bins:
-            left_age = float(age_bin.split("-")[0])
-            age_bins.append(left_age)
-
-    except Exception as ex:
-        raise ValueError(f"Ran into error processing the values in the Age-Bin column. {ex}")
-
-    for idx in range(len(age_bins)):  # 18 of these
-        # mort_data is the array of mortality rates (by year bin) for age_bin
-        mort_data = list(df.transpose()[idx][1:])
-        rates.append(mort_data)  # 28 of these, 1 for each year, eg
-
-    distribution = MortalityDistribution(ages_years=age_bins, mortality_rate_matrix=rates, calendar_years=rel_years)
-    return distribution
