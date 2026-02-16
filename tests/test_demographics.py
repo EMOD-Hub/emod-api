@@ -2,7 +2,6 @@ import getpass
 import json
 import os
 import csv
-import numpy as np
 import shutil
 import tempfile
 import unittest
