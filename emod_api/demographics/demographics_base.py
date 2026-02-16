@@ -2,11 +2,7 @@ import warnings
 from collections import Counter
 from functools import partial
 from collections.abc import Iterable
-from typing import Union, Optional, Callable
-
-import numpy as np
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
+from typing import Union, Callable
 
 from emod_api.demographics.age_distribution import AgeDistribution
 from emod_api.demographics.base_input_file import BaseInputFile

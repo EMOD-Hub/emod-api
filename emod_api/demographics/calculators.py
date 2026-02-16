@@ -1,13 +1,10 @@
 import math
 import numpy as np
-import os
 
 from scipy import sparse as sp
 from scipy.sparse import linalg as la
-from typing import Union
 
 from emod_api.demographics.age_distribution import AgeDistribution
-from emod_api.demographics.mortality_distribution import MortalityDistribution
 
 
 def generate_equilibrium_age_distribution(birth_rate: float = 40.0, mortality_rate: float = 20.0) -> AgeDistribution:

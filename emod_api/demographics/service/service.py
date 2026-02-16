@@ -90,13 +90,13 @@ def _create_grid_files(point_records_file_in, final_grid_files_dir, site):
         gyid_vec = np.array(grid_id_y)
         grid_dict_add = {'pop': list(), 'gidx': list(), 'gidy': list()}
         for gcid_val in grid_dict['gcid']:
-            idx = (gcid_vec==gcid_val)
+            idx = (gcid_vec == gcid_val)
             if (np.sum(idx) == 0):
                 grid_dict_add['pop'].append(0)
                 grid_dict_add['gidx'].append(-1)  # Data not in grid; probably ought to be an error
                 grid_dict_add['gidy'].append(-1)  # Data not in grid; probably ought to be an error
                 continue
-            grid_dict_add['pop'].append(np.round(np.sum(pop_vec[idx])/5))  # Why divide by 5?!
+            grid_dict_add['pop'].append(np.round(np.sum(pop_vec[idx]) / 5))  # Why divide by 5?!
             grid_dict_add['gidx'].append(np.round(gxid_vec[idx][0]))  # All elements of x_id slice are the same
             grid_dict_add['gidy'].append(np.round(gyid_vec[idx][0]))  # All elements of y_id slice are the same
 

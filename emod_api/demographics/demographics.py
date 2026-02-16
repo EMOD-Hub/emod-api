@@ -192,10 +192,10 @@ class Demographics(DemographicsBase):
             else:
                 pop_mult = 1.0
                 pop_idx = headers.index('pop')
- 
+
             # Iterate over rows
             for csv_row in csv_obj:
-                pop_val = int(float(csv_row[pop_idx])*pop_mult)
+                pop_val = int(float(csv_row[pop_idx]) * pop_mult)
                 if (pop_val < 25000 and pop_mult == 6.0):
                     continue
 
