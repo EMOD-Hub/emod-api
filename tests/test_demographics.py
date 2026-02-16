@@ -419,20 +419,40 @@ class DemographicsTest(unittest.TestCase):
             demog.get_node_by_id(node_id=161839)
 
         # Extract u5_pop, lat, lon
-        csv_dat = np.loadtxt(input_file, delimiter=',', skiprows=1, usecols=(7, 11, 12))
-        pop_threshold = 25000  # hardcoded value
-        csv_dat = csv_dat[(6.0 * csv_dat[:, 0]) >= pop_threshold, :]
-        self.assertEqual(csv_dat.shape[0], len(demog.nodes))
+        tpop = list()
+        lat = list()
+        lon = list()
+        with open(input_file, errors='ignore') as csv_file:
+            csv_obj = csv.reader(csv_file, dialect='unix')
+            headers = next(csv_obj, None)
+            pop_idx = headers.index('under5_pop')
+            lat_idx = headers.index('lat')
+            lon_idx = headers.index('lon')
+
+            # Iterate over rows
+            for csv_row in csv_obj:
+                pop_val = int(float(csv_row[pop_idx]) * 6.0)  # hardcoded multiplier
+                if (pop_val < 25000):  # hardcoded threshold value
+                    continue
+                else:
+                    tpop.append(pop_val)
+
+                lat_val = float(csv_row[lat_idx])
+                lon_val = float(csv_row[lon_idx])
+                lat.append(lat_val)
+                lon.append(lon_val)
+
+        self.assertEqual(len(tpop), len(demog.nodes))
 
         # Ensuring file-specified node names are honored
-        locations = [f"Seattle{index}" for index in range(csv_dat.shape[0])]
+        locations = [f"Seattle{index}" for index in range(len(tpop))]
 
         outfile_path = os.path.join(manifest.output_folder, "demographics_places_from_csv.csv")
         with open(outfile_path, "w") as g_f:
             csv_obj = csv.writer(g_f, dialect='unix', quoting=csv.QUOTE_MINIMAL)
             csv_obj.writerow(['under5_pop', 'lat', 'lon', 'loc'])
-            for k1 in range(csv_dat.shape[0]):
-                csv_obj.writerow([csv_dat[k1, 0], csv_dat[k1, 1], csv_dat[k1, 2], locations[k1]])
+            for k1 in range(len(tpop)):
+                csv_obj.writerow([tpop[k1], lat[k1], lon[k1], locations[k1]])
 
         demog = Demographics.from_csv(outfile_path, res=2 / 3600)
         nodes = demog.nodes
