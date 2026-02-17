@@ -80,4 +80,10 @@ commit = true
 filename = "pyproject.toml"
 
 [[tool.bumpversion.files]]
+filename = ".github/workflows/ghcr_emod_run_env.yml"
+
+[[tool.bumpversion.files]]
+filename = "docker/emod_runtime_env"
+
+[[tool.bumpversion.files]]
 filename = "emod_api/__init__.py"

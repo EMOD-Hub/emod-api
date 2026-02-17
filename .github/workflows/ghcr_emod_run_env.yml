@@ -6,9 +6,9 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  ORG_NAME: EMOD-Hub
+  ORG_NAME: emod-hub  # Must be lowercase
   IMAGE_NAME: emod_runtime_env
-  VERSION_NUM: "3.1.1"
+  VERSION_NUM: "3.1.1"  # Updated by bump-my-version
 
 jobs:
   build-and-push-image:
