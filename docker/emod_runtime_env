@@ -1,0 +1,19 @@
+FROM ubuntu:24.04
+#
+RUN apt update
+#RUN apt-get -y install software-properties-common
+#RUN apt-get update
+#RUN add-apt-repository universe
+RUN apt -y upgrade
+#
+RUN apt -y install python3
+RUN apt -y install python3-pip
+RUN apt -y install python3-venv
+RUN apt -y install mpich
+#
+RUN apt clean
+#
+RUN python3 -m venv py_env
+#
+RUN py_env/bin/pip3 install pip --upgrade
+RUN py_env/bin/pip3 install emod-api=="3.1.1"
