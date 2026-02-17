@@ -1,9 +1,6 @@
 FROM ubuntu:24.04
 #
 RUN apt update
-#RUN apt-get -y install software-properties-common
-#RUN apt-get update
-#RUN add-apt-repository universe
 RUN apt -y upgrade
 #
 RUN apt -y install python3

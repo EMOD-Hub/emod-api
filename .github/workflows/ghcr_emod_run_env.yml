@@ -34,8 +34,8 @@ jobs:
         id: push
         uses: docker/build-push-action@v6
         with:
-          context: ./docker
-          file: ${{ env.IMAGE_NAME }}
+          context: .
+          file: docker/${{ env.IMAGE_NAME }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
