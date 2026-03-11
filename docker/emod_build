@@ -3,7 +3,7 @@ FROM ubuntu:24.04
 RUN apt-get update
 RUN apt-get upgrade -y
 #
-RUN apt-get install -y python3-dev
+RUN apt-get install -y libpython3-dev
 RUN apt-get install -y libmpich-dev
 RUN apt-get install -y libsqlite3-dev
 RUN apt-get install -y git
