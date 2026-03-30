@@ -34,9 +34,7 @@ class Demographics(DemographicsBase):
         # as False allows setting default_node.node_attributes exactly as they are in the file. Loading via
         # Demographics.from_file() is deprecated, see below.
         if set_defaults:
-            self.default_node.node_attributes.airport = 1
-            self.default_node.node_attributes.seaport = 1
-            self.default_node.node_attributes.region = 1
+            pass
 
     def to_file(self, path: Union[str, Path] = "demographics.json", indent: int = 4) -> None:
         """

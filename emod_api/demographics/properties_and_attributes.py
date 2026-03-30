@@ -598,7 +598,6 @@ class IndividualAttributes(Updateable):
 
 class NodeAttributes(Updateable):
     def __init__(self,
-                 airport: int = None,
                  altitude: float = None,
                  area: float = None,
                  birth_rate: float = None,
@@ -609,8 +608,6 @@ class NodeAttributes(Updateable):
                  longitude: float = None,
                  metadata: dict = None,
                  initial_population: int = None,
-                 region: int = None,
-                 seaport: int = None,
                  larval_habitat_multiplier: Optional[list[float]] = None,
                  initial_vectors_per_species: Union[dict, int, None] = None,
                  infectivity_multiplier: float = None,
@@ -623,7 +620,6 @@ class NodeAttributes(Updateable):
         https://docs.idmod.org/projects/emod-malaria/en/latest/parameter-demographics.html#nodeattributes
 
         Args:
-            airport (int, optional): Whether the node has an airport (1 for true, 0 for false).
             altitude (float, optional): Altitude of the node (in meters).
             area (float, optional): Spatial size of the node (TODO: unknown units)
             birth_rate (float, optional): The birth rate in births/day/woman .
@@ -634,8 +630,6 @@ class NodeAttributes(Updateable):
             longitude (float, optional): Longitude of the node in degrees.
             metadata (dict, optional): An arbitrary dict of metaaata key/values to add to the node for notation.
             initial_population (int, optional): The initial number of people/agents in the node.
-            region (int, optional): Whether the node has a road network (1 for true, 0 for false).
-            seaport (int, optional):  Whether the node has a seaport (1 for true, 0 for false).
             larval_habitat_multiplier (list(float), optional): The value(s) by which to scale the larval habitat
                 availability specified in the configuration file with Larval_Habitat_Types.
             initial_vectors_per_species ((dict or int), optional): The initial number of vectors per species in the
@@ -644,7 +638,6 @@ class NodeAttributes(Updateable):
             extra_attributes (dict, optional): An arbitrary dict of attribute key/values to add to the node.
         """
         super().__init__()
-        self.airport = airport
         self.altitude = altitude
         self.area = area
         self.birth_rate = birth_rate
@@ -657,13 +650,10 @@ class NodeAttributes(Updateable):
         self.longitude = longitude
         self.metadata = metadata
         self.name = name
-        self.region = region
-        self.seaport = seaport
         self.infectivity_multiplier = infectivity_multiplier
         self.extra_attributes = extra_attributes
 
     def from_dict(self, node_attributes: dict):
-        self.airport = node_attributes.get("Airport")
         self.altitude = node_attributes.get("Altitude")
         self.area = node_attributes.get("Area")
         self.country = node_attributes.get("country")
@@ -676,8 +666,6 @@ class NodeAttributes(Updateable):
         self.larval_habitat_multiplier = node_attributes.get("LarvalHabitatMultiplier")
         self.initial_vectors_per_species = node_attributes.get("InitialVectorsPerSpecies")
         self.birth_rate = node_attributes.get("BirthRate")
-        self.seaport = node_attributes.get("Seaport")
-        self.region = node_attributes.get("Region")
         self.infectivity_multiplier = node_attributes.get("InfectivityMultiplier")
         return self
 
@@ -707,17 +695,8 @@ class NodeAttributes(Updateable):
         if self.initial_vectors_per_species:
             node_attributes.update({"InitialVectorsPerSpecies": self.initial_vectors_per_species})
 
-        if self.airport is not None:
-            node_attributes.update({"Airport": self.airport})
-
         if self.altitude is not None:
             node_attributes.update({"Altitude": self.altitude})
-
-        if self.seaport is not None:
-            node_attributes.update({"Seaport": self.seaport})
-
-        if self.region is not None:
-            node_attributes.update({"Region": self.region})
 
         if self.country is not None:
             node_attributes.update({"country": self.country})

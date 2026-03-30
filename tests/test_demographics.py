@@ -198,9 +198,6 @@ class DemographicsTest(unittest.TestCase):
 
         # check default node attributes
         self.assertEqual(0, default_node.node_attributes.birth_rate)
-        self.assertEqual(1, default_node.node_attributes.airport)
-        self.assertEqual(1, default_node.node_attributes.seaport)
-        self.assertEqual(1, default_node.node_attributes.region)
         self.assertEqual(0, default_node.node_attributes.latitude)
         self.assertEqual(0, default_node.node_attributes.longitude)
         self.assertEqual(0, default_node.node_attributes.initial_population)
@@ -590,8 +587,8 @@ class DemographicsTest(unittest.TestCase):
         # Read from CSV
         demo = Demographics.from_csv(csv_file)
 
-        airport_dont_override = 123
-        demo.get_node_by_id(node_id=2).node_attributes.airport = airport_dont_override  # Change one item, it should not change after override
+        area_dont_override = 123
+        demo.get_node_by_id(node_id=2).node_attributes.area = area_dont_override  # Change one item, it should not change after override
         node_attr_before_override = demo.get_node_by_id(node_id=10).node_attributes.to_dict()
         csv_file.unlink()
 
@@ -618,8 +615,7 @@ class DemographicsTest(unittest.TestCase):
         self.assertDictEqual(temp1, node_attr_before_override)
 
     def test_all_members_to_dict(self):
-        node_attributes = NodeAttributes(airport=1,
-                                         altitude=12,
+        node_attributes = NodeAttributes(altitude=12,
                                          area=0.5,
                                          birth_rate=123,
                                          country="country",
@@ -629,8 +625,6 @@ class DemographicsTest(unittest.TestCase):
                                          longitude=2.0,
                                          metadata={"Meta": 123},
                                          initial_population=1234,
-                                         region=45,
-                                         seaport=56,
                                          larval_habitat_multiplier=[{"Larval": 123}],
                                          initial_vectors_per_species=123,
                                          infectivity_multiplier=0.5,

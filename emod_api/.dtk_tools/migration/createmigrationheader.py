@@ -93,10 +93,7 @@ def get_migration_json(demogjson, maxvalcount, mig_type, tool):
     nodecount = 0
     nodecountfound = 0
     for node in demogjson["Nodes"]:
-        if mig_type != "sea" or (
-            strmap["Seaport"] in node[strmap["NodeAttributes"]]
-            and node[strmap["NodeAttributes"]][strmap["Seaport"]] == 1
-        ):
+        if mig_type != "sea":
             migoffsets += demogoffsets[
                 nodecount * 16 : nodecount * 16 + 8
             ] + "%0.8X" % (
