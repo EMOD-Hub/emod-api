@@ -30,7 +30,7 @@ from tests import manifest
 class DemographicsTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.keep_output = False
+        cls.keep_output = True
         cls.out_folder = manifest.output_folder
 
     @classmethod
