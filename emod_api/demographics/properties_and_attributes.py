@@ -628,7 +628,7 @@ class NodeAttributes(Updateable):
             name (str, optional): Name of the node
             latitude (float, optional): Latitude of the node in degrees.
             longitude (float, optional): Longitude of the node in degrees.
-            metadata (dict, optional): An arbitrary dict of metaaata key/values to add to the node for notation.
+            metadata (dict, optional): An arbitrary dict of metadata key/values to add to the node for notation.
             initial_population (int, optional): The initial number of people/agents in the node.
             larval_habitat_multiplier (list(float), optional): The value(s) by which to scale the larval habitat
                 availability specified in the configuration file with Larval_Habitat_Types.
@@ -656,17 +656,27 @@ class NodeAttributes(Updateable):
     def from_dict(self, node_attributes: dict):
         self.altitude = node_attributes.get("Altitude")
         self.area = node_attributes.get("Area")
+        self.birth_rate = node_attributes.get("BirthRate")
         self.country = node_attributes.get("country")
         self.growth_rate = node_attributes.get("GrowthRate")
-        self.name = node_attributes.get("FacilityName")
+        self.initial_population = node_attributes.get("InitialPopulation")
+        self.initial_vectors_per_species = node_attributes.get("InitialVectorsPerSpecies")
+        self.larval_habitat_multiplier = node_attributes.get("LarvalHabitatMultiplier")
         self.latitude = node_attributes.get("Latitude")
         self.longitude = node_attributes.get("Longitude")
         self.metadata = node_attributes.get("Metadata")
-        self.initial_population = node_attributes.get("InitialPopulation")
-        self.larval_habitat_multiplier = node_attributes.get("LarvalHabitatMultiplier")
-        self.initial_vectors_per_species = node_attributes.get("InitialVectorsPerSpecies")
-        self.birth_rate = node_attributes.get("BirthRate")
+        self.name = node_attributes.get("FacilityName")
         self.infectivity_multiplier = node_attributes.get("InfectivityMultiplier")
+
+        # Legacy keys
+        key_list = ["Airport", "Region", "Seaport"]
+        for key_name in key_list:
+            key_val = node_attributes.get(key_name)
+            if key_val:
+                if self.extra_attributes is None:
+                    self.extra_attributes = dict()
+                self.extra_attributes[key_name] = key_val
+
         return self
 
     def to_dict(self) -> dict:
