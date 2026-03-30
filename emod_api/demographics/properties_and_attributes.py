@@ -672,7 +672,7 @@ class NodeAttributes(Updateable):
         key_list = ["Airport", "Region", "Seaport"]
         for key_name in key_list:
             key_val = node_attributes.get(key_name)
-            if key_val:
+            if key_val is not None:
                 if self.extra_attributes is None:
                     self.extra_attributes = dict()
                 self.extra_attributes[key_name] = key_val

@@ -31,7 +31,7 @@ class DemographicsTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.keep_output = False
-        cls.out_folder = tempfile.mkdtemp()
+        cls.out_folder = manifest.output_folder
 
     @classmethod
     def tearDownClass(cls):
