@@ -51,6 +51,7 @@ docs = [
     "mkdocstrings-python",
     "mkdocs-autoapi",
     "mkdocs-glightbox",
+    "mkdocs-table-reader-plugin",
 ]
 lint = [
     "flake8",

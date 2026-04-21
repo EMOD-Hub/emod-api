@@ -1,5 +1,5 @@
 site_name: emod-api
-site_url: https://emod-hub.github.io/emod-api/
+site_url: https://emod.idmod.org/emod-api/
 repo_name: EMOD-Hub/emod-api
 repo_url: https://github.com/EMOD-Hub/emod-api/
 
@@ -32,16 +32,14 @@ nav:
   - Home: index.md
   - Plotters: plotters.md
   - API reference: autoapi/
-  - Related projects:
-    - emodpy: https://emod-hub.github.io/emodpy/
-    - EMOD-Generic: https://emod-hub.github.io/EMOD-Generic/
-    - idmtools: https://docs.idmod.org/projects/idmtools/
+  - Related projects: https://emod.idmod.org/
 
 plugins:
   - search:
   - autorefs:
   - include-markdown:
   - glightbox:
+  - table-reader:
   - mkdocs-autoapi:
       autoapi_ignore:
         - .github/**/*
@@ -64,6 +62,9 @@ markdown_extensions:
   - pymdownx.blocks.details:  # allows nesting of collapsible code
   - pymdownx.caret:  # superscripts
   - pymdownx.details:  # collapsible elements
+  - pymdownx.emoji:  # emojis and icons
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.highlight:  # syntax highlighting for code blocks
       linenums: true  # adds line numbers to code blocks automatically
       anchor_linenums: true  # adds HTML anchors (#L1, #L2, etc.) to each line so you can link to specific ones.
@@ -100,8 +101,6 @@ extra:
       link: http://www.youtube.com/@institutefordiseasemodelin1987
     - icon: fontawesome/brands/linkedin
       link: https://linkedin.com/company/institute-disease-modeling
-    - icon: fontawesome/brands/slack
-      link: https://gatesfoundation.enterprise.slack.com/
   analytics:
     provider: custom
     property: GTM-NK4K647

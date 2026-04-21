@@ -16,8 +16,8 @@ Python 3.13 is the recommended and supported version.
 
 ### Installing the Package
 
-The emod-api package is currently available on a [Python package index server][idm_pypi] managed by the [Institute for Disease Modeling][idmod].
+The emod-api package is currently available on the [Python package index][pypi].
 
 ```
-pip install emod-api --extra-index-url=https://packages.idmod.org/api/pypi/pypi-production/simple
+pip install emod-api
 ```

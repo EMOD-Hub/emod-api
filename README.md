@@ -10,7 +10,7 @@ Python 3.13 is the recommended and supported version.
 
 ## Documentation
 
-Documentation available at https://emod-hub.github.io/emod-api/.
+Documentation available at https://emod.idmod.org/emod-api/
 
 To build the documentation locally, do the following:
 
@@ -18,6 +18,7 @@ To build the documentation locally, do the following:
 2. Navigate to the root directory of the repo.
     ```
     python -m pip install .[docs]
+    mkdocs serve
     ```
 
 ## Dependencies
@@ -27,8 +28,6 @@ To build the documentation locally, do the following:
 emod-api can use Snappy [de]compression (python-snappy) as necessary if it is installed which requires libdev-snappy (Debian/Ubuntu) or snappy-devel (RedHat/CentOS) on Linux.
 
 Ubuntu: ```[sudo] apt install libdev-snappy```
-
-CentOS: ```[sudo] yum install snappy-devel``` (not yet tested)
 
 NOTE: The python-snappy version needs to be 0.6.1.  Newer versions have problems
 working correctly with emod-api.
@@ -49,14 +48,6 @@ Output
 - User wants to be able to extract data of interest from spatial binary files.
 - User wants to be able to work easily with serialization files.
 - User wants to be able to work easily with (pending) events.sql file.
-
-## Dev Tips
-
-- To build package:
-    `python -m build --wheel`
-
-- To install package (fill in actual version number in filename):  
-    `python -m pip install dist/emod_api...whl`
 
 ## Capability Wishlist
 
