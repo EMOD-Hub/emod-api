@@ -25,7 +25,7 @@ To build the documentation locally, do the following:
 
 ### Linux
 
-emod-api can use Snappy [de]compression (python-snappy) as necessary if it is installed which requires libdev-snappy (Debian/Ubuntu) or snappy-devel (RedHat/CentOS) on Linux.
+emod-api can use Snappy [de]compression (python-snappy) as necessary if it is installed, which requires libdev-snappy on Ubuntu 22.04 (Jammy Jellyfish).
 
 Ubuntu: ```[sudo] apt install libdev-snappy```
 
