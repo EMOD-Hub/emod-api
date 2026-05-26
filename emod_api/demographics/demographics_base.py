@@ -305,6 +305,9 @@ class DemographicsBase(BaseInputFile):
         Args:
             distribution: The distribution to set. Can either be a BaseDistribution object for a simple distribution
                 or AgeDistribution object for complex.
+                Note: When using BaseDistribution, the parameter ages are in days. Ex: UniformDistribution(0, 365*50) for
+                    a uniform distribution of ages between 0 and 50 years. When using AgeDistribution, the parameter
+                    ages are in years.
             node_ids: The node id(s) to apply changes to. None or 0 means the default node.
 
         Returns:
