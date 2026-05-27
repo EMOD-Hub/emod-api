@@ -30,14 +30,10 @@ class Demographics(DemographicsBase):
         """
         super().__init__(nodes=nodes, idref=idref, default_node=default_node)
 
-        # set some standard EMOD defaults. set_defaults should always be True unless reading from a demographics file,
-        # as False allows setting default_node.node_attributes exactly as they are in the file. Loading via
-        # Demographics.from_file() is deprecated, see below.
+        # No current default settings
         if set_defaults:
-            self.default_node.node_attributes.airport = 1
-            self.default_node.node_attributes.seaport = 1
-            self.default_node.node_attributes.region = 1
-            self.default_node.node_attributes.altitude = 0
+            pass
+
 
     def to_file(self, path: Union[str, Path] = "demographics.json", indent: int = 4) -> None:
         """
