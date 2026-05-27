@@ -6,6 +6,7 @@ import warnings
 
 from emod_api import campaign as api_campaign
 from emod_api import schema_to_class as s2c
+from emod_api.utils.str_enum import StrEnum
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 OUTPUT_FOLDER = os.path.join(CURRENT_DIR, 'output')
@@ -122,6 +123,22 @@ class TestCampaignWithSchema(unittest.TestCase):
         with self.assertWarns(UserWarning):
             self.campaign.get_custom_individual_events()
 
+    def test_set_schema_populates_node_builtin_events(self):
+        if not self.campaign.node_builtin_events:
+            self.skipTest("No node builtin events in schema")
+        self.assertGreater(len(self.campaign.node_builtin_events), 0)
+
+    def test_set_schema_populates_coordinator_builtin_events(self):
+        if not self.campaign.coordinator_builtin_events:
+            self.skipTest("No coordinator builtin events in schema")
+        self.assertGreater(len(self.campaign.coordinator_builtin_events), 0)
+
+    def test_add_event_without_note(self):
+        sample_event = generate_sample_campaign_event(self.campaign, SCHEMA_PATH)
+        self.campaign.add(sample_event)
+        self.assertEqual(len(self.campaign.campaign_dict["Events"]), 1)
+        self.assertNotIn("Note", self.campaign.campaign_dict["Events"][0])
+
 
 class TestEventRegistration(unittest.TestCase):
     """Tests for event registration functions (no schema needed)."""
@@ -162,6 +179,54 @@ class TestEventRegistration(unittest.TestCase):
         result = self.campaign.set_broadcast_coordinator_event("CoordBroadcastEvent")
         self.assertEqual(result, "CoordBroadcastEvent")
         self.assertIn("CoordBroadcastEvent", self.campaign.coordinator_events_broadcast)
+
+    def test_get_recv_trigger_none_raises(self):
+        with self.assertRaises(ValueError):
+            self.campaign.get_recv_trigger(None)
+
+    def test_get_recv_trigger_empty_raises(self):
+        with self.assertRaises(ValueError):
+            self.campaign.get_recv_trigger("")
+
+    def test_get_send_trigger_none_raises(self):
+        with self.assertRaises(ValueError):
+            self.campaign.get_send_trigger(None)
+
+    def test_get_send_trigger_empty_raises(self):
+        with self.assertRaises(ValueError):
+            self.campaign.get_send_trigger("")
+
+    def test_set_listened_node_event_none_raises(self):
+        with self.assertRaises(ValueError):
+            self.campaign.set_listened_node_event(None)
+
+    def test_set_listened_node_event_empty_raises(self):
+        with self.assertRaises(ValueError):
+            self.campaign.set_listened_node_event("")
+
+    def test_set_broadcast_node_event_none_raises(self):
+        with self.assertRaises(ValueError):
+            self.campaign.set_broadcast_node_event(None)
+
+    def test_set_broadcast_node_event_empty_raises(self):
+        with self.assertRaises(ValueError):
+            self.campaign.set_broadcast_node_event("")
+
+    def test_set_listened_coordinator_event_none_raises(self):
+        with self.assertRaises(ValueError):
+            self.campaign.set_listened_coordinator_event(None)
+
+    def test_set_listened_coordinator_event_empty_raises(self):
+        with self.assertRaises(ValueError):
+            self.campaign.set_listened_coordinator_event("")
+
+    def test_set_broadcast_coordinator_event_none_raises(self):
+        with self.assertRaises(ValueError):
+            self.campaign.set_broadcast_coordinator_event(None)
+
+    def test_set_broadcast_coordinator_event_empty_raises(self):
+        with self.assertRaises(ValueError):
+            self.campaign.set_broadcast_coordinator_event("")
 
 
 class TestValidateCustomEvents(unittest.TestCase):
@@ -259,6 +324,15 @@ class TestValidateCustomEvents(unittest.TestCase):
         )
         self.assertEqual(result, [])
 
+    def test_duplicate_events_are_deduplicated(self):
+        result = api_campaign._validate_custom_events(
+            listened_list=["Evt", "Evt", "Evt"],
+            broadcast_list=["Evt", "Evt"],
+            builtin_list=[],
+            level="test"
+        )
+        self.assertEqual(result, ["Evt"])
+
 
 class TestFindBuiltinEvents(unittest.TestCase):
     """Tests for _find_builtin_events schema search."""
@@ -344,6 +418,22 @@ class TestFindBuiltinEvents(unittest.TestCase):
         result = api_campaign._find_builtin_events(
             schema, "ReportEventRecorderNode", "Report_Node_Event_Recorder_Events")
         self.assertEqual(result, ["NodeEvt1", "NodeEvt2"])
+
+
+class TestStrEnum(unittest.TestCase):
+    """Tests for StrEnum __str__ and __repr__."""
+
+    def setUp(self):
+        class Color(StrEnum):
+            RED = "red"
+            BLUE = "blue"
+        self.Color = Color
+
+    def test_str_returns_value(self):
+        self.assertEqual(str(self.Color.RED), "red")
+
+    def test_repr_returns_value(self):
+        self.assertEqual(repr(self.Color.RED), "red")
 
 
 if __name__ == '__main__':
