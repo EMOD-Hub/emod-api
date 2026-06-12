@@ -151,7 +151,6 @@ def add(event, note: str = None):
     campaign_dict["Events"].append(event)
 
 
-
 def save(filename: str = "campaign.json"):
     """Save the accumulated campaign events to a JSON file.
 
@@ -279,6 +278,7 @@ def get_recv_trigger(trigger, old=use_old_adhoc_handling):
     individual_events_listened.append(trigger)
     return trigger
 
+
 def set_listened_node_event(event: str) -> str:
     """Register a node-level event as listened to.
 
@@ -296,6 +296,7 @@ def set_listened_node_event(event: str) -> str:
         raise ValueError("Event name must not be None or empty.")
     node_events_listened.append(event)
     return event
+
 
 def set_listened_coordinator_event(event: str) -> str:
     """Register a coordinator-level event as listened to.
@@ -315,6 +316,7 @@ def set_listened_coordinator_event(event: str) -> str:
     coordinator_events_listened.append(event)
     return event
 
+
 def get_send_trigger(trigger, old=use_old_adhoc_handling):
     """Register an individual-level event as broadcast.
 
@@ -329,6 +331,7 @@ def get_send_trigger(trigger, old=use_old_adhoc_handling):
         raise ValueError("Event name must not be None or empty.")
     individual_events_broadcast.append(trigger)
     return trigger
+
 
 def set_broadcast_node_event(event: str) -> str:
     """Register a node-level event as broadcast.
@@ -348,6 +351,7 @@ def set_broadcast_node_event(event: str) -> str:
     node_events_broadcast.append(event)
     return event
 
+
 def set_broadcast_coordinator_event(event: str) -> str:
     """Register a coordinator-level event as broadcast.
 
@@ -365,4 +369,3 @@ def set_broadcast_coordinator_event(event: str) -> str:
         raise ValueError("Event name must not be None or empty.")
     coordinator_events_broadcast.append(event)
     return event
-

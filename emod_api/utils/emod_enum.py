@@ -1,5 +1,6 @@
 from emod_api.utils.str_enum import StrEnum
 
+
 class BirthRateDependence(StrEnum):
     """How BirthRate from the demographics file is interpreted by EMOD.
 

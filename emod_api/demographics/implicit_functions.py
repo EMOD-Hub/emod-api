@@ -1,3 +1,6 @@
+from emod_api.utils.emod_enum import BirthRateDependence
+
+
 # Migration
 
 def _set_migration_model_fixed_rate(config):

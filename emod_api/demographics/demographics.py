@@ -7,7 +7,7 @@ from typing import Union
 
 from emod_api.demographics.demographics_base import DemographicsBase
 from emod_api.demographics.node import Node
-from emod_api.demographics.properties_and_attributes import NodeAttributes, NodeProperty, NodeProperties
+from emod_api.demographics.properties_and_attributes import NodeAttributes, NodeProperty, NodeProperties  # noqa: F401
 from emod_api.demographics.service import service
 
 
@@ -33,7 +33,6 @@ class Demographics(DemographicsBase):
         # No current default settings
         if set_defaults:
             pass
-
 
     def to_file(self, path: Union[str, Path] = "demographics.json", indent: int = 4) -> None:
         """

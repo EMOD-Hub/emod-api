@@ -274,7 +274,7 @@ class DemographicsBase(BaseInputFile):
             demographics_dict["NodeProperties"] = self.node_properties.to_dict()
         return demographics_dict
 
-    def set_birth_rate(self, rate: float, node_ids: list[int] = None, birth_rate_dependence: Union[str, BirthRateDependence]  = "POPULATION_DEP_RATE"):
+    def set_birth_rate(self, rate: float, node_ids: list[int] = None, birth_rate_dependence: Union[str, BirthRateDependence] = "POPULATION_DEP_RATE"):
         """
         Sets the BirthRate on the target node(s) and configures how EMOD interprets it via
         Birth_Rate_Dependence. Automatically registers the corresponding config implicit.
@@ -305,7 +305,7 @@ class DemographicsBase(BaseInputFile):
                     max: 8 (equivalent to 1 pregnancy per year for every possible mother in the population)
 
         """
-        from emod_api.demographics.implicit_functions import ( _set_birth_rate_dependence)
+        from emod_api.demographics.implicit_functions import _set_birth_rate_dependence
 
         if not isinstance(birth_rate_dependence, BirthRateDependence):
             try:
@@ -319,8 +319,8 @@ class DemographicsBase(BaseInputFile):
             if rate > 1000:
                 raise ValueError(f"Births per 1000 people per year cannot exceed 1000. Provided rate: {rate}")
             rate = rate / 365 / 1000  # converting to per day per 1000 people
-        elif (birth_rate_dependence == BirthRateDependence.DEMOGRAPHIC_DEP_RATE or
-              birth_rate_dependence == BirthRateDependence.INDIVIDUAL_PREGNANCIES):
+        elif birth_rate_dependence in (BirthRateDependence.DEMOGRAPHIC_DEP_RATE,
+                                       BirthRateDependence.INDIVIDUAL_PREGNANCIES):
             if rate > 8:
                 raise ValueError(f"Births per 8 fertile women per year cannot exceed 8. Provided rate: {rate}")
             rate = rate / 365 / 8  # converting to per day per 8 fertile women
