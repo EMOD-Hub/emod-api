@@ -1512,10 +1512,8 @@ class NodePropertiesDemographicsTest(unittest.TestCase):
 
     def test_roundtrip_with_reference_file(self):
         ref_path = os.path.join(
-            "C:\\", "github", "emod1", "regression", "generic",
-            "57_Generic_NodeProperties", "demographics_node_properties.json")
-        if not os.path.isfile(ref_path):
-            self.skipTest("Reference demographics file not found")
+            os.path.dirname(__file__), "data", "demographics",
+            "demographics_node_properties.json")
         import warnings
         try:
             with warnings.catch_warnings():
