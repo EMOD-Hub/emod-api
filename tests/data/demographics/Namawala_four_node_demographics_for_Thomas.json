@@ -45,9 +45,6 @@
          "PrevalenceDistribution1": 0,
          "PrevalenceDistribution2": 0,
          "PrevalenceDistributionFlag": 0,
-         "RiskDistribution1": 1,
-         "RiskDistribution2": 0,
-         "RiskDistributionFlag": 0,
          "SusceptibilityDistribution1": 1,
          "SusceptibilityDistribution2": 0,
          "SusceptibilityDistributionFlag": 0
@@ -78,8 +75,8 @@
          "Airport": 0,
          "Altitude": 0,
          "BirthRate": 0.0002,
-         "InitialPopulation": 1000,
          "FacilityName": "default_node",
+         "InitialPopulation": 1000,
          "InitialVectorsPerSpecies": {
             "arabiensis": 500,
             "funestus": 500,
@@ -97,7 +94,7 @@
          "Region": 1,
          "Seaport": 0
       },
-     "NodeID": 0
+      "NodeID": 0
    },
    "Metadata": {
       "Author": "jsteinkraus",
@@ -113,9 +110,6 @@
             "AgeDistribution1": 0.000118,
             "AgeDistribution2": 0,
             "AgeDistributionFlag": 3,
-            "SusceptibilityDistribution1": 1,
-            "SusceptibilityDistribution2": 0,
-            "SusceptibilityDistributionFlag": 0,
             "MigrationHeterogeneityDistribution1": 1,
             "MigrationHeterogeneityDistribution2": 0,
             "MigrationHeterogeneityDistributionFlag": 0,
@@ -157,9 +151,9 @@
             "PrevalenceDistribution1": 0.1,
             "PrevalenceDistribution2": 0.2,
             "PrevalenceDistributionFlag": 1,
-            "RiskDistribution1": 1,
-            "RiskDistribution2": 0,
-            "RiskDistributionFlag": 0
+            "SusceptibilityDistribution1": 1,
+            "SusceptibilityDistribution2": 0,
+            "SusceptibilityDistributionFlag": 0
          },
          "IndividualProperties": [
             {
@@ -208,9 +202,6 @@
             "AgeDistribution1": 0.000118,
             "AgeDistribution2": 0,
             "AgeDistributionFlag": 3,
-            "SusceptibilityDistribution1": 1,
-            "SusceptibilityDistribution2": 0,
-            "SusceptibilityDistributionFlag": 0,
             "MigrationHeterogeneityDistribution1": 1,
             "MigrationHeterogeneityDistribution2": 0,
             "MigrationHeterogeneityDistributionFlag": 0,
@@ -252,9 +243,9 @@
             "PrevalenceDistribution1": 0.1,
             "PrevalenceDistribution2": 0.2,
             "PrevalenceDistributionFlag": 1,
-            "RiskDistribution1": 1,
-            "RiskDistribution2": 0,
-            "RiskDistributionFlag": 0
+            "SusceptibilityDistribution1": 1,
+            "SusceptibilityDistribution2": 0,
+            "SusceptibilityDistributionFlag": 0
          },
          "IndividualProperties": [
             {
@@ -301,9 +292,6 @@
             "AgeDistribution1": 0.003,
             "AgeDistribution2": 0,
             "AgeDistributionFlag": 3,
-            "SusceptibilityDistribution1": 1,
-            "SusceptibilityDistribution2": 0,
-            "SusceptibilityDistributionFlag": 0,
             "MigrationHeterogeneityDistribution1": 1,
             "MigrationHeterogeneityDistribution2": 0,
             "MigrationHeterogeneityDistributionFlag": 0,
@@ -345,9 +333,9 @@
             "PrevalenceDistribution1": 0.1,
             "PrevalenceDistribution2": 0.2,
             "PrevalenceDistributionFlag": 1,
-            "RiskDistribution1": 1,
-            "RiskDistribution2": 0,
-            "RiskDistributionFlag": 0
+            "SusceptibilityDistribution1": 1,
+            "SusceptibilityDistribution2": 0,
+            "SusceptibilityDistributionFlag": 0
          },
          "NodeAttributes": {
             "Airport": 0,
@@ -372,9 +360,6 @@
             "AgeDistribution1": 0.000118,
             "AgeDistribution2": 0,
             "AgeDistributionFlag": 3,
-            "SusceptibilityDistribution1": 1,
-            "SusceptibilityDistribution2": 0,
-            "SusceptibilityDistributionFlag": 0,
             "MigrationHeterogeneityDistribution1": 1,
             "MigrationHeterogeneityDistribution2": 0,
             "MigrationHeterogeneityDistributionFlag": 0,
@@ -416,9 +401,9 @@
             "PrevalenceDistribution1": 0.1,
             "PrevalenceDistribution2": 0.2,
             "PrevalenceDistributionFlag": 1,
-            "RiskDistribution1": 1,
-            "RiskDistribution2": 0,
-            "RiskDistributionFlag": 0
+            "SusceptibilityDistribution1": 1,
+            "SusceptibilityDistribution2": 0,
+            "SusceptibilityDistributionFlag": 0
          },
          "NodeAttributes": {
             "Airport": 0,

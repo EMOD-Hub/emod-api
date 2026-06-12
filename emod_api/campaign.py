@@ -212,8 +212,8 @@ def _validate_custom_events(listened_list, broadcast_list, builtin_list, level):
     broadcast_not_listened = broadcast - listened
     if broadcast_not_listened:
         warnings.warn(
-            f"The following {level} events are broadcast but nothing in the campaign "
-            f"is listening to them: {sorted(broadcast_not_listened)}")
+            f"The following {level} events are broadcast but nothing is listening to them within "
+            f"the campaign: {sorted(broadcast_not_listened)}")
 
     return list(broadcast)
 

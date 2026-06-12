@@ -7,7 +7,7 @@ from typing import Union
 
 from emod_api.demographics.demographics_base import DemographicsBase
 from emod_api.demographics.node import Node
-from emod_api.demographics.properties_and_attributes import NodeAttributes
+from emod_api.demographics.properties_and_attributes import NodeAttributes, NodeProperty, NodeProperties
 from emod_api.demographics.service import service
 
 
@@ -93,6 +93,12 @@ class Demographics(DemographicsBase):
         demographics = cls(nodes=nodes, default_node=default_node, idref=idref, set_defaults=False)
         demographics.metadata = metadata
         demographics.implicits.extend(implicit_functions)
+
+        node_properties_list = demographics_dict.get("NodeProperties")
+        if node_properties_list:
+            for np_dict in node_properties_list:
+                demographics.node_properties.add(NodeProperty.from_dict(np_dict))
+
         return demographics
 
     @classmethod

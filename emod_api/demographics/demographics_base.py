@@ -10,9 +10,10 @@ from emod_api.demographics.fertility_distribution import FertilityDistribution
 from emod_api.demographics.mortality_distribution import MortalityDistribution
 from emod_api.demographics.node import Node
 from emod_api.demographics.demographic_exceptions import InvalidNodeIdException
-from emod_api.demographics.properties_and_attributes import IndividualProperty
+from emod_api.demographics.properties_and_attributes import IndividualProperty, NodeProperty, NodeProperties
 from emod_api.demographics.susceptibility_distribution import SusceptibilityDistribution
 from emod_api.utils.distributions.base_distribution import BaseDistribution
+from emod_api.utils.emod_enum import BirthRateDependence
 
 
 class DemographicsBase(BaseInputFile):
@@ -38,6 +39,7 @@ class DemographicsBase(BaseInputFile):
         """
         super().__init__(idref=idref)
         self.nodes = nodes
+        self.node_properties = NodeProperties()
         self.implicits = list()
         self.migration_files = list()
 
@@ -268,32 +270,70 @@ class DemographicsBase(BaseInputFile):
             'Metadata': self.metadata
         }
         demographics_dict["Metadata"]["NodeCount"] = len(self.nodes)
+        if self.node_properties:
+            demographics_dict["NodeProperties"] = self.node_properties.to_dict()
         return demographics_dict
 
-    def set_birth_rate(self, rate: float, node_ids: list[int] = None):
+    def set_birth_rate(self, rate: float, node_ids: list[int] = None, birth_rate_dependence: Union[str, BirthRateDependence]  = "POPULATION_DEP_RATE"):
         """
-        Sets a specified population-dependent birth rate value on the target node(s). Automatically handles any
-        necessary config updates.
+        Sets the BirthRate on the target node(s) and configures how EMOD interprets it via
+        Birth_Rate_Dependence. Automatically registers the corresponding config implicit.
 
         Args:
-            rate: (float) The birth rate to set in units of births/year/1000-women
-            node_ids: (list[int]) The node id(s) to apply changes to. None or 0 means the default node.
-
-        Returns:
+            rate: The birth rate to set on the target node(s). The units of this value depend on the
+                birth_rate_dependence setting, see below.
+            node_ids: Node id(s) to apply rate to. ``None`` or ``0`` targets the default node. Please note that the
+                birth rate dependence setting will be applied to all nodes, regardless of which node(s) the birth
+                rate is applied to.
+            birth_rate_dependence: How EMOD uses the BirthRate value.
+                Accepts a :class:`~emod_api.demographics.implicit_functions.BirthRateDependence`
+                member or its string value. Defaults to ``POPULATION_DEP_RATE``.
+                - ``FIXED_BIRTH_RATE`` — 'rate' is used as an absolute daily birth rate with which new individuals are born.
+                    units: number of births per year
+                - ``POPULATION_DEP_RATE`` — 'rate' is scaled by node population to determine the daily birth rate.
+                    units: number of births per 1000 people per year
+                    max: 1000 (equivalent to 1 birth per year for every person in the population)
+                - ``DEMOGRAPHIC_DEP_RATE`` — 'rate' is scaled by number of possible mothers (female population in
+                    fertility age range of 15–44 years).
+                    units: number of births per 8 fertile women per year
+                    max: 8 (equivalent to 1 birth per year for every possible mother in the population)
+                - ``INDIVIDUAL_PREGNANCIES`` — like DEMOGRAPHIC_DEP_RATE, but pregnancies are
+                    assigned individually with a 40-week gestation period. An individual fertile female person becomes
+                    pregnant based on the birth rate and then gives birth 40 weeks later. This setup is required for
+                    using IsPregnant targeting in campaigns.
+                    units: number of pregnancies per 8 fertile women per year
+                    max: 8 (equivalent to 1 pregnancy per year for every possible mother in the population)
 
         """
-        from emod_api.demographics.implicit_functions import _set_population_dependent_birth_rate
+        from emod_api.demographics.implicit_functions import ( _set_birth_rate_dependence)
 
-        rate = rate / 365 / 1000  # converting to births/day/woman, which is what EMOD internally uses.
+        if not isinstance(birth_rate_dependence, BirthRateDependence):
+            try:
+                birth_rate_dependence = BirthRateDependence(birth_rate_dependence)
+            except ValueError:
+                raise ValueError(
+                    f"Invalid birth_rate_dependence {birth_rate_dependence!r}. "
+                    f"Valid options: {[e.value for e in BirthRateDependence]}")
+
+        if birth_rate_dependence == BirthRateDependence.POPULATION_DEP_RATE:
+            if rate > 1000:
+                raise ValueError(f"Births per 1000 people per year cannot exceed 1000. Provided rate: {rate}")
+            rate = rate / 365 / 1000  # converting to per day per 1000 people
+        elif (birth_rate_dependence == BirthRateDependence.DEMOGRAPHIC_DEP_RATE or
+              birth_rate_dependence == BirthRateDependence.INDIVIDUAL_PREGNANCIES):
+            if rate > 8:
+                raise ValueError(f"Births per 8 fertile women per year cannot exceed 8. Provided rate: {rate}")
+            rate = rate / 365 / 8  # converting to per day per 8 fertile women
+
         nodes = self.get_nodes_by_id(node_ids=node_ids)
         for _, node in nodes.items():
             node.birth_rate = rate
-        self.implicits.append(_set_population_dependent_birth_rate)
+        self.implicits.append(partial(_set_birth_rate_dependence,
+                                      birth_rate_dependence=birth_rate_dependence))
 
     #
     # These distribution setters accept either a simple or complex distribution
     #
-
     def set_age_distribution(self,
                              distribution: Union[BaseDistribution, AgeDistribution],
                              node_ids: list[int] = None) -> None:
@@ -396,44 +436,6 @@ class DemographicsBase(BaseInputFile):
                                use_case='migration_heterogeneity',
                                simple_distribution_implicits=implicits,
                                node_ids=node_ids)
-
-    # TODO: This belongs in emodpy-malaria, as that is the one disease that uses this set of parameters.
-    #  Should be moved into a subclass of emodpy Demographics inside emodpy-malaria during a 2.0 conversion of it.
-    #  https://github.com/EMOD-Hub/emodpy-malaria/issues/126
-    # def set_innate_immune_distribution(self,
-    #                                    distribution: BaseDistribution,
-    #                                    innate_immune_variation_type: str,
-    #                                    node_ids: list[int] = None) -> None:
-    #     """
-    #     Sets a innate immune distribution on the demographics object. Automatically handles any necessary config
-    #     updates.
-    #
-    #     Args:
-    #         distribution: The distribution to set. Must be a BaseDistribution object for a simple distribution.
-    #         innate_immune_variation_type: the variation type to configure in EMOD. Must be either CYTOKINE_KILLING
-    #             or PYROGENIC_THRESHOLD to be compatible with setting a innate immune distribution.
-    #         node_ids: The node id(s) to apply changes to. None or 0 means the default node.
-    #
-    #     Returns:
-    #         Nothing
-    #     """
-    #     from emod_api.demographics.implicit_functions import _set_immune_variation_type_cytokine_killing, \
-    #         _set_immune_variation_type_pyrogenic_threshold
-    #
-    #     valid_types = [self.CYTOKINE_KILLING, self.PYROGENIC_THRESHOLD]
-    #     if innate_immune_variation_type == self.CYTOKINE_KILLING:
-    #         implicits = [_set_immune_variation_type_cytokine_killing]
-    #     elif innate_immune_variation_type == self.PYROGENIC_THRESHOLD:
-    #         implicits = [_set_immune_variation_type_pyrogenic_threshold]
-    #     else:
-    #         valid_types_str = ', '.join(valid_types)
-    #         raise ValueError(f'innate_immune_variation_type must be one of: {valid_types_str} ... to allow use of a '
-    #                          f'distribution.')
-    #
-    #     self._set_distribution(distribution=distribution,
-    #                            use_case='innate_immune',
-    #                            simple_distribution_implicits=implicits,
-    #                            node_ids=node_ids)
 
     #
     # These distribution setters only accept complex distributions
@@ -565,3 +567,58 @@ class DemographicsBase(BaseInputFile):
                 raise ValueError(f"Property key '{property}' already present in IndividualProperties list")
 
             node.individual_properties.add(individual_property=individual_property, overwrite=overwrite_existing)
+
+    def add_node_property(self,
+                          property: str,
+                          values: list[str],
+                          initial_distribution: list[float] = None,
+                          overwrite_existing: bool = False) -> None:
+        """
+        Adds a new node property to the demographics object.
+
+        Node properties are top-level in the demographics file and define property labels
+        on nodes that can be used for identifying and targeting subsets of nodes in campaign
+        elements and reports. For example, nodes may be given a property ('Place') with
+        values like 'URBAN' or 'RURAL'.
+
+        Each node is randomly assigned a value from the ``initial_distribution`` at
+        initialization. To override the drawn value for specific nodes, use
+        ``set_node_property_values``.
+
+        Args:
+            property: A node property key to add (e.g. ``'Place'``).
+            values: A list of valid string values for the property (e.g. ``['URBAN', 'RURAL']``).
+            initial_distribution: The fractional (0 to 1) initial distribution of each value.
+                Order must match the values argument. Must sum to 1.
+            overwrite_existing: When True, overwrites an existing node property with the same
+                key. If False, raises an exception if the property already exists.
+
+        Returns:
+            None
+        """
+        node_property = NodeProperty(property=property,
+                                     values=values,
+                                     initial_distribution=initial_distribution)
+        self.node_properties.add(node_property=node_property, overwrite=overwrite_existing)
+
+    def set_node_property_values(self,
+                                 node_ids: list[int],
+                                 values: list[str]) -> None:
+        """
+        Set per-node ``NodePropertyValues`` overrides inside ``NodeAttributes``.
+
+        When a node has ``NodePropertyValues`` set, those values override whatever was
+        drawn from the ``Initial_Distribution`` of the top-level ``NodeProperties``.
+
+        Args:
+            node_ids: The node ids to apply the overrides to. Must be specific node ids
+                (not None/0 default node).
+            values: A list of ``"Property:Value"`` strings (e.g.
+                ``["Place:RURAL", "InterventionStatus:SPRAYED_B"]``).
+
+        Returns:
+            None
+        """
+        nodes = self.get_nodes_by_id(node_ids=node_ids)
+        for _, node in nodes.items():
+            node.node_attributes.node_property_values = values

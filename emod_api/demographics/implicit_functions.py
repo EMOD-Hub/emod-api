@@ -100,13 +100,10 @@ def _set_fertility_age_year(config):
     return config
 
 
+def _set_birth_rate_dependence(config, birth_rate_dependence):
+    config.parameters.Birth_Rate_Dependence = str(birth_rate_dependence)
+    return config
+
+
 def _set_population_dependent_birth_rate(config):
-    config.parameters.Birth_Rate_Dependence = "POPULATION_DEP_RATE"
-    return config
-
-
-# Risk
-
-def _set_enable_demog_risk(config):
-    config.parameters.Enable_Demographics_Risk = 1
-    return config
+    return _set_birth_rate_dependence(config, BirthRateDependence.POPULATION_DEP_RATE)

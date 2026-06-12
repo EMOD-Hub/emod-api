@@ -371,47 +371,6 @@ class Node(Updateable):
         """
         self.individual_attributes.mortality_distribution_male = distribution
 
-    # malaria only
-    # TODO: Move to emodpy-malaria?
-    #  https://github.com/InstituteforDiseaseModeling/emodpy-malaria-old/issues/707
-    def _set_innate_immune_simple_distribution(self, flag: int, value1: float, value2: float):
-        """
-        Properly sets a simple innate immune distribution. For details on the simple distribution flag and value
-        meanings, see:
-        https://docs.idmod.org/projects/emod-generic/en/latest/parameter-demographics.html#simple-distributions
-
-        Args:
-            flag: simple distribution flag determines the type of simple distribution to use
-            value1: simple distribution type-dependent parameter number 1
-            value2: simple distribution type-dependent parameter number 2
-
-        Returns:
-            Nothing
-        """
-        self.individual_attributes.innate_immune_distribution_flag = flag
-        self.individual_attributes.innate_immune_distribution1 = value1
-        self.individual_attributes.innate_immune_distribution2 = value2
-
-    # malaria only
-    # TODO: Move to emodpy-malaria?
-    #  https://github.com/InstituteforDiseaseModeling/emodpy-malaria-old/issues/707
-    def _set_risk_simple_distribution(self, flag: int, value1: float, value2: float):
-        """
-        Properly sets a simple risk distribution. For details on the simple distribution flag and value meanings, see:
-        https://docs.idmod.org/projects/emod-generic/en/latest/parameter-demographics.html#simple-distributions
-
-        Args:
-            flag: simple distribution flag determines the type of simple distribution to use
-            value1: simple distribution type-dependent parameter number 1
-            value2: simple distribution type-dependent parameter number 2
-
-        Returns:
-            Nothing
-        """
-        self.individual_attributes.risk_distribution_flag = flag
-        self.individual_attributes.risk_distribution1 = value1
-        self.individual_attributes.risk_distribution2 = value2
-
     # HIV only
     def _set_fertility_complex_distribution(self, distribution: FertilityDistribution):
         """

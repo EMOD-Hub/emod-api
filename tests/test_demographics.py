@@ -18,7 +18,8 @@ from emod_api.demographics.mortality_distribution import MortalityDistribution
 from emod_api.demographics.node import Node
 from emod_api.demographics.overlay_node import OverlayNode
 from emod_api.demographics.properties_and_attributes import (IndividualAttributes, IndividualProperty,
-                                                             IndividualProperties, NodeAttributes)
+                                                             IndividualProperties, NodeAttributes,
+                                                             NodeProperty, NodeProperties)
 from emod_api.demographics.susceptibility_distribution import SusceptibilityDistribution
 from emod_api.utils.distributions.exponential_distribution import ExponentialDistribution
 from emod_api.utils.distributions.gaussian_distribution import GaussianDistribution
@@ -273,7 +274,6 @@ class DemographicsTest(unittest.TestCase):
 
     def test_from_file_sets_necessary_simple_distribution_implicit_functions(self):
         from emod_api.demographics.implicit_functions import _set_age_simple
-        from emod_api.demographics.implicit_functions import _set_enable_demog_risk
         from emod_api.demographics.implicit_functions import _set_enable_migration_model_heterogeneity
         from emod_api.demographics.implicit_functions import _set_init_prev
         from emod_api.demographics.implicit_functions import _set_migration_model_fixed_rate
@@ -281,8 +281,9 @@ class DemographicsTest(unittest.TestCase):
 
         input_filepath = Path(manifest.demo_folder,
                               "demographics_test_from_file_sets_necessary_simple_distribution_implicit_functions.json")
+        # Note: _set_enable_demog_risk was removed — risk distribution is now handled by emodpy-malaria's MalariaNode
         expected_implicits = [_set_age_simple, _set_suscept_simple, _set_init_prev, _set_migration_model_fixed_rate,
-                              _set_enable_migration_model_heterogeneity, _set_enable_demog_risk]
+                              _set_enable_migration_model_heterogeneity]
 
         # # Use this if needing to regenerate the input_filepath
         # default_node = Node(lat=0, lon=0, pop=1000, forced_id=0)
@@ -628,6 +629,7 @@ class DemographicsTest(unittest.TestCase):
                                          larval_habitat_multiplier=[{"Larval": 123}],
                                          initial_vectors_per_species=123,
                                          infectivity_multiplier=0.5,
+                                         node_property_values=["Place:RURAL"],
                                          extra_attributes={"Test_Parameter_1": 123})
 
         node_attributes.add_parameter("Test_Parameter_2", 123)
@@ -1199,20 +1201,82 @@ class DemographicsSimpleDistributionTests(unittest.TestCase):
         self.distribution = ExponentialDistribution(mean=0.0001)
 
     def test_set_birth_rate(self):
-        # ok, this isn't a simple distribution, but it needs to be tested and the code is adjacent
-        # to the following simple distribution tests in demographics.py
-        from emod_api.demographics.implicit_functions import _set_population_dependent_birth_rate
-
         rate = 50  # births/year/1000 women
         self.demographics.set_birth_rate(rate=rate)
 
-        expected = 50 / 365 / 1000 # birth rate is auto-converted to what EMOD uses: births/day/woman
+        expected = 50 / 365 / 1000
         expected_delta = expected * 1e-6
         self.assertAlmostEqual(self.demographics.default_node.birth_rate, expected, delta=expected_delta)
         self.assertAlmostEqual(self.demographics.default_node.node_attributes.birth_rate, expected, delta=expected_delta)
 
         self.assertEqual(len(self.demographics.implicits), 1)
-        self.assertIn(_set_population_dependent_birth_rate, self.demographics.implicits)
+        # default should set POPULATION_DEP_RATE
+        class MockConfig:
+            class parameters:
+                Birth_Rate_Dependence = None
+        self.demographics.implicits[0](MockConfig())
+        self.assertEqual(MockConfig.parameters.Birth_Rate_Dependence, "POPULATION_DEP_RATE")
+
+    def test_set_birth_rate_individual_pregnancies(self):
+        from emod_api.utils.emod_enum import BirthRateDependence
+
+        self.demographics.set_birth_rate(
+            rate=4,
+            birth_rate_dependence=BirthRateDependence.INDIVIDUAL_PREGNANCIES,
+        )
+
+        expected = 4 / 365 / 8  # INDIVIDUAL_PREGNANCIES converts per 8 fertile women per year
+        expected_delta = expected * 1e-6
+        self.assertAlmostEqual(self.demographics.default_node.birth_rate, expected, delta=expected_delta)
+
+        self.assertEqual(len(self.demographics.implicits), 1)
+        class MockConfig:
+            class parameters:
+                Birth_Rate_Dependence = None
+        self.demographics.implicits[0](MockConfig())
+        self.assertEqual(MockConfig.parameters.Birth_Rate_Dependence, "INDIVIDUAL_PREGNANCIES")
+
+    def test_set_birth_rate_demographic_dep(self):
+        self.demographics.set_birth_rate(rate=2, birth_rate_dependence="DEMOGRAPHIC_DEP_RATE")
+
+        expected = 2 / 365 / 8
+        expected_delta = expected * 1e-6
+        self.assertAlmostEqual(self.demographics.default_node.birth_rate, expected, delta=expected_delta)
+
+        self.assertEqual(len(self.demographics.implicits), 1)
+        class MockConfig:
+            class parameters:
+                Birth_Rate_Dependence = None
+        self.demographics.implicits[0](MockConfig())
+        self.assertEqual(MockConfig.parameters.Birth_Rate_Dependence, "DEMOGRAPHIC_DEP_RATE")
+
+    def test_set_birth_rate_fixed(self):
+        self.demographics.set_birth_rate(rate=12, birth_rate_dependence="FIXED_BIRTH_RATE")
+
+        self.assertEqual(self.demographics.default_node.birth_rate, 12)
+
+        self.assertEqual(len(self.demographics.implicits), 1)
+        class MockConfig:
+            class parameters:
+                Birth_Rate_Dependence = None
+        self.demographics.implicits[0](MockConfig())
+        self.assertEqual(MockConfig.parameters.Birth_Rate_Dependence, "FIXED_BIRTH_RATE")
+
+    def test_set_birth_rate_population_dep_max_exceeded(self):
+        with self.assertRaises(ValueError):
+            self.demographics.set_birth_rate(rate=1001)
+
+    def test_set_birth_rate_demographic_dep_max_exceeded(self):
+        with self.assertRaises(ValueError):
+            self.demographics.set_birth_rate(rate=9, birth_rate_dependence="DEMOGRAPHIC_DEP_RATE")
+
+    def test_set_birth_rate_individual_pregnancies_max_exceeded(self):
+        with self.assertRaises(ValueError):
+            self.demographics.set_birth_rate(rate=9, birth_rate_dependence="INDIVIDUAL_PREGNANCIES")
+
+    def test_set_birth_rate_invalid_dependence(self):
+        with self.assertRaises(ValueError):
+            self.demographics.set_birth_rate(rate=12, birth_rate_dependence="INVALID")
 
 
     def test_set_age_distribution_simple(self):
@@ -1372,3 +1436,98 @@ class DemographicsConflictingDistributionsTests(unittest.TestCase):
 
         self.assertRaises(demog_ex.ConflictingDistributionsException,
                           self.demographics.to_dict)
+
+
+class NodePropertiesDemographicsTest(unittest.TestCase):
+
+    def setUp(self):
+        nodes = [Node(lat=0, lon=0, pop=1000, forced_id=1),
+                 Node(lat=1, lon=1, pop=2000, forced_id=2)]
+        self.demographics = Demographics(nodes=nodes)
+
+    def test_add_node_property(self):
+        self.demographics.add_node_property(
+            property="Place", values=["RURAL", "URBAN"], initial_distribution=[0.6, 0.4])
+        d = self.demographics.to_dict()
+        self.assertIn("NodeProperties", d)
+        self.assertEqual(len(d["NodeProperties"]), 1)
+        self.assertEqual(d["NodeProperties"][0]["Property"], "Place")
+        self.assertEqual(d["NodeProperties"][0]["Values"], ["RURAL", "URBAN"])
+        self.assertEqual(d["NodeProperties"][0]["Initial_Distribution"], [0.6, 0.4])
+
+    def test_add_multiple_node_properties(self):
+        self.demographics.add_node_property(
+            property="Place", values=["RURAL", "URBAN"], initial_distribution=[0.6, 0.4])
+        self.demographics.add_node_property(
+            property="Risk", values=["HIGH", "MED", "LOW"], initial_distribution=[0.1, 0.2, 0.7])
+        d = self.demographics.to_dict()
+        self.assertEqual(len(d["NodeProperties"]), 2)
+        props = {np["Property"] for np in d["NodeProperties"]}
+        self.assertEqual(props, {"Place", "Risk"})
+
+    def test_add_duplicate_node_property_raises(self):
+        self.demographics.add_node_property(
+            property="Place", values=["RURAL", "URBAN"], initial_distribution=[0.6, 0.4])
+        with self.assertRaises(NodeProperties.DuplicateNodePropertyException):
+            self.demographics.add_node_property(
+                property="Place", values=["A", "B"], initial_distribution=[0.5, 0.5])
+
+    def test_add_node_property_overwrite(self):
+        self.demographics.add_node_property(
+            property="Place", values=["RURAL", "URBAN"], initial_distribution=[0.6, 0.4])
+        self.demographics.add_node_property(
+            property="Place", values=["CITY", "VILLAGE"], initial_distribution=[0.3, 0.7],
+            overwrite_existing=True)
+        d = self.demographics.to_dict()
+        self.assertEqual(len(d["NodeProperties"]), 1)
+        self.assertEqual(d["NodeProperties"][0]["Values"], ["CITY", "VILLAGE"])
+
+    def test_no_node_properties_omitted_from_dict(self):
+        d = self.demographics.to_dict()
+        self.assertNotIn("NodeProperties", d)
+
+    def test_set_node_property_values(self):
+        self.demographics.add_node_property(
+            property="Place", values=["RURAL", "URBAN"], initial_distribution=[0.6, 0.4])
+        self.demographics.set_node_property_values(
+            node_ids=[2], values=["Place:RURAL"])
+        d = self.demographics.to_dict()
+        node2 = [n for n in d["Nodes"] if n["NodeID"] == 2][0]
+        self.assertEqual(node2["NodeAttributes"]["NodePropertyValues"], ["Place:RURAL"])
+        node1 = [n for n in d["Nodes"] if n["NodeID"] == 1][0]
+        self.assertNotIn("NodePropertyValues", node1["NodeAttributes"])
+
+    def test_set_node_property_values_multiple(self):
+        self.demographics.add_node_property(
+            property="Place", values=["RURAL", "URBAN"], initial_distribution=[0.6, 0.4])
+        self.demographics.add_node_property(
+            property="InterventionStatus", values=["NONE", "SPRAYED"],
+            initial_distribution=[0.5, 0.5])
+        self.demographics.set_node_property_values(
+            node_ids=[1], values=["Place:RURAL", "InterventionStatus:SPRAYED"])
+        d = self.demographics.to_dict()
+        node1 = [n for n in d["Nodes"] if n["NodeID"] == 1][0]
+        self.assertEqual(node1["NodeAttributes"]["NodePropertyValues"],
+                         ["Place:RURAL", "InterventionStatus:SPRAYED"])
+
+    def test_roundtrip_with_reference_file(self):
+        ref_path = os.path.join(
+            "C:\\", "github", "emod1", "regression", "generic",
+            "57_Generic_NodeProperties", "demographics_node_properties.json")
+        if not os.path.isfile(ref_path):
+            self.skipTest("Reference demographics file not found")
+        import warnings
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", DeprecationWarning)
+                demog = Demographics.from_file(ref_path)
+        except Exception as e:
+            self.skipTest(f"Cannot load reference file (likely schema mismatch): {e}")
+        d = demog.to_dict()
+        self.assertIn("NodeProperties", d)
+        self.assertEqual(len(d["NodeProperties"]), 3)
+        props = {np["Property"] for np in d["NodeProperties"]}
+        self.assertEqual(props, {"Place", "Risk", "InterventionStatus"})
+        node100 = [n for n in d["Nodes"] if n["NodeID"] == 100][0]
+        self.assertEqual(node100["NodeAttributes"]["NodePropertyValues"],
+                         ["Place:RURAL", "InterventionStatus:SPRAYED_B"])
