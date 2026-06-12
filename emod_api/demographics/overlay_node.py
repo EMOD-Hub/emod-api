@@ -38,4 +38,5 @@ class OverlayNode(Node):
             d.update(ip_dict)
 
         d.update(self.meta)
+
         return d

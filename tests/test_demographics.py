@@ -194,7 +194,6 @@ class DemographicsTest(unittest.TestCase):
 
         default_node = demographics.default_node
 
-        self.assertEqual(Demographics.DEFAULT_NODE_NAME, default_node.name)
         self.assertEqual(0, default_node.id)
 
         # check default node attributes
@@ -220,7 +219,6 @@ class DemographicsTest(unittest.TestCase):
         self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['Latitude'], 0)
         self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['Longitude'], 0)
         self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['InitialPopulation'], 1e6)
-        self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['FacilityName'], "Erewhon")
         self.assertEqual(demog_json['Nodes'][0]['NodeID'], 1)
         self.assertEqual(len(demog.implicits), 0)
 
@@ -239,7 +237,6 @@ class DemographicsTest(unittest.TestCase):
         self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['Latitude'], lat)
         self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['Longitude'], lon)
         self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['InitialPopulation'], pop)
-        self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['FacilityName'], name)
         self.assertEqual(demog_json['Nodes'][0]['NodeID'], forced_id)
         self.assertEqual(len(demog.implicits), 0)
 
@@ -261,7 +258,6 @@ class DemographicsTest(unittest.TestCase):
         self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['Latitude'], lat)
         self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['Longitude'], lon)
         self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['InitialPopulation'], pop)
-        self.assertEqual(demog_json['Nodes'][0]['NodeAttributes']['FacilityName'], name)
         self.assertEqual(demog_json['Nodes'][0]['NodeID'], forced_id)
         self.assertEqual(len(demog.implicits), 0)
 
@@ -381,19 +377,8 @@ class DemographicsTest(unittest.TestCase):
 
         self.maxDiff = None
 
-        if "NodeAttributes" in demog_json_original['Defaults']:
-            FacilityName = demog_json_original['Defaults']["NodeAttributes"].pop("FacilityName", None)
-            self.assertEqual(FacilityName, demog_json_after_passthrough['Defaults']["NodeAttributes"].pop("FacilityName", None))
-
         for node_original, node_new in zip(demog_json_original['Nodes'], demog_json_after_passthrough['Nodes']):
             if "NodeAttributes" in node_original:
-                FacilityName = node_original["NodeAttributes"].pop("FacilityName", None)
-
-                if FacilityName:
-                    self.assertEqual(FacilityName, node_new["NodeAttributes"].pop("FacilityName", None))
-                else:
-                    NodeID = node_original['NodeID']
-                    self.assertEqual(NodeID, node_new["NodeAttributes"].pop("FacilityName", None))
 
                 self.assertEqual(node_original.pop("NodeID"), node_new.pop("NodeID"))   # NodeID must exist, return no default
 
@@ -1009,7 +994,7 @@ class DemographicsOverlayTest(unittest.TestCase):
                 },
                 "NodeAttributes": {
                     "BirthRate": 0,
-                    "FacilityName": "default_node"
+                    "Name": "default_node"
                 }
             },
             "Metadata": {
@@ -1105,7 +1090,7 @@ class DemographicsOverlayTest(unittest.TestCase):
                 "NodeAttributes": {
                     "BirthRate": 0.1,
                     "GrowthRate": 1.01,
-                    "FacilityName": "default_node"
+                    "Name": "default_node"
                 }
             },
             "Metadata": {
@@ -1151,7 +1136,7 @@ class DemographicsOverlayTest(unittest.TestCase):
         population_groups = [mort_vec_X, mort_year]
 
         # Vital dynamics overlays -- this is what we expect emod-api DemographicsOverlay (below) to generate
-        vd_over_dict['Defaults'] = {'NodeID': 0, 'IndividualAttributes': dict(), 'NodeAttributes': {'BirthRate': 0, 'FacilityName': 'default_node'}}
+        vd_over_dict['Defaults'] = {'NodeID': 0, 'IndividualAttributes': dict(), 'NodeAttributes': {'BirthRate': 0, 'Name': 'default_node'}}
 
         vd_over_dict['Nodes'] = [{'NodeID': node_obj.forced_id} for node_obj in node_list]
 
