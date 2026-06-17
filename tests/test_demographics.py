@@ -1514,3 +1514,67 @@ class NodePropertiesDemographicsTest(unittest.TestCase):
         node100 = [n for n in d["Nodes"] if n["NodeID"] == 100][0]
         self.assertEqual(node100["NodeAttributes"]["NodePropertyValues"],
                          ["Place:RURAL", "InterventionStatus:SPRAYED_B"])
+
+
+class OverlayNodeToDictTest(unittest.TestCase):
+    """Tests for the OverlayNode.to_dict() override that omits empty/None sections."""
+
+    def test_to_dict_node_id_only(self):
+        # OverlayNode with no lat/lon/pop/attributes should produce only NodeID
+        node = OverlayNode(node_id=5)
+        self.assertEqual(node.to_dict(), {"NodeID": 5})
+
+    def test_to_dict_omits_node_attributes_when_empty(self):
+        # Empty NodeAttributes produces an empty dict, which should be omitted
+        node = OverlayNode(node_id=3, node_attributes=NodeAttributes())
+        result = node.to_dict()
+        self.assertNotIn("NodeAttributes", result)
+
+    def test_to_dict_includes_node_attributes_when_populated(self):
+        # Non-empty NodeAttributes should be written to the dict
+        node = OverlayNode(node_id=3, node_attributes=NodeAttributes(birth_rate=0.1, initial_population=1000))
+        result = node.to_dict()
+        self.assertIn("NodeAttributes", result)
+        self.assertEqual(result["NodeAttributes"]["BirthRate"], 0.1)
+        self.assertEqual(result["NodeAttributes"]["InitialPopulation"], 1000)
+
+    def test_to_dict_includes_node_attributes_when_lat_lon_provided(self):
+        # lat/lon are passed as positional args to OverlayNode
+        node = OverlayNode(node_id=8, latitude=10.5, longitude=20.5)
+        result = node.to_dict()
+        self.assertIn("NodeAttributes", result)
+        self.assertEqual(result["NodeAttributes"]["Latitude"], 10.5)
+        self.assertEqual(result["NodeAttributes"]["Longitude"], 20.5)
+
+    def test_to_dict_omits_individual_attributes_when_empty(self):
+        # Default IndividualAttributes is empty; should not appear in output
+        node = OverlayNode(node_id=2)
+        result = node.to_dict()
+        self.assertNotIn("IndividualAttributes", result)
+
+    def test_to_dict_includes_individual_attributes_when_populated(self):
+        # IndividualAttributes with set values should be written to the dict
+        ia = IndividualAttributes(age_distribution_flag=1, age_distribution1=365, age_distribution2=3650)
+        node = OverlayNode(node_id=4, individual_attributes=ia)
+        result = node.to_dict()
+        self.assertIn("IndividualAttributes", result)
+        self.assertEqual(result["IndividualAttributes"]["AgeDistributionFlag"], 1)
+
+    def test_to_dict_includes_individual_properties_when_set(self):
+        # IndividualProperties with an entry should be written to the dict
+        ip = IndividualProperties()
+        ip.add(IndividualProperty(property="Risk", values=["High", "Low"],
+                                  initial_distribution=[0.3, 0.7],
+                                  transmission_matrix=[[1, 0], [0, 1]]))
+        node = OverlayNode(node_id=6, individual_properties=ip)
+        result = node.to_dict()
+        self.assertIn("IndividualProperties", result)
+        self.assertEqual(len(result["IndividualProperties"]), 1)
+        self.assertEqual(result["IndividualProperties"][0]["Property"], "Risk")
+
+    def test_node_always_writes_node_attributes_contrast(self):
+        # Regular Node.to_dict() always includes NodeAttributes; OverlayNode does not when empty
+        overlay_node = OverlayNode(node_id=1)
+        regular_node = Node(lat=0, lon=0, pop=0, forced_id=1)
+        self.assertNotIn("NodeAttributes", overlay_node.to_dict())
+        self.assertIn("NodeAttributes", regular_node.to_dict())
