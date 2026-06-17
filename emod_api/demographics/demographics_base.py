@@ -162,11 +162,11 @@ class DemographicsBase(BaseInputFile):
 
     @property
     def _all_node_names(self) -> list[int]:
-        return [node.name for node in self._all_nodes]
+        return [node.name for node in self._all_nodes if node.name is not None]
 
     @property
     def _all_nodes_by_name(self) -> dict[int, Node]:
-        return {node.name: node for node in self._all_nodes}
+        return {node.name: node for node in self._all_nodes if node.name is not None}
 
     @property
     def _all_node_ids(self) -> list[int]:
