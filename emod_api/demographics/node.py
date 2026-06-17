@@ -70,7 +70,7 @@ class Node(Updateable):
         self.node_attributes.name = value
 
     def __repr__(self):
-        name = self.node_attributes.name or "(unnamed)"
+        name = self.node_attributes.name or str(self.id)
         return f"{name} - ({self.node_attributes.latitude},{self.node_attributes.longitude})"
 
     def has_individual_property(self, property_key: str) -> bool:

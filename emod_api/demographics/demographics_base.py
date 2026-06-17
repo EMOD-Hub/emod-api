@@ -145,7 +145,7 @@ class DemographicsBase(BaseInputFile):
 
     def _verify_node_name_uniqueness(self):
         nodes = self._all_nodes
-        node_names = [node.name for node in nodes]
+        node_names = [node.name for node in nodes if node.name is not None]
         duplicate_items = self._duplicates_check(items=node_names)
         if len(duplicate_items) > 0:
             duplicate_items_str = [str(item) for item in duplicate_items]
