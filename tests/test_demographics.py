@@ -134,8 +134,14 @@ class DemographicsTest(unittest.TestCase):
         nodes = [mars, venus]
         demographics = Demographics(nodes=nodes, default_node=planet)
 
-        nodes = demographics.get_nodes_by_name(node_names=['Mars'])
-        expected = {mars.name: mars}
+        # just getting some nodes, also checking explicit default node request, too.
+        nodes = demographics.get_nodes_by_name(node_names=['Mars', 'default_node'])
+        expected = {planet.name: planet, mars.name: mars}
+        self.assertEqual(nodes, expected)
+
+        # verify that a node name of None will yield the default node
+        nodes = demographics.get_nodes_by_name(node_names=['Mars', None])
+        expected = {planet.name: planet, mars.name: mars}
         self.assertEqual(nodes, expected)
 
         nodes = demographics.get_nodes_by_name(node_names=None)
@@ -168,6 +174,15 @@ class DemographicsTest(unittest.TestCase):
         self.assertRaises(DemographicsBase.DuplicateNodeNameException,
                           Demographics, nodes=nodes, default_node=planet)
 
+        # mixing it up a bit to ensure that the default node is included in the error reporting. As well as
+        # ensuring that one gets duplicate errors even when requesting a non-duplicated node.
+        mars = Node(lat=0, lon=0, pop=100, name='Mars', forced_id=1)
+        venus = Node(lat=0, lon=0, pop=100, name='default_node', forced_id=2)
+        planet = Node(lat=0, lon=0, pop=100, forced_id=0)  # gets an implicit name 'default_node'
+        nodes = [mars, venus]
+        self.assertRaises(DemographicsBase.DuplicateNodeNameException,
+                          Demographics, nodes=nodes, default_node=planet)
+
         # ensure json-dumping of demographics catches duplicates, too
         venus.name = 'Venus'  # make it valid
         demographics = Demographics(nodes=[mars, venus], default_node=planet)
@@ -179,6 +194,7 @@ class DemographicsTest(unittest.TestCase):
 
         default_node = demographics.default_node
 
+        self.assertEqual(Demographics.DEFAULT_NODE_NAME, default_node.name)
         self.assertEqual(0, default_node.id)
 
         # check default node attributes
@@ -978,7 +994,8 @@ class DemographicsOverlayTest(unittest.TestCase):
                     }
                 },
                 "NodeAttributes": {
-                    "BirthRate": 0
+                    "BirthRate": 0,
+                    "Name": "default_node"
                 }
             },
             "Metadata": {
@@ -1073,7 +1090,8 @@ class DemographicsOverlayTest(unittest.TestCase):
                 },
                 "NodeAttributes": {
                     "BirthRate": 0.1,
-                    "GrowthRate": 1.01
+                    "GrowthRate": 1.01,
+                    "Name": "default_node"
                 }
             },
             "Metadata": {
@@ -1119,7 +1137,7 @@ class DemographicsOverlayTest(unittest.TestCase):
         population_groups = [mort_vec_X, mort_year]
 
         # Vital dynamics overlays -- this is what we expect emod-api DemographicsOverlay (below) to generate
-        vd_over_dict['Defaults'] = {'NodeID': 0, 'IndividualAttributes': dict(), 'NodeAttributes': {'BirthRate': 0}}
+        vd_over_dict['Defaults'] = {'NodeID': 0, 'IndividualAttributes': dict(), 'NodeAttributes': {'BirthRate': 0, 'Name': 'default_node'}}
 
         vd_over_dict['Nodes'] = [{'NodeID': node_obj.forced_id} for node_obj in node_list]
 

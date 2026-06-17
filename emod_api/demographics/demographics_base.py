@@ -22,6 +22,8 @@ class DemographicsBase(BaseInputFile):
         :py:obj:`emod_api:emod_api.demographics.DemographicsOverlay`.
     """
 
+    DEFAULT_NODE_NAME = 'default_node'
+
     class UnknownNodeException(ValueError):
         pass
 
@@ -49,6 +51,7 @@ class DemographicsBase(BaseInputFile):
         # Build the default node if not provided and then perform some setup/verification
         default_node = self._generate_default_node() if default_node is None else default_node
         self.default_node = default_node
+        self.default_node.name = self.DEFAULT_NODE_NAME
         if self.default_node.id != 0:
             raise InvalidNodeIdException(f"Default nodes must have an id of 0. It is {self.default_node.id} .")
         self.metadata = self.generate_headers()
@@ -61,7 +64,7 @@ class DemographicsBase(BaseInputFile):
         self.verify_demographics_integrity()
 
     def _generate_default_node(self) -> Node:
-        default_node = Node(lat=0, lon=0, pop=0, forced_id=0)
+        default_node = Node(lat=0, lon=0, pop=0, name=self.DEFAULT_NODE_NAME, forced_id=0)
         # TODO: remove the following setting of birth_rate on the default node once this EMOD binary issue is fixed
         #  https://github.com/InstituteforDiseaseModeling/DtkTrunk/issues/4009
         default_node.birth_rate = 0

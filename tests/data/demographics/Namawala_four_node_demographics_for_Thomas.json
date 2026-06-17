@@ -75,7 +75,7 @@
          "Airport": 0,
          "Altitude": 0,
          "BirthRate": 0.0002,
-         "FacilityName": "default_node",
+         "Name": "default_node",
          "InitialPopulation": 1000,
          "InitialVectorsPerSpecies": {
             "arabiensis": 500,
