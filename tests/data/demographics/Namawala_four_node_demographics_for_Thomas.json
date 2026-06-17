@@ -181,7 +181,7 @@
             "Airport": 0,
             "Altitude": 0,
             "BirthRate": 0.0001,
-            "FacilityName": 340461476,
+            "Name": 340461476,
             "InitialPopulation": 1000,
             "LarvalHabitatMultiplier": [
                {
@@ -273,7 +273,7 @@
             "Airport": 0,
             "Altitude": 0,
             "BirthRate": 0.0001,
-            "FacilityName": 340461477,
+            "Name": 340461477,
             "InitialPopulation": 1000,
             "InitialVectorsPerSpecies": {
                "arabiensis": 12,
@@ -341,7 +341,7 @@
             "Airport": 0,
             "Altitude": 0,
             "BirthRate": 0.0001,
-            "FacilityName": 340461478,
+            "Name": 340461478,
             "InitialPopulation": 1000,
             "InitialVectorsPerSpecies": {
                "arabiensis": 12,
@@ -409,7 +409,7 @@
             "Airport": 0,
             "Altitude": 0,
             "BirthRate": 0.000129034,
-            "FacilityName": 340461479,
+            "Name": 340461479,
             "InitialPopulation": 1000,
             "InitialVectorsPerSpecies": {
                "arabiensis": 10,

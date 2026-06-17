@@ -145,7 +145,9 @@ class Node(Updateable):
         nodeid = data["NodeID"]
         node_attributes_dict = dict(data.get("NodeAttributes"))
         attributes = data["NodeAttributes"]
-        name = attributes.pop("Name", None)
+        name = attributes.get("Name", None)
+        if name is None:
+            name = attributes.get("FacilityName", None)
         individual_attributes_dict = data.get("IndividualAttributes")
         individual_properties_dict = data.get("IndividualProperties")
 

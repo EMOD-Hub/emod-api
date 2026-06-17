@@ -245,7 +245,7 @@
          },
          "NodeAttributes": {
             "BirthRate": 0.10663013698630137,
-            "FacilityName": 1,
+            "Name": 1,
             "InitialPopulation": 1000,
             "Latitude": 8.5,
             "Longitude": -10.0,
