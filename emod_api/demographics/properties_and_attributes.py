@@ -754,7 +754,7 @@ class NodeAttributes(Updateable):
         if self.initial_population is not None:
             node_attributes.update({"InitialPopulation": int(self.initial_population)})
 
-        if self.name:
+        if self.name is not None:
             node_attributes.update({"Name": self.name})
 
         if self.larval_habitat_multiplier is not None:
