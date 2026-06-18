@@ -93,7 +93,7 @@ class NodeTest(unittest.TestCase):
         node = Node(lat=0,lon=0,pop=100, individual_attributes=individual_attributes_1)
         self.assertEqual(node.to_dict()["IndividualAttributes"]["user_defined_2"], 2)
         node = Node(lat=0,lon=0,pop=100, individual_attributes=individual_attributes_2)
-        self.assertNotIn("user_defined_2", node.to_dict()["IndividualAttributes"])
+        self.assertNotIn("IndividualAttributes", node.to_dict())
 
         ips = [IndividualProperty(property='cloudy', values=["yes", "no"], initial_distribution=[0.5, 0.5])]
         individual_properties_1 = IndividualProperties(ips)
@@ -118,7 +118,7 @@ class NodeTest(unittest.TestCase):
         node_3 = Node(lat=1, lon=2, pop=100, node_attributes=node_attributes, individual_attributes=individual_attributes)
 
         self.assertEqual(node_1.to_dict()["NodeAttributes"]["Test_1"], 1)
-        self.assertTrue("Test_2" not in node_1.to_dict()["IndividualAttributes"])
+        self.assertTrue("IndividualAttributes" not in node_1.to_dict())
 
         self.assertTrue("Test_1" not in node_2.to_dict()["NodeAttributes"])
         self.assertEqual(node_2.to_dict()["IndividualAttributes"]["Test_2"], 2)

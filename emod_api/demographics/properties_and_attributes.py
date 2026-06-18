@@ -722,12 +722,12 @@ class NodeAttributes(Updateable):
         self.latitude = node_attributes.get("Latitude")
         self.longitude = node_attributes.get("Longitude")
         self.metadata = node_attributes.get("Metadata")
-        self.name = node_attributes.get("FacilityName")
+        self.name = node_attributes.get("Name")
         self.infectivity_multiplier = node_attributes.get("InfectivityMultiplier")
         self.node_property_values = node_attributes.get("NodePropertyValues")
 
         # Legacy keys
-        key_list = ["Airport", "Region", "Seaport"]
+        key_list = ["Airport", "Region", "Seaport", "FacilityName"]
         for key_name in key_list:
             key_val = node_attributes.get(key_name)
             if key_val is not None:
@@ -754,8 +754,8 @@ class NodeAttributes(Updateable):
         if self.initial_population is not None:
             node_attributes.update({"InitialPopulation": int(self.initial_population)})
 
-        if self.name:
-            node_attributes.update({"FacilityName": self.name})
+        if self.name is not None:
+            node_attributes.update({"Name": self.name})
 
         if self.larval_habitat_multiplier is not None:
             node_attributes.update({"LarvalHabitatMultiplier": self.larval_habitat_multiplier})

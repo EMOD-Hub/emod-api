@@ -57,14 +57,8 @@ class Node(Updateable):
         if node_attributes is not None:
             self.node_attributes.update(node_attributes)
 
-        if name is None:
-            # if no node name was explicitly provided, we need to figure out how to name the node
-            if node_attributes is None or node_attributes.name is None:
-                # if no node_attributes object was provided with a name, use a standard default name
-                name = f"node{str(self.id)}"
-            else:
-                # if a name was specified for use via the node_attributes parameter, use it
-                name = node_attributes.name
+        if name is None and node_attributes is not None and node_attributes.name is not None:
+            name = node_attributes.name
         self.name = name
 
     @property
@@ -76,7 +70,8 @@ class Node(Updateable):
         self.node_attributes.name = value
 
     def __repr__(self):
-        return f"{self.node_attributes.name} - ({self.node_attributes.latitude},{self.node_attributes.longitude})"
+        name = self.node_attributes.name or str(self.id)
+        return f"{name} - ({self.node_attributes.latitude},{self.node_attributes.longitude})"
 
     def has_individual_property(self, property_key: str) -> bool:
         return self.individual_properties.has_individual_property(property_key=property_key)
@@ -95,7 +90,9 @@ class Node(Updateable):
              "NodeAttributes": self.node_attributes.to_dict()}
 
         if self.individual_attributes:
-            d["IndividualAttributes"] = self.individual_attributes.to_dict()
+            ia_dict = self.individual_attributes.to_dict()
+            if ia_dict:
+                d["IndividualAttributes"] = ia_dict
 
         if self.individual_properties:
             ip_dict = {"IndividualProperties": []}
@@ -104,6 +101,7 @@ class Node(Updateable):
             d.update(ip_dict)
 
         d.update(self.meta)
+
         return d
 
     def to_tuple(self):
@@ -147,7 +145,9 @@ class Node(Updateable):
         nodeid = data["NodeID"]
         node_attributes_dict = dict(data.get("NodeAttributes"))
         attributes = data["NodeAttributes"]
-        name = attributes.pop("FacilityName", nodeid)
+        name = attributes.get("Name", None)
+        if name is None:
+            name = attributes.get("FacilityName", None)
         individual_attributes_dict = data.get("IndividualAttributes")
         individual_properties_dict = data.get("IndividualProperties")
 

@@ -148,7 +148,7 @@ class DemographicsBase(BaseInputFile):
 
     def _verify_node_name_uniqueness(self):
         nodes = self._all_nodes
-        node_names = [node.name for node in nodes]
+        node_names = [node.name for node in nodes if node.name is not None]
         duplicate_items = self._duplicates_check(items=node_names)
         if len(duplicate_items) > 0:
             duplicate_items_str = [str(item) for item in duplicate_items]
@@ -161,12 +161,12 @@ class DemographicsBase(BaseInputFile):
         return all_nodes
 
     @property
-    def _all_node_names(self) -> list[int]:
-        return [node.name for node in self._all_nodes]
+    def _all_node_names(self) -> list[str]:
+        return [node.name for node in self._all_nodes if node.name is not None]
 
     @property
-    def _all_nodes_by_name(self) -> dict[int, Node]:
-        return {node.name: node for node in self._all_nodes}
+    def _all_nodes_by_name(self) -> dict[str, Node]:
+        return {node.name: node for node in self._all_nodes if node.name is not None}
 
     @property
     def _all_node_ids(self) -> list[int]:

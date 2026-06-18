@@ -70,7 +70,7 @@
          "Airport": 0,
          "Altitude": 0,
          "BirthRate": 36.30287175670945,
-         "FacilityName": "default_node",
+         "Name": "default_node",
          "Metadata": {
             "AbovePoverty": 0.5,
             "BirthRateSource": "World Bank",
@@ -245,7 +245,7 @@
          },
          "NodeAttributes": {
             "BirthRate": 0.10663013698630137,
-            "FacilityName": 1,
+            "Name": 1,
             "InitialPopulation": 1000,
             "Latitude": 8.5,
             "Longitude": -10.0,
