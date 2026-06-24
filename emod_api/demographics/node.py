@@ -90,9 +90,7 @@ class Node(Updateable):
              "NodeAttributes": self.node_attributes.to_dict()}
 
         if self.individual_attributes:
-            ia_dict = self.individual_attributes.to_dict()
-            if ia_dict:
-                d["IndividualAttributes"] = ia_dict
+            d["IndividualAttributes"] = self.individual_attributes.to_dict()
 
         if self.individual_properties:
             ip_dict = {"IndividualProperties": []}
