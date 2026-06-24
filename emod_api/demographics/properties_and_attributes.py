@@ -5,7 +5,7 @@ from emod_api.demographics.demographic_exceptions import ConflictingDistribution
 from emod_api.demographics.fertility_distribution import FertilityDistribution
 from emod_api.demographics.implicit_functions import _set_age_simple, _set_age_complex, _set_suscept_simple, \
     _set_suscept_complex, _set_init_prev, _set_migration_model_fixed_rate, _set_enable_migration_model_heterogeneity, \
-    _set_enable_natural_mortality, _set_mortality_age_gender_year, _set_mortality_age_gender, _set_enable_demog_risk, \
+    _set_enable_natural_mortality, _set_mortality_age_gender_year, _set_mortality_age_gender, \
     _set_fertility_age_year
 from emod_api.demographics.mortality_distribution import MortalityDistribution
 from emod_api.demographics.susceptibility_distribution import SusceptibilityDistribution
@@ -83,7 +83,7 @@ class IndividualProperty(Updateable):
             for i in initial_distribution:
                 if i < 0 or i > 1:
                     raise ValueError("initial_distribution values must be between 0 and 1.")
-            if sum(initial_distribution) != 1:
+            if abs(1.0 - sum(initial_distribution)) > 1e-6:
                 raise ValueError("initial_distribution values must sum to 1.")
             if len(initial_distribution) != len(values):
                 raise ValueError("initial_distribution must have the same number of entries as values.")
@@ -208,6 +208,110 @@ class IndividualProperties(Updateable):
         return len(self.individual_properties)
 
 
+class NodeProperty(Updateable):
+    def __init__(self,
+                 property: str,
+                 values: list[str],
+                 initial_distribution: list[float] = None):
+        """
+        A node-level property for EMOD simulations.
+
+        Node properties act as labels on nodes that can be used for identifying and targeting
+        subsets of nodes in campaign elements and reports. For example, nodes may be given
+        a property ('Place') with values like 'Urban' or 'Rural'.
+
+        Note: EMOD requires node property keys and values (property and values args) to be the
+            same across all nodes. The initial distributions can vary across nodes.
+
+        Args:
+            property: The node property key (e.g. 'Place').
+            values: A list of valid string values for the property (e.g. ['Urban', 'Rural']).
+            initial_distribution: The fractional (0 to 1) initial distribution of each value.
+                Order must match the values argument. Must sum to 1.
+        """
+        super().__init__()
+        if initial_distribution:
+            for i in initial_distribution:
+                if i < 0 or i > 1:
+                    raise ValueError("initial_distribution values must be between 0 and 1.")
+            if abs(1.0 - sum(initial_distribution)) > 1e-6:
+                raise ValueError("initial_distribution values must sum to 1.")
+            if len(initial_distribution) != len(values):
+                raise ValueError("initial_distribution must have the same number of entries as values.")
+
+        self.property = property
+        self.values = values
+        self.initial_distribution = initial_distribution
+
+    def to_dict(self) -> dict:
+        node_property = dict(self.parameter_dict)
+        node_property.update({"Property": self.property, "Values": self.values})
+        if self.initial_distribution:
+            node_property.update({"Initial_Distribution": self.initial_distribution})
+        return node_property
+
+    @classmethod
+    def from_dict(cls, np_dict: dict) -> '__class__':
+        return cls(property=np_dict["Property"],
+                   values=np_dict["Values"],
+                   initial_distribution=np_dict.get("Initial_Distribution"))
+
+    def __eq__(self, other) -> bool:
+        return self.to_dict() == other.to_dict()
+
+
+class NodeProperties(Updateable):
+    """
+    A container class for holding NodeProperty objects used by Node objects.
+    """
+
+    class DuplicateNodePropertyException(Exception):
+        pass
+
+    class NoSuchNodePropertyException(Exception):
+        pass
+
+    def __init__(self, node_properties: list[NodeProperty] = None):
+        super().__init__()
+        self.node_properties = [] if node_properties is None else node_properties
+
+    def add(self, node_property: NodeProperty, overwrite=False) -> None:
+        has_np = self.has_node_property(property_key=node_property.property)
+        if has_np:
+            if overwrite:
+                self.remove_node_property(property_key=node_property.property)
+            else:
+                msg = f"Property {node_property.property} already present in NodeProperties"
+                raise self.DuplicateNodePropertyException(msg)
+        self.node_properties.append(node_property)
+
+    def add_parameter(self, key, value):
+        raise NotImplementedError("A parameter cannot be added to NodeProperties.")
+
+    def has_node_property(self, property_key: str) -> bool:
+        return any(np.property == property_key for np in self.node_properties)
+
+    def get_node_property(self, property_key: str) -> NodeProperty:
+        result = next((np for np in self.node_properties if np.property == property_key), None)
+        if result is None:
+            msg = f"No NodeProperty exists with the property key: {property_key}"
+            raise self.NoSuchNodePropertyException(msg)
+        return result
+
+    def remove_node_property(self, property_key: str):
+        nps_to_keep = [np for np in self.node_properties if np.property != property_key]
+        self.node_properties = nps_to_keep
+
+    def to_dict(self) -> list[dict]:
+        return [np.to_dict() for np in self.node_properties]
+
+    def __getitem__(self, index: int):
+        return self.node_properties[index]
+
+    def __len__(self):
+        return len(self.node_properties)
+
+
 class IndividualAttributes(Updateable):
     # TODO: consider refactoring to use objects instead of a big list of potential parameters here:
     #  https://github.com/InstituteforDiseaseModeling/emod-api-old/issues/750
@@ -223,18 +327,12 @@ class IndividualAttributes(Updateable):
                  prevalence_distribution_flag: int = None,
                  prevalence_distribution1: int = None,
                  prevalence_distribution2: int = None,
-                 risk_distribution_flag: int = None,
-                 risk_distribution1: int = None,
-                 risk_distribution2: int = None,
                  migration_heterogeneity_distribution_flag: int = None,
                  migration_heterogeneity_distribution1: int = None,
                  migration_heterogeneity_distribution2: int = None,
                  fertility_distribution: FertilityDistribution = None,
                  mortality_distribution_male: MortalityDistribution = None,
                  mortality_distribution_female: MortalityDistribution = None,
-                 innate_immune_distribution_flag: int = None,
-                 innate_immune_distribution1: int = None,
-                 innate_immune_distribution2: int = None
                  ):
         """
         Defines the initial distribution of attributes for model agents for all disease setups. These are used by Node
@@ -354,16 +452,6 @@ class IndividualAttributes(Updateable):
 
         self.fertility_distribution = fertility_distribution
 
-        # risk and innate_immune are only used by malaria
-
-        self.risk_distribution_flag = risk_distribution_flag
-        self.risk_distribution1 = risk_distribution1
-        self.risk_distribution2 = risk_distribution2
-
-        self.innate_immune_distribution_flag = innate_immune_distribution_flag
-        self.innate_immune_distribution1 = innate_immune_distribution1
-        self.innate_immune_distribution2 = innate_immune_distribution2
-
     # New names for by-gender mortality distributions to support emodpy Demographics setting of all distributions
     # using the same code (see properties here).
 
@@ -454,27 +542,6 @@ class IndividualAttributes(Updateable):
             self._ensure_valid_value2_value(distribution_dict=migration_heterogeneity_distribution_dict,
                                             value2_key="MigrationHeterogeneityDistribution2")
             individual_attributes.update(migration_heterogeneity_distribution_dict)
-
-        # malaria only - possible to move this to emodpy-malaria in the future if desired.
-        if self.risk_distribution_flag is not None:
-            risk_distribution_dict = {
-                "RiskDistributionFlag": self.risk_distribution_flag,
-                "RiskDistribution1": self.risk_distribution1,
-                "RiskDistribution2": self.risk_distribution2
-            }
-            self._ensure_valid_value2_value(distribution_dict=risk_distribution_dict, value2_key="RiskDistribution2")
-            individual_attributes.update(risk_distribution_dict)
-
-        # malaria only - possible to move this to emodpy-malaria in the future if desired.
-        if self.innate_immune_distribution_flag is not None:
-            innate_immune_distribution_dict = {
-                "InnateImmuneDistributionFlag": self.innate_immune_distribution_flag,
-                "InnateImmuneDistribution1": self.innate_immune_distribution1,
-                "InnateImmuneDistribution2": self.innate_immune_distribution2
-            }
-            self._ensure_valid_value2_value(distribution_dict=innate_immune_distribution_dict,
-                                            value2_key="InnateImmuneDistribution2")
-            individual_attributes.update(innate_immune_distribution_dict)
 
         # The following distributions can only be complex, not simple
 
@@ -568,24 +635,6 @@ class IndividualAttributes(Updateable):
             self.mortality_distribution = MortalityDistribution.from_dict(distribution_dict=distribution_dict)
             implicit_functions.extend([_set_enable_natural_mortality, _set_mortality_age_gender])
 
-        # malaria only - possible to move this to emodpy-malaria in the future if desired.
-        self.innate_immune_distribution_flag = individual_attributes.get("InnateImmuneDistributionFlag", None)
-        self.innate_immune_distribution1 = individual_attributes.get("InnateImmuneDistribution1", None)
-        self.innate_immune_distribution2 = individual_attributes.get("InnateImmuneDistribution2", None)
-        if self.innate_immune_distribution_flag is not None:
-            import warnings
-            warnings.warn("InnateImmuneDistribution loaded by file. Pyrogenic vs. cytokine-killing vs NONE (ignore) is "
-                          "unknown. Config may need updating to ensure parameter Innate_Immune_Variation_Type is set "
-                          "properly.",
-                          Warning, stacklevel=2)
-
-        # malaria only - possible to move this to emodpy-malaria in the future if desired.
-        self.risk_distribution_flag = individual_attributes.get("RiskDistributionFlag", None)
-        self.risk_distribution1 = individual_attributes.get("RiskDistribution1", None)
-        self.risk_distribution2 = individual_attributes.get("RiskDistribution2", None)
-        if self.risk_distribution_flag is not None:
-            implicit_functions.append(_set_enable_demog_risk)
-
         distribution_dict = individual_attributes.get("FertilityDistribution", None)
         if distribution_dict is None:
             self.fertility_distribution = None
@@ -611,6 +660,7 @@ class NodeAttributes(Updateable):
                  larval_habitat_multiplier: Optional[list[float]] = None,
                  initial_vectors_per_species: Union[dict, int, None] = None,
                  infectivity_multiplier: float = None,
+                 node_property_values: list[str] = None,
                  extra_attributes: dict = None):
         """
         Defines node-specific attributes for all disease setups, utilized by Node objects.
@@ -635,6 +685,8 @@ class NodeAttributes(Updateable):
             initial_vectors_per_species ((dict or int), optional): The initial number of vectors per species in the
                 node.
             infectivity_multiplier (float, optional): TODO: unknown
+            node_property_values (list[str], optional): Per-node overrides for node property values.
+                Each entry is a ``"Property:Value"`` string (e.g. ``"Place:RURAL"``).
             extra_attributes (dict, optional): An arbitrary dict of attribute key/values to add to the node.
         """
         super().__init__()
@@ -651,6 +703,7 @@ class NodeAttributes(Updateable):
         self.metadata = metadata
         self.name = name
         self.infectivity_multiplier = infectivity_multiplier
+        self.node_property_values = node_property_values
         self.extra_attributes = extra_attributes
 
     def from_dict(self, node_attributes: dict):
@@ -665,11 +718,12 @@ class NodeAttributes(Updateable):
         self.latitude = node_attributes.get("Latitude")
         self.longitude = node_attributes.get("Longitude")
         self.metadata = node_attributes.get("Metadata")
-        self.name = node_attributes.get("FacilityName")
+        self.name = node_attributes.get("Name")
         self.infectivity_multiplier = node_attributes.get("InfectivityMultiplier")
+        self.node_property_values = node_attributes.get("NodePropertyValues")
 
         # Legacy keys
-        key_list = ["Airport", "Region", "Seaport"]
+        key_list = ["Airport", "Region", "Seaport", "FacilityName"]
         for key_name in key_list:
             key_val = node_attributes.get(key_name)
             if key_val is not None:
@@ -696,8 +750,8 @@ class NodeAttributes(Updateable):
         if self.initial_population is not None:
             node_attributes.update({"InitialPopulation": int(self.initial_population)})
 
-        if self.name:
-            node_attributes.update({"FacilityName": self.name})
+        if self.name is not None:
+            node_attributes.update({"Name": self.name})
 
         if self.larval_habitat_multiplier is not None:
             node_attributes.update({"LarvalHabitatMultiplier": self.larval_habitat_multiplier})
@@ -719,6 +773,9 @@ class NodeAttributes(Updateable):
 
         if self.infectivity_multiplier is not None:
             node_attributes.update({"InfectivityMultiplier": self.infectivity_multiplier})
+
+        if self.node_property_values is not None:
+            node_attributes.update({"NodePropertyValues": self.node_property_values})
 
         if self.extra_attributes is not None:
             node_attributes.update(self.extra_attributes)

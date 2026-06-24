@@ -93,7 +93,7 @@ class NodeTest(unittest.TestCase):
         node = Node(lat=0,lon=0,pop=100, individual_attributes=individual_attributes_1)
         self.assertEqual(node.to_dict()["IndividualAttributes"]["user_defined_2"], 2)
         node = Node(lat=0,lon=0,pop=100, individual_attributes=individual_attributes_2)
-        self.assertNotIn("user_defined_2", node.to_dict()["IndividualAttributes"])
+        self.assertNotIn("IndividualAttributes", node.to_dict())
 
         ips = [IndividualProperty(property='cloudy', values=["yes", "no"], initial_distribution=[0.5, 0.5])]
         individual_properties_1 = IndividualProperties(ips)
@@ -118,7 +118,7 @@ class NodeTest(unittest.TestCase):
         node_3 = Node(lat=1, lon=2, pop=100, node_attributes=node_attributes, individual_attributes=individual_attributes)
 
         self.assertEqual(node_1.to_dict()["NodeAttributes"]["Test_1"], 1)
-        self.assertTrue("Test_2" not in node_1.to_dict()["IndividualAttributes"])
+        self.assertTrue("IndividualAttributes" not in node_1.to_dict())
 
         self.assertTrue("Test_1" not in node_2.to_dict()["NodeAttributes"])
         self.assertEqual(node_2.to_dict()["IndividualAttributes"]["Test_2"], 2)
@@ -150,6 +150,32 @@ class NodeTest(unittest.TestCase):
         self.assertIsNone(node.node_attributes.birth_rate)
         node.birth_rate = 0.5
         self.assertEqual(node.birth_rate, 0.5)
+
+    def test_node_property_values_in_to_dict(self):
+        na = NodeAttributes(node_property_values=["Place:RURAL", "Risk:HIGH"])
+        node = Node(lat=0, lon=0, pop=100, node_attributes=na)
+        d = node.to_dict()
+        self.assertEqual(d["NodeAttributes"]["NodePropertyValues"], ["Place:RURAL", "Risk:HIGH"])
+
+    def test_node_property_values_not_in_dict_when_none(self):
+        node = Node(lat=0, lon=0, pop=100)
+        d = node.to_dict()
+        self.assertNotIn("NodePropertyValues", d["NodeAttributes"])
+
+    def test_node_property_values_set_directly(self):
+        node = Node(lat=0, lon=0, pop=100)
+        node.node_attributes.node_property_values = ["Place:URBAN"]
+        d = node.to_dict()
+        self.assertEqual(d["NodeAttributes"]["NodePropertyValues"], ["Place:URBAN"])
+
+    def test_node_property_values_from_data_roundtrip(self):
+        na = NodeAttributes(node_property_values=["Place:RURAL", "InterventionStatus:SPRAYED_B"])
+        node = Node(lat=1, lon=2, pop=100, forced_id=1, node_attributes=na)
+        d = node.to_dict()
+        restored_node, _ = Node.from_data(d)
+        restored_d = restored_node.to_dict()
+        self.assertEqual(d["NodeAttributes"]["NodePropertyValues"],
+                         restored_d["NodeAttributes"]["NodePropertyValues"])
 
 
 if __name__ == '__main__':
