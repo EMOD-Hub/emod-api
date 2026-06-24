@@ -50,6 +50,7 @@ class Node(Updateable):
         super().__init__()
         self.forced_id = forced_id
         self.meta = meta if meta else {}
+        # EMOD requires IndividualAttributes in every node, even if empty.
         self.individual_attributes = individual_attributes if individual_attributes else IndividualAttributes()
         self.individual_properties = individual_properties if individual_properties else IndividualProperties()
 
