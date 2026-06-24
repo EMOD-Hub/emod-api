@@ -1271,7 +1271,8 @@ class DemographicsSimpleDistributionTests(unittest.TestCase):
         self.demographics.set_age_distribution(distribution=self.distribution)
 
         self.assertEqual(self.demographics.default_node.individual_attributes.age_distribution_flag, 3)
-        self.assertEqual(self.demographics.default_node.individual_attributes.age_distribution1, 0.0001)
+        # set_age_distribution accepts years but stores days (years * 365) for EMOD
+        self.assertEqual(self.demographics.default_node.individual_attributes.age_distribution1, 0.0001 * 365)
         self.assertEqual(self.demographics.default_node.individual_attributes.age_distribution2, None)
         # Ensure potential complex distribution object is not set here
         self.assertEqual(self.demographics.default_node.individual_attributes.age_distribution, None)

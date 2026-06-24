@@ -307,6 +307,9 @@ class DemographicsBase(BaseInputFile):
         """
         from emod_api.demographics.implicit_functions import _set_birth_rate_dependence
 
+        if rate < 0:
+            raise ValueError(f"Birth rate cannot be negative. Provided rate: {rate}")
+
         if not isinstance(birth_rate_dependence, BirthRateDependence):
             try:
                 birth_rate_dependence = BirthRateDependence(birth_rate_dependence)
@@ -344,10 +347,8 @@ class DemographicsBase(BaseInputFile):
 
         Args:
             distribution: The distribution to set. Can either be a BaseDistribution object for a simple distribution
-                or AgeDistribution object for complex.
-                Note: When using BaseDistribution, the parameter ages are in days. Ex: UniformDistribution(0, 365*50) for
-                    a uniform distribution of ages between 0 and 50 years. When using AgeDistribution, the parameter
-                    ages are in years.
+                or AgeDistribution object for complex. Age parameters are in years for both distribution types.
+                Ex: UniformDistribution(0, 50) for a uniform distribution of ages between 0 and 50 years.
             node_ids: The node id(s) to apply changes to. None or 0 means the default node.
 
         Returns:
@@ -355,11 +356,22 @@ class DemographicsBase(BaseInputFile):
         """
         from emod_api.demographics.implicit_functions import _set_age_simple, _set_age_complex
 
-        self._set_distribution(distribution=distribution,
-                               use_case='age',
-                               simple_distribution_implicits=[_set_age_simple],
-                               complex_distribution_implicits=[_set_age_complex],
-                               node_ids=node_ids)
+        if isinstance(distribution, BaseDistribution):
+            # User-facing API accepts ages in years; EMOD expects days for simple age distribution in the demographics input file.
+            params = distribution.get_demographic_distribution_parameters()
+            if params["value1"] is not None:
+                params["value1"] *= 365
+            if params["value2"] is not None:
+                params["value2"] *= 365
+            nodes = self.get_nodes_by_id(node_ids=node_ids)
+            for _, node in nodes.items():
+                node._set_age_simple_distribution(**params)
+            self.implicits.append(_set_age_simple)
+        else:
+            self._set_distribution(distribution=distribution,
+                                   use_case='age',
+                                   complex_distribution_implicits=[_set_age_complex],
+                                   node_ids=node_ids)
 
     def set_susceptibility_distribution(self,
                                         distribution: Union[BaseDistribution, SusceptibilityDistribution],

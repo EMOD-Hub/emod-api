@@ -83,7 +83,7 @@ class IndividualProperty(Updateable):
             for i in initial_distribution:
                 if i < 0 or i > 1:
                     raise ValueError("initial_distribution values must be between 0 and 1.")
-            if sum(initial_distribution) != 1:
+            if abs(1.0 - sum(initial_distribution)) > 1e-6:
                 raise ValueError("initial_distribution values must sum to 1.")
             if len(initial_distribution) != len(values):
                 raise ValueError("initial_distribution must have the same number of entries as values.")
@@ -217,7 +217,7 @@ class NodeProperty(Updateable):
         A node-level property for EMOD simulations.
 
         Node properties act as labels on nodes that can be used for identifying and targeting
-        subpopulations of nodes in campaign elements and reports. For example, nodes may be given
+        subsets of nodes in campaign elements and reports. For example, nodes may be given
         a property ('Place') with values like 'Urban' or 'Rural'.
 
         Note: EMOD requires node property keys and values (property and values args) to be the
@@ -234,7 +234,7 @@ class NodeProperty(Updateable):
             for i in initial_distribution:
                 if i < 0 or i > 1:
                     raise ValueError("initial_distribution values must be between 0 and 1.")
-            if sum(initial_distribution) != 1:
+            if abs(1.0 - sum(initial_distribution)) > 1e-6:
                 raise ValueError("initial_distribution values must sum to 1.")
             if len(initial_distribution) != len(values):
                 raise ValueError("initial_distribution must have the same number of entries as values.")
@@ -244,7 +244,7 @@ class NodeProperty(Updateable):
         self.initial_distribution = initial_distribution
 
     def to_dict(self) -> dict:
-        node_property = self.parameter_dict
+        node_property = dict(self.parameter_dict)
         node_property.update({"Property": self.property, "Values": self.values})
         if self.initial_distribution:
             node_property.update({"Initial_Distribution": self.initial_distribution})
@@ -288,19 +288,15 @@ class NodeProperties(Updateable):
     def add_parameter(self, key, value):
         raise NotImplementedError("A parameter cannot be added to NodeProperties.")
 
-    @property
-    def np_by_name(self):
-        return {np.property: np for np in self.node_properties}
-
     def has_node_property(self, property_key: str) -> bool:
-        return property_key in self.np_by_name.keys()
+        return any(np.property == property_key for np in self.node_properties)
 
     def get_node_property(self, property_key: str) -> NodeProperty:
-        np = self.np_by_name.get(property_key, None)
-        if np is None:
+        result = next((np for np in self.node_properties if np.property == property_key), None)
+        if result is None:
             msg = f"No NodeProperty exists with the property key: {property_key}"
             raise self.NoSuchNodePropertyException(msg)
-        return np
+        return result
 
     def remove_node_property(self, property_key: str):
         nps_to_keep = [np for np in self.node_properties if np.property != property_key]
