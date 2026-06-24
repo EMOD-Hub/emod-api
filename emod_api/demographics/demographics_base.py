@@ -286,10 +286,10 @@ class DemographicsBase(BaseInputFile):
                 birth rate dependence setting will be applied to all nodes, regardless of which node(s) the birth
                 rate is applied to.
             birth_rate_dependence: How EMOD uses the BirthRate value.
-                Accepts a :class:`~emod_api.demographics.implicit_functions.BirthRateDependence`
+                Accepts a :class:`~emod_api.utils.emod_enum.BirthRateDependence`
                 member or its string value. Defaults to ``POPULATION_DEP_RATE``.
                 - ``FIXED_BIRTH_RATE`` — 'rate' is used as an absolute daily birth rate with which new individuals are born.
-                    units: number of births per year
+                    units: number of births per day
                 - ``POPULATION_DEP_RATE`` — 'rate' is scaled by node population to determine the daily birth rate.
                     units: number of births per 1000 people per year
                     max: 1000 (equivalent to 1 birth per year for every person in the population)
