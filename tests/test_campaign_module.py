@@ -107,21 +107,21 @@ class TestCampaignWithSchema(unittest.TestCase):
             data = json.load(f)
         self.assertDictEqual(data, self.campaign.campaign_dict)
 
-    def test_get_custom_individual_events_builtin_excluded(self):
+    def test_validate_custom_individual_events_builtin_excluded(self):
         if not self.campaign.individual_builtin_events:
             self.skipTest("No individual builtin events in schema")
         builtin_event = self.campaign.individual_builtin_events[0]
         self.campaign.get_recv_trigger(builtin_event)
-        result = self.campaign.get_custom_individual_events()
+        result = self.campaign.validate_custom_individual_events()
         self.assertNotIn(builtin_event, result)
 
-    def test_get_custom_individual_events_broadcast_mirrors_builtin_warns(self):
+    def test_validate_custom_individual_events_broadcast_mirrors_builtin_warns(self):
         if not self.campaign.individual_builtin_events:
             self.skipTest("No individual builtin events in schema")
         builtin_event = self.campaign.individual_builtin_events[0]
         self.campaign.get_send_trigger(builtin_event)
         with self.assertWarns(UserWarning):
-            self.campaign.get_custom_individual_events()
+            self.campaign.validate_custom_individual_events()
 
     def test_set_schema_populates_node_builtin_events(self):
         if not self.campaign.node_builtin_events:
@@ -244,54 +244,54 @@ class TestValidateCustomEvents(unittest.TestCase):
     def test_individual_valid_pair(self):
         self.campaign.get_recv_trigger("CustomEvt")
         self.campaign.get_send_trigger("CustomEvt")
-        result = self.campaign.get_custom_individual_events()
+        result = self.campaign.validate_custom_individual_events()
         self.assertIn("CustomEvt", result)
 
     def test_individual_listened_not_broadcast_raises(self):
         self.campaign.get_recv_trigger("OrphanedEvt")
         with self.assertRaises(ValueError):
-            self.campaign.get_custom_individual_events()
+            self.campaign.validate_custom_individual_events()
 
     def test_individual_broadcast_not_listened_warns(self):
         self.campaign.get_send_trigger("UnlistenedEvt")
         with self.assertWarns(UserWarning):
-            self.campaign.get_custom_individual_events()
+            self.campaign.validate_custom_individual_events()
 
     # --- node ---
 
     def test_node_valid_pair(self):
         self.campaign.set_listened_node_event("NodeEvt")
         self.campaign.set_broadcast_node_event("NodeEvt")
-        result = self.campaign.get_custom_node_events()
+        result = self.campaign.validate_custom_node_events()
         self.assertIn("NodeEvt", result)
 
     def test_node_listened_not_broadcast_raises(self):
         self.campaign.set_listened_node_event("OrphanedNodeEvt")
         with self.assertRaises(ValueError):
-            self.campaign.get_custom_node_events()
+            self.campaign.validate_custom_node_events()
 
     def test_node_broadcast_not_listened_warns(self):
         self.campaign.set_broadcast_node_event("UnlistenedNodeEvt")
         with self.assertWarns(UserWarning):
-            self.campaign.get_custom_node_events()
+            self.campaign.validate_custom_node_events()
 
     # --- coordinator ---
 
     def test_coordinator_valid_pair(self):
         self.campaign.set_listened_coordinator_event("CoordEvt")
         self.campaign.set_broadcast_coordinator_event("CoordEvt")
-        result = self.campaign.get_custom_coordinator_events()
+        result = self.campaign.validate_custom_coordinator_events()
         self.assertIn("CoordEvt", result)
 
     def test_coordinator_listened_not_broadcast_raises(self):
         self.campaign.set_listened_coordinator_event("OrphanedCoordEvt")
         with self.assertRaises(ValueError):
-            self.campaign.get_custom_coordinator_events()
+            self.campaign.validate_custom_coordinator_events()
 
     def test_coordinator_broadcast_not_listened_warns(self):
         self.campaign.set_broadcast_coordinator_event("UnlistenedCoordEvt")
         with self.assertWarns(UserWarning):
-            self.campaign.get_custom_coordinator_events()
+            self.campaign.validate_custom_coordinator_events()
 
     # --- builtin filtering ---
 

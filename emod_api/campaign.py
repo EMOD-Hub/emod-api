@@ -217,7 +217,7 @@ def _validate_custom_events(listened_list, broadcast_list, builtin_list, level):
     return list(broadcast)
 
 
-def get_custom_coordinator_events():
+def validate_custom_coordinator_events():
     """Validate and return deduplicated custom coordinator-level events.
 
     Returns:
@@ -231,7 +231,7 @@ def get_custom_coordinator_events():
     return _validate_custom_events(coordinator_events_listened, coordinator_events_broadcast, coordinator_builtin_events, "coordinator")
 
 
-def get_custom_node_events():
+def validate_custom_node_events():
     """Validate and return deduplicated custom node-level events.
 
     Returns:
@@ -245,7 +245,7 @@ def get_custom_node_events():
     return _validate_custom_events(node_events_listened, node_events_broadcast, node_builtin_events, "node")
 
 
-def get_custom_individual_events():
+def validate_custom_individual_events():
     """Validate and return deduplicated custom individual-level events.
 
     Returns:
@@ -263,7 +263,7 @@ def get_recv_trigger(trigger, old=use_old_adhoc_handling):
     """Register an individual-level event as listened to.
 
     Tracks which individual events are used throughout the simulation
-    so that ``get_custom_individual_events`` can validate that every
+    so that ``validate_custom_individual_events`` can validate that every
     listened-to event has a corresponding broadcast.
 
     Args:
@@ -283,7 +283,7 @@ def set_listened_node_event(event: str) -> str:
     """Register a node-level event as listened to.
 
     Tracks which node events are used throughout the simulation so
-    that ``get_custom_node_events`` can validate that every listened-to
+    that ``validate_custom_node_events`` can validate that every listened-to
     event has a corresponding broadcast.
 
     Args:
@@ -302,7 +302,7 @@ def set_listened_coordinator_event(event: str) -> str:
     """Register a coordinator-level event as listened to.
 
     Tracks which coordinator events are used throughout the simulation
-    so that ``get_custom_coordinator_events`` can validate that every
+    so that ``validate_custom_coordinator_events`` can validate that every
     listened-to event has a corresponding broadcast.
 
     Args:
@@ -337,7 +337,7 @@ def set_broadcast_node_event(event: str) -> str:
     """Register a node-level event as broadcast.
 
     Tracks which node events are used throughout the simulation so
-    that ``get_custom_node_events`` can validate that every broadcast
+    that ``validate_custom_node_events`` can validate that every broadcast
     event has something listening to it.
 
     Args:
@@ -356,7 +356,7 @@ def set_broadcast_coordinator_event(event: str) -> str:
     """Register a coordinator-level event as broadcast.
 
     Tracks which coordinator events are used throughout the simulation
-    so that ``get_custom_coordinator_events`` can validate that every
+    so that ``validate_custom_coordinator_events`` can validate that every
     broadcast event has something listening to it.
 
     Args:
