@@ -520,8 +520,6 @@ class ConfigTest(unittest.TestCase):
             # "idmType:LarvalHabitatMultiplier",  # removed by DtkTrunk #4413
             "idmType:LarvalHabitatMultiplierSpec",
             "idmType:NodeIdAndCoverage",
-            # "idmType:NodeListConfig", # Produces error
-            "idmType:NodePropertyRestrictions",
             "idmType:PropertyRestrictions",
             "idmType:RVG_AlleleCombo",
             "idmType:Responder",

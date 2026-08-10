@@ -71,6 +71,11 @@ Repository = "https://github.com/EMOD-Hub/emod-api"
 Documentation = "https://emod.idmod.org/emod-api/"
 Issues = "https://github.com/EMOD-Hub/issues-and-discussions/issues"
 
+[tool.pytest]
+markers = [
+    "unit",
+]
+
 [tool.setuptools.packages]
 find = {include = ["emod_api*"]}
 
