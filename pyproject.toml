@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "emod-api"
-version = "3.2.2"
+version = "3.2.3"
 description = "Core tools for modeling using EMOD"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -80,7 +80,7 @@ markers = [
 find = {include = ["emod_api*"]}
 
 [tool.bumpversion]
-current_version = "3.2.2"
+current_version = "3.2.3"
 commit = true
 
 [[tool.bumpversion.files]]
